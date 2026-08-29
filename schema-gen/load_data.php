@@ -1,12 +1,16 @@
 <?php
 /**
  * export_access.ps1 で出力したCSV群を、migrationと同じ列名マッピングで
- * PostgreSQL（.env の既定接続 = pgsql）へ投入する。
+ * PostgreSQL へ投入する。
  *
- * 実行: C:\xampp\php\php.exe schema-gen/load_data.php [CSVルート]
+ * 実行:
+ *   php schema-gen/load_data.php [CSVルート] [接続名]
+ *   例) php schema-gen/load_data.php C:/path/to/scratchpad          … 既定接続(pgsql)
+ *       php schema-gen/load_data.php C:/path/to/scratchpad neon     … Neon へ投入
  *
- * 旧MariaDB版との差分:
- *  - FK/トリガ抑止を SET session_replication_role = replica で行う（要スーパーユーザー）
+ * 備考:
+ *  - マイグレーションに外部キー制約は無いため、FK抑止は best-effort。
+ *    session_replication_role は Neon の非スーパーユーザーでは失敗するが無視して続行する。
  *  - 投入後に bigserial 列のシーケンスを setval で復旧する
  *  - Access Yes/No 由来の boolean 列（surveys）を明示的に正規化する
  */
@@ -19,6 +23,9 @@ $kernel->bootstrap();
 use Illuminate\Support\Facades\DB;
 
 $scratch = $argv[1] ?? 'C:/Users/user/AppData/Local/Temp/claude/C--inetpub-wwwroot-cto-asp/afb0ac0d-48b5-45c1-8098-a0c7626ea39c/scratchpad';
+$connName = $argv[2] ?? config('database.default');
+$db = DB::connection($connName);
+echo "接続: {$connName}\n";
 
 $columnOverrides = [
     'ID' => 'id', 'SiteID' => 'site_id', 'siteid' => 'site_id',
@@ -93,7 +100,11 @@ $jobs = [
     ['dir' => "$scratch/export_userdb", 'tables' => ['member'], 'truncate' => false, 'upsertKey' => 'member_id'],
 ];
 
-DB::statement("SET session_replication_role = 'replica'");
+try {
+    $db->statement("SET session_replication_role = 'replica'");
+} catch (\Throwable $e) {
+    echo "note: session_replication_role をセットできませんでした（FK制約は無いので影響なし）\n";
+}
 
 $touchedTables = [];
 $errors = [];
@@ -110,7 +121,7 @@ foreach ($jobs as $job) {
         $touchedTables[$targetTable] = true;
 
         if (!empty($job['truncate'])) {
-            DB::table($targetTable)->truncate();
+            $db->table($targetTable)->truncate();
         }
 
         $inserted = 0;
@@ -139,9 +150,9 @@ foreach ($jobs as $job) {
             try {
                 if (!empty($job['upsertKey'])) {
                     $key = $job['upsertKey'];
-                    DB::table($targetTable)->updateOrInsert([$key => $mapped[$key]], $mapped);
+                    $db->table($targetTable)->updateOrInsert([$key => $mapped[$key]], $mapped);
                 } else {
-                    DB::table($targetTable)->insert($mapped);
+                    $db->table($targetTable)->insert($mapped);
                 }
                 $inserted++;
             } catch (\Throwable $e) {
@@ -155,23 +166,27 @@ foreach ($jobs as $job) {
 // bigserial 列のシーケンスを、投入済みの最大IDに合わせる
 foreach (array_keys($touchedTables) as $t) {
     try {
-        $hasId = DB::selectOne(
+        $hasId = $db->selectOne(
             "SELECT 1 AS ok FROM information_schema.columns WHERE table_name = ? AND column_name = 'id'",
             [$t]
         );
         if (! $hasId) {
             continue;
         }
-        $seq = DB::selectOne("SELECT pg_get_serial_sequence(?, 'id') AS seq", [$t])->seq ?? null;
+        $seq = $db->selectOne("SELECT pg_get_serial_sequence(?, 'id') AS seq", [$t])->seq ?? null;
         if ($seq) {
-            DB::statement("SELECT setval(?, COALESCE((SELECT MAX(id) FROM \"{$t}\"), 1))", [$seq]);
+            $db->statement("SELECT setval(?, COALESCE((SELECT MAX(id) FROM \"{$t}\"), 1))", [$seq]);
         }
     } catch (\Throwable $e) {
         $errors[] = "seq {$t}: " . $e->getMessage();
     }
 }
 
-DB::statement("SET session_replication_role = 'origin'");
+try {
+    $db->statement("SET session_replication_role = 'origin'");
+} catch (\Throwable $e) {
+    // 上でセットできていなければ戻す必要も無い
+}
 
 if ($errors) {
     echo "\n--- エラー " . count($errors) . " 件 ---\n";

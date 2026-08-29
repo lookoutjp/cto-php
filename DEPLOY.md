@@ -6,10 +6,25 @@
 
 ## 1. 本番用データベースの作成（Neon）
 
-1. https://neon.tech でプロジェクトを作成（リージョンは利用者に近い場所）
-2. 生成された **pooled connection string** を控える。形式:
-   `postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require`
-3. `.env` には分解して設定する（下記4）。`DB_SSLMODE=require` を忘れない。
+1. https://neon.tech でプロジェクトを作成（リージョンは利用者に近い場所。無料枠でOK）
+2. ダッシュボードの「Connection string」から2つ控える:
+   - **Pooled**（`-pooler` 付きホスト）… アプリ実行時に使う
+   - **Direct**（`-pooler` なし）… `migrate` 実行時に使う（PgBouncer 経由だと稀に失敗するため）
+   形式: `postgresql://USER:PASSWORD@ep-xxxx[-pooler].REGION.aws.neon.tech/DBNAME?sslmode=require`
+
+### 1a. ローカルから Neon への疎通確認（任意）
+
+`.env` に direct のURLを入れて確認できる:
+
+```env
+NEON_DATABASE_URL=postgresql://USER:PASS@ep-xxxx.REGION.aws.neon.tech/DBNAME?sslmode=require
+```
+
+```bash
+php artisan db:neon-check              # 接続・バージョン確認
+php artisan db:neon-check --migrate    # neon 接続へ migrate
+php schema-gen/load_data.php <CSVルート> neon   # 旧データを Neon へ投入
+```
 
 ローカル開発は PostgreSQL 16 をローカルにインストールして使用（`cto_php` データベース）。
 本番との差分は `.env` のみ。
@@ -51,7 +66,7 @@ APP_URL=https://あなたのドメイン
 APP_DEFAULT_SITE=www
 
 DB_CONNECTION=pgsql
-DB_HOST=ep-xxxx-pooler.REGION.aws.neon.tech
+DB_HOST=ep-xxxx-pooler.REGION.aws.neon.tech   # アプリ実行時は pooled ホスト
 DB_PORT=5432
 DB_DATABASE=（Neonのデータベース名）
 DB_USERNAME=（Neonのユーザー名）
@@ -67,6 +82,10 @@ QUEUE_CONNECTION=database
 ```bash
 php artisan migrate --force
 ```
+
+Neon の場合、`migrate` は **direct ホスト**（`-pooler` なし）に対して実行する
+（一時的に `DB_HOST` を direct に切り替える／`NEON_DATABASE_URL` に direct を入れて
+`php artisan db:neon-check --migrate`）。migrate 完了後は pooled ホストに戻す。
 
 （`--force`は本番環境での確認プロンプトをスキップするフラグ）
 

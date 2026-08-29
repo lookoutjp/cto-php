@@ -92,9 +92,16 @@ return [
     | マルチテナントの既定サイト。CurrentSite が解決できなかった場合の
     | fallback（旧ASPの主力サイト 'www'）。
     |
+    | super_admin_member_ids: 全サイトに切り替えできるプラットフォーム運営者の
+    | member_id（カンマ区切り。例: APP_SUPER_ADMIN_MEMBER_IDS=u187,office）。
+    |
     */
 
     'default_site' => env('APP_DEFAULT_SITE', 'www'),
+
+    'super_admin_member_ids' => array_filter(
+        explode(',', (string) env('APP_SUPER_ADMIN_MEMBER_IDS', ''))
+    ),
 
     /*
     |--------------------------------------------------------------------------

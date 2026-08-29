@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\Member;
-use App\Models\Room;
 use App\Support\CurrentSite;
 use Closure;
 use Illuminate\Http\Request;
@@ -12,40 +11,49 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * リクエストごとに CurrentSite を確定させる。
  *
- *  1. session('site_id') が実在サイトなら採用
- *  2. なければログイン中 Member の所属サイト（先頭）を採用し session に保存
- *  3. どちらも無ければ未確定のまま（BelongsToSite のスコープは無効）
+ * ログイン中 Member の場合、切り替えられるサイトは accessibleSiteIds() に限る:
+ *   - スーパー管理者: 全サイト
+ *   - それ以外: member_room で所属しているサイトのみ
  *
- * 実在サイトの集合は rooms テーブル。存在しない site_id がセッションに
- * 残っている場合（サイト削除など）はクリアする。
+ * 解決順:
+ *   1. session('site_id') が「アクセス可能」なら採用
+ *   2. なければ accessibleSiteIds() の先頭を採用し session に保存
+ *   3. アクセス可能なサイトが1つも無ければ denyAll()（業務データは1件も見えない）
+ *
+ * 未ログイン（フロント）の場合はここでは何もしない。CurrentSite が
+ * 必要に応じて session / default_site から解決する。
  */
 class ResolveCurrentSite
 {
     public function handle(Request $request, Closure $next): Response
     {
         $current = app(CurrentSite::class);
+        $user = $request->user();
 
-        $validSiteIds = Room::query()->pluck('site_id')->all();
+        if (! $user instanceof Member) {
+            return $next($request);
+        }
+
+        $accessible = $user->accessibleSiteIds()->all();
+
+        if ($accessible === []) {
+            $request->session()->forget('site_id');
+            $current->denyAll();
+
+            return $next($request);
+        }
 
         $sessionSite = $request->session()->get('site_id');
-        if ($sessionSite !== null && in_array($sessionSite, $validSiteIds, true)) {
+
+        if ($sessionSite !== null && in_array($sessionSite, $accessible, true)) {
             $current->set($sessionSite);
 
             return $next($request);
         }
 
-        if ($sessionSite !== null) {
-            $request->session()->forget('site_id');
-        }
-
-        $user = $request->user();
-        if ($user instanceof Member) {
-            $memberSite = $user->rooms()->first()?->site_id;
-            if ($memberSite !== null) {
-                $current->set($memberSite);
-                $request->session()->put('site_id', $memberSite);
-            }
-        }
+        $resolved = $accessible[0];
+        $current->set($resolved);
+        $request->session()->put('site_id', $resolved);
 
         return $next($request);
     }

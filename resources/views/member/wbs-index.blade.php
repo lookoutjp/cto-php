@@ -17,7 +17,7 @@
                 <div class="flex gap-2">
                     <a href="{{ route('wbs.schedule') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">スケジュール計算</a>
                     <a href="{{ route('wbs.check') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">計画チェック</a>
-                    <a href="{{ route('wbs.create') }}" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">ルート項目を追加</a>
+                    <a href="{{ route('wbs.create') }}" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">ルート項目を追加</a>
                 </div>
             </div>
 

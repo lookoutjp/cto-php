@@ -25,7 +25,7 @@
                     <label class="block text-xs font-medium text-gray-600">名称（任意）</label>
                     <input type="text" name="label" maxlength="100" class="mt-1 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-gray-500 focus:ring-gray-500">
                 </div>
-                <button type="submit" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">追加</button>
+                <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">追加</button>
             </form>
 
             <div class="overflow-hidden rounded-lg bg-white shadow-sm">

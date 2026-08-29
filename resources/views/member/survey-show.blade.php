@@ -43,7 +43,7 @@
                         @endforeach
 
                         <div class="pt-2">
-                            <button type="submit" class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
+                            <button type="submit" class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                                 回答する
                             </button>
                         </div>
@@ -66,7 +66,7 @@
                                         <span class="tabular-nums text-gray-500">{{ $count }}票（{{ round($count / $total * 100) }}%）</span>
                                     </div>
                                     <div class="mt-1 h-2 overflow-hidden rounded bg-gray-100">
-                                        <div class="h-full rounded bg-gray-800" style="width: {{ round($count / $total * 100) }}%"></div>
+                                        <div class="h-full rounded bg-brand" style="width: {{ round($count / $total * 100) }}%"></div>
                                     </div>
                                 </li>
                             @endforeach

@@ -108,7 +108,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">
-                    <button type="submit" class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
+                    <button type="submit" class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                         {{ $mode === 'create' ? '追加する' : '更新する' }}
                     </button>
                     <a href="{{ $mode === 'edit' ? route('wbs.show', $node->id) : route('wbs.index') }}"

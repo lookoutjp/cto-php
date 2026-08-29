@@ -15,6 +15,17 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            // サイト（テナント）ごとのテーマカラー。実際の色はレイアウトが
+            // <style> で出力する CSS 変数（App\Support\ThemePalette）で決まる。
+            colors: {
+                brand: {
+                    DEFAULT: 'var(--brand, #374151)',
+                    dark: 'var(--brand-dark, #1f2937)',
+                    light: 'var(--brand-light, #9ca3af)',
+                    bg: 'var(--brand-bg, #f3f4f6)',
+                    fg: 'var(--brand-fg, #ffffff)',
+                },
+            },
         },
     },
 

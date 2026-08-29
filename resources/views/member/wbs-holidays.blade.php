@@ -31,7 +31,7 @@
             <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                 @forelse ($holidays as $h)
                     <div class="flex items-center gap-3 border-b border-gray-100 px-4 py-2 text-sm last:border-0">
-                        <span class="tabular-nums text-gray-800">{{ $h->date->locale('ja')->isoFormat('YYYY年M月D日（ddd）') }}</span>
+                        <span class="tabular-nums text-gray-800">{{ $h->date->isoFormat('YYYY年M月D日（ddd）') }}</span>
                         <span class="text-gray-500">{{ $h->label }}</span>
                         <form method="post" action="{{ route('wbs.holidays.destroy', $h->id) }}" class="ml-auto">
                             @csrf @method('DELETE')

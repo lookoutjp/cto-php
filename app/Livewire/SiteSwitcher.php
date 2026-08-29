@@ -57,7 +57,7 @@ class SiteSwitcher extends Component
         $user = auth()->user();
 
         return $user instanceof Member
-            ? $user->accessibleSiteIds()
+            ? $user->manageableSiteIds()
             : collect();
     }
 }

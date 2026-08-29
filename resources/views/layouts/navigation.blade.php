@@ -23,6 +23,12 @@
                             </x-nav-link>
                         @endif
                     @endforeach
+                    @if ($site?->hasFunction('wbsfunction'))
+                        <x-nav-link :href="route('wbs.index')" :active="request()->routeIs('wbs.*')">WBS</x-nav-link>
+                    @endif
+                    @if ($site?->hasFunction('surveyfunction'))
+                        <x-nav-link :href="route('surveys.index')" :active="request()->routeIs('surveys.*')">サーベイ</x-nav-link>
+                    @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る
                     </x-nav-link>

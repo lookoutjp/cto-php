@@ -2,18 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\BelongsToSite;
+use App\Models\Concerns\TaskModel;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wbs extends Model
 {
     use BelongsToSite;
+    use TaskModel;
+
+    public static string $taskKind = 'wbs';
+    public static ?string $taskDateColumn = 'duedate';
 
     protected $table = 'wbs';
     public $timestamps = false;
     protected $guarded = [];
+
+    protected $casts = [
+        'duedate' => 'datetime',
+        'start_date' => 'datetime',
+        'complete_date' => 'datetime',
+        'dotoday' => 'datetime',
+        'renewdate' => 'datetime',
+        'iscategory' => 'boolean',
+    ];
 
     public function parent(): BelongsTo
     {
@@ -22,7 +36,7 @@ class Wbs extends Model
 
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'father_id');
+        return $this->hasMany(self::class, 'father_id')->orderBy('junban')->orderBy('jun')->orderBy('id');
     }
 
     /**
@@ -42,5 +56,31 @@ class Wbs extends Model
                 SELECT * FROM wbs_tree
             ) as wbs', [$id])
             ->get();
+    }
+
+    /**
+     * サイトの WBS 全件から親子ツリーを組み立てて返す（ルート配列）。
+     * father_id が null / 0 のものをルートとみなす。
+     */
+    public static function tree(): \Illuminate\Support\Collection
+    {
+        $all = static::query()->notDeleted()
+            ->with(['statusMaster', 'assignee', 'team'])
+            ->orderBy('junban')->orderBy('jun')->orderBy('id')
+            ->get();
+
+        $byFather = $all->groupBy(fn ($w) => (int) $w->father_id);
+
+        $attach = function ($node) use (&$attach, $byFather) {
+            $node->setRelation('kids', ($byFather[(int) $node->id] ?? collect())->each($attach));
+
+            return $node;
+        };
+
+        return ($byFather[0] ?? collect())
+            ->merge($all->whereNull('father_id'))
+            ->unique('id')
+            ->each($attach)
+            ->values();
     }
 }

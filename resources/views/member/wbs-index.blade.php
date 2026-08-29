@@ -12,21 +12,23 @@
                 <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ session('error') }}</div>
             @endif
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-between">
+                <p class="text-xs text-gray-400">⠿ をドラッグして並び替え・階層変更ができます</p>
                 <a href="{{ route('wbs.create') }}" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">ルート項目を追加</a>
             </div>
 
-            <div class="overflow-hidden rounded-lg bg-white shadow-sm">
+            <div class="rounded-lg bg-white p-2 shadow-sm">
                 @if ($roots->isEmpty())
-                    <p class="px-5 py-8 text-center text-sm text-gray-400">WBS はまだ登録されていません。</p>
-                @else
-                    <ul class="divide-y divide-gray-100">
-                        @foreach ($roots as $node)
-                            @include('member.partials.wbs-node', ['node' => $node, 'depth' => 0])
-                        @endforeach
-                    </ul>
+                    <p class="px-3 py-8 text-center text-sm text-gray-400">WBS はまだ登録されていません。</p>
                 @endif
+                <ul id="wbs-root" class="wbs-sortable min-h-[8px]" data-parent-id="0">
+                    @foreach ($roots as $node)
+                        @include('member.partials.wbs-node', ['node' => $node])
+                    @endforeach
+                </ul>
             </div>
+
+            <p id="wbs-save-note" class="hidden text-xs text-gray-400"></p>
         </div>
     </div>
 </x-app-layout>

@@ -118,86 +118,68 @@ class WbsController extends Controller
         return redirect()->route('wbs.index')->with('status', 'WBS 項目を削除しました。');
     }
 
-    public function move(int $id, string $direction): RedirectResponse
+    /**
+     * ドラッグ&ドロップ後のツリー全体を受け取り、father_id / junban / deep を更新する。
+     * リクエスト: { nodes: [{ id, parent_id, junban }, ...] }
+     */
+    public function reorder(Request $request): \Illuminate\Http\JsonResponse
     {
         $this->ensureEnabled();
-        $node = $this->find($id);
 
-        DB::transaction(fn () => match ($direction) {
-            'up', 'down' => $this->swapSibling($node, $direction),
-            'indent' => $this->indent($node),
-            'outdent' => $this->outdent($node),
-            default => null,
+        $data = $request->validate([
+            'nodes' => ['required', 'array'],
+            'nodes.*.id' => ['required', 'integer'],
+            'nodes.*.parent_id' => ['required', 'integer'],
+            'nodes.*.junban' => ['required', 'integer'],
+        ]);
+
+        $siteNodeIds = Wbs::query()->notDeleted()->pluck('id')->all();
+        $incoming = collect($data['nodes'])
+            ->filter(fn ($n) => in_array($n['id'], $siteNodeIds, true))
+            ->keyBy('id');
+
+        // 循環（自分の子孫を親にする）を検出したら拒否
+        foreach ($incoming as $node) {
+            $cursor = $node['parent_id'];
+            $guard = 0;
+            while ($cursor !== 0 && $guard++ < 1000) {
+                if ($cursor === $node['id']) {
+                    return response()->json(['message' => '循環する階層は設定できません。'], 422);
+                }
+                $cursor = $incoming[$cursor]['parent_id'] ?? 0;
+            }
+        }
+
+        DB::transaction(function () use ($incoming) {
+            foreach ($incoming as $n) {
+                Wbs::query()->whereKey($n['id'])->update([
+                    'father_id' => $n['parent_id'],
+                    'junban' => $n['junban'],
+                ]);
+            }
+            // deep をルートから振り直す
+            $this->reindexTreeDeep();
         });
 
-        return redirect()->route('wbs.index');
+        return response()->json(['ok' => true]);
     }
 
-    // --- 並び替えの実装 -------------------------------------------------
-
-    private function siblings(Wbs $node)
+    private function reindexTreeDeep(): void
     {
-        return Wbs::query()->notDeleted()
-            ->where('father_id', (int) $node->father_id)
-            ->orderBy('junban')->orderBy('id')->get();
-    }
+        $all = Wbs::query()->notDeleted()->get(['id', 'father_id']);
+        $byFather = $all->groupBy(fn ($w) => (int) $w->father_id);
 
-    private function swapSibling(Wbs $node, string $direction): void
-    {
-        $sibs = $this->siblings($node);
-        $i = $sibs->search(fn ($s) => $s->id === $node->id);
-        $j = $direction === 'up' ? $i - 1 : $i + 1;
-        if ($j < 0 || $j >= $sibs->count()) {
-            return;
-        }
-        $other = $sibs[$j];
-        [$node->junban, $other->junban] = [$other->junban, $node->junban];
-        $node->renewdate = now();
-        $node->save();
-        $other->save();
-    }
-
-    private function indent(Wbs $node): void
-    {
-        $sibs = $this->siblings($node);
-        $i = $sibs->search(fn ($s) => $s->id === $node->id);
-        if ($i <= 0) {
-            return; // 先頭はインデント不可
-        }
-        $newParent = $sibs[$i - 1];
-        $node->father_id = $newParent->id;
-        $node->junban = (int) Wbs::query()->notDeleted()->where('father_id', $newParent->id)->max('junban') + 1;
-        $this->reindexDeep($node, ($newParent->deep ?? 0) + 1);
-        $node->renewdate = now();
-        $node->save();
-    }
-
-    private function outdent(Wbs $node): void
-    {
-        if (! $node->father_id) {
-            return; // すでにルート
-        }
-        $parent = $this->find((int) $node->father_id);
-        $node->father_id = (int) $parent->father_id;
-        $node->junban = ($parent->junban ?? 0) + 1;
-        // 親より後ろの兄弟を1つずつ後ろへずらす
-        Wbs::query()->notDeleted()
-            ->where('father_id', (int) $parent->father_id)
-            ->where('junban', '>', $parent->junban)
-            ->where('id', '!=', $node->id)
-            ->increment('junban');
-        $this->reindexDeep($node, max(1, ($parent->deep ?? 1) - 1 + 1));
-        $node->renewdate = now();
-        $node->save();
-    }
-
-    /** 自身と子孫の deep を付け直す。 */
-    private function reindexDeep(Wbs $node, int $deep): void
-    {
-        $node->deep = $deep;
-        foreach (Wbs::query()->notDeleted()->where('father_id', $node->id)->get() as $child) {
-            $this->reindexDeep($child, $deep + 1);
-            $child->save();
+        $walk = function ($fatherId, $deep) use (&$walk, $byFather) {
+            foreach ($byFather[$fatherId] ?? [] as $node) {
+                Wbs::query()->whereKey($node->id)->update(['deep' => $deep]);
+                $walk((int) $node->id, $deep + 1);
+            }
+        };
+        $walk(0, 1);
+        // father_id が null のルートも
+        foreach ($all->whereNull('father_id') as $node) {
+            Wbs::query()->whereKey($node->id)->update(['deep' => 1]);
+            $walk((int) $node->id, 2);
         }
     }
 

@@ -59,8 +59,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/wbs/{id}/edit', [WbsController::class, 'edit'])->whereNumber('id')->name('wbs.edit');
         Route::put('/wbs/{id}', [WbsController::class, 'update'])->whereNumber('id')->name('wbs.update');
         Route::delete('/wbs/{id}', [WbsController::class, 'destroy'])->whereNumber('id')->name('wbs.destroy');
-        Route::post('/wbs/{id}/move/{direction}', [WbsController::class, 'move'])
-            ->whereNumber('id')->whereIn('direction', ['up', 'down', 'indent', 'outdent'])->name('wbs.move');
+        Route::post('/wbs/reorder', [WbsController::class, 'reorder'])->name('wbs.reorder');
 
         // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp
         Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');

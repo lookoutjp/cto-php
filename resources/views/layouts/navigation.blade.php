@@ -37,6 +37,9 @@
                         @if ($site->hasFunction('memberlistfunction'))
                             <x-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">メンバー</x-nav-link>
                         @endif
+                        @if ($site->hasFunction('dengonfunction'))
+                            <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">メッセージ</x-nav-link>
+                        @endif
                     @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る

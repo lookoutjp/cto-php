@@ -13,19 +13,33 @@
 
 | ファイル | 役割 |
 |---|---|
-| `app/Support/CurrentSite.php` | 現在アクティブなサイトを保持するシングルトン。旧 `Session("yhl.SiteID")` 相当 |
-| `app/Models/Concerns/BelongsToSite.php` | 業務モデル用トレイト。読み取りをグローバルスコープで絞り、作成時に `site_id` を自動セット |
-| `config/app.php` の `default_site` | `CurrentSite` が解決できないときの fallback（`APP_DEFAULT_SITE`、既定 `www`） |
+| `app/Support/CurrentSite.php` | 現在アクティブなサイトを保持するシングルトン。旧 `Session("yhl.SiteID")` 相当。`denyAll()` で「1件も見せない」状態にできる |
+| `app/Models/Concerns/BelongsToSite.php` | 業務モデル用トレイト。読み取りをグローバルスコープで絞り、作成時に `site_id` を自動セット。`deniesAll()` 時は `1=0` |
+| `app/Models/Member.php` | `accessibleSiteIds()`（切替可能サイト一覧）、`isSuperAdmin()`、`managesSite()`（旧 ninshou=-1） |
+| `config/app.php` の `default_site` / `super_admin_member_ids` | fallback サイト（`APP_DEFAULT_SITE`、既定 `www`）／ 全サイト切替できる運営者の member_id（`APP_SUPER_ADMIN_MEMBER_IDS`、カンマ区切り） |
 | `database/migrations/2026_08_30_000000_add_site_id_to_tenant_tables.php` | 35テーブルへの `site_id` 追加 + 既存行を `www` でバックフィル |
-| `app/Http/Middleware/ResolveCurrentSite.php` | リクエストごとに `session('site_id')`→Member所属サイトの順で `CurrentSite` を確定。web グループ全体 + Filamentパネルの authMiddleware に登録済み |
-| `app/Livewire/SiteSwitcher.php` + `resources/views/livewire/site-switcher.blade.php` | Filament管理画面トップバーのサイト切替セレクタ。`rooms` 全件を出し、選択で `session('site_id')` を更新して画面をフルリロード。サイトが1つのときは非表示 |
+| `app/Http/Middleware/ResolveCurrentSite.php` | ログイン中 Member について `session('site_id')`（accessibleSiteIds に含まれる場合のみ）→ 先頭サイト の順で `CurrentSite` を確定。所属サイトが無ければ `denyAll()`。web グループ全体 + Filamentパネルの authMiddleware に登録済み |
+| `app/Livewire/SiteSwitcher.php` + `resources/views/livewire/site-switcher.blade.php` | Filament管理画面トップバーのサイト切替セレクタ。**候補は `Member::accessibleSiteIds()` に限定**（所属サイトのみ／スーパー管理者は全サイト）。選択で `session('site_id')` 更新 + フルリロード。候補が1つ以下のときは非表示 |
 
 ## CurrentSite の解決順
 
-1. 明示的に `set()` された値（Filamentのサイト切替、コンソール等）
+通常は `ResolveCurrentSite` ミドルウェアがリクエスト開始時に `set()` する。
+明示的に未設定のまま参照された場合のフォールバック:
+
+1. 明示的に `set()` された値（サイト切替、コンソール等）
 2. `session('site_id')`
-3. ログイン中 `Member` が所属する最初のサイト（`member_room`）
+3. ログイン中 `Member` の `accessibleSiteIds()` の先頭
 4. 未確定（`idOrNull()` が null）→ **スコープ無効**（全サイトが見える）。`id()` は `default_site` を返す
+
+`denyAll()` 状態（所属サイトの無いログインユーザー）のときは上記に関わらず1件も返さない。
+
+## 権限モデル（旧ASP ninshou の対応）
+
+- `member_room.ninshou`: `-1` = そのサイトの管理員、`0`/`1` = 一般権限レベル（旧ASP `isManager` は `ninshou == -1`）
+- 切替可能サイト = `Member::accessibleSiteIds()`
+  - スーパー管理者（`config('app.super_admin_member_ids')`）: `rooms` 全件
+  - それ以外: `member_room` で所属しているサイトのみ（ninshou は問わない）
+- 想定挙動: 所属1サイトのみ → 切替UIは出ない。所属0 → 業務データは1件も見えない（`denyAll`）
 
 ## 使い方
 
@@ -45,10 +59,11 @@ app(\App\Support\CurrentSite::class)->set('demo');
 
 ## 未対応（次のステップ）
 
-- **サイト切替の権限制御**: 現状ログイン中の Member は `rooms` 全件に切り替えられる。
-  本来は「所属サイト（`member_room`）のみ」または「スーパー管理者のみ全サイト」に絞るべき。
-  `SiteSwitcher::render()` / `updatedSiteId()` の候補一覧と、`ResolveCurrentSite` の検証を
-  Member の所属で絞る。
+- **`/admin` そのものへのアクセス制御**: 現状 `local` 環境ではログインできる Member なら誰でも
+  Filament 管理画面に入れる（`FilamentUser` 契約未実装）。本番前に「管理員（ninshou=-1）または
+  スーパー管理者のみ」等のゲートを `Member::canAccessPanel()` で実装する。
+- **管理画面内のリソース単位の権限**: サイト内での編集可否（旧 `admin_kengen.asp` 相当）は未実装。
+  Filament の Policy で `Member::managesSite()` を使う想定。
 - **`site_id` の NOT NULL 化**: 全テナント投入後に別マイグレーションで。
 - **他テナント（demo / miraipm）のデータ投入**: `schema-gen/load_data.php` にジョブを追加。
 - **`Wbs::descendantsOf()` の再帰CTE**: 外側クエリのグローバルスコープで結果的に絞られているが、

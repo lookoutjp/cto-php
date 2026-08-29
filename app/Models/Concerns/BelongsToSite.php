@@ -21,10 +21,18 @@ trait BelongsToSite
     public static function bootBelongsToSite(): void
     {
         static::addGlobalScope('site', function (Builder $builder) {
-            $siteId = app(CurrentSite::class)->idOrNull();
+            $current = app(CurrentSite::class);
+            $model = $builder->getModel();
+
+            if ($current->deniesAll()) {
+                $builder->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $siteId = $current->idOrNull();
 
             if ($siteId !== null) {
-                $model = $builder->getModel();
                 $builder->where($model->getTable().'.site_id', $siteId);
             }
         });

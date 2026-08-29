@@ -16,12 +16,13 @@
                 {{ $site?->sitename ?? config('app.name') }}
             </a>
             <nav class="flex items-center gap-1 text-sm">
-                @php($nav = [
+                @php($nav = array_filter([
                     ['home', 'ホーム'],
                     ['news.index', 'ニュース'],
                     ['contents.index', 'コンテンツ'],
                     ['faq.index', 'FAQ'],
-                ])
+                    $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
+                ]))
                 @foreach ($nav as [$routeName, $label])
                     <a href="{{ route($routeName) }}"
                        @class([

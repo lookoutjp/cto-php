@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\ContentController;
 use App\Http\Controllers\Public\FaqController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\InquiryController;
 use App\Http\Controllers\Public\NewsController;
 use App\Livewire\Public\NewsIndex;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,10 @@ Route::get('/contents', [ContentController::class, 'index'])->name('contents.ind
 Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
 
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+
+Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
+Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
+Route::get('/contact/thanks', [InquiryController::class, 'thanks'])->name('contact.thanks');
 
 // ---- 会員（Breeze）----
 // Mypage（旧 Mypage.asp）: ログイン後の入口。route 名は Breeze 互換のため 'dashboard' のまま。

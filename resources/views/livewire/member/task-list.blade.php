@@ -1,12 +1,24 @@
 <div class="py-8">
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
+        @if (session('status'))
+            <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('status') }}</div>
+        @endif
+
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-xl font-bold text-gray-900">{{ $tk->label }}一覧</h1>
-            <a href="{{ route('tasks.create', $tk->slug) }}"
-               class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
-                新規起票
-            </a>
+            <div class="flex items-center gap-2">
+                @if ($tk->slug === 'routinework')
+                    <a href="{{ route('routinework.generate') }}"
+                       class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        マスターから生成
+                    </a>
+                @endif
+                <a href="{{ route('tasks.create', $tk->slug) }}"
+                   class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
+                    新規起票
+                </a>
+            </div>
         </div>
 
         <div class="mb-4 flex flex-wrap gap-2">

@@ -35,6 +35,12 @@
                     if ($tk->has('team')) $rows[] = ['主管チーム', optional($task->team)->levelname ?? '未設定'];
                     if ($tk->has('responsible')) $rows[] = ['責任者', $task->responsible_party ?: '—'];
                     if ($tk->has('approver')) $rows[] = ['承認者', optional(\App\Models\Member::find($task->approver))->name ?? ($task->approver ?: '—')];
+                    if ($tk->has('changedetail')) {
+                        $rows[] = ['発生日', optional($task->occurrence_day)->isoFormat('YYYY年M月D日') ?? '—'];
+                        $rows[] = ['工数見積', filled($task->hour_estimation) ? $task->hour_estimation.' 時間' : '—'];
+                        $rows[] = ['判定結果', ['ok' => '承認', 'no' => '却下'][$task->judge_result] ?? '未判定'];
+                        $rows[] = ['完了日', optional($task->done_day)->isoFormat('YYYY年M月D日') ?? '—'];
+                    }
                     $rows[] = ['起票者', optional($task->creator)->name ?? $task->maker ?? '—'];
                     $rows[] = ['更新日', optional($task->renewdate)->isoFormat('YYYY年M月D日') ?? '—'];
                 @endphp
@@ -62,6 +68,11 @@
                 if ($tk->has('content')) $panels['内容'] = $task->content;
                 if ($tk->has('situation')) $panels['状況'] = $task->situation;
                 if ($tk->has('criteria')) $panels['完了基準'] = $task->completioncriteria;
+                if ($tk->has('changedetail')) {
+                    $panels['影響範囲'] = $task->scope_of_impact;
+                    $panels['対応内容'] = $task->do_content;
+                    $panels['却下理由'] = $task->ng_reason;
+                }
             @endphp
             @foreach ($panels as $label => $body)
                 @if (filled($body))

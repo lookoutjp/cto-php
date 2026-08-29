@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\ChangeRequest;
 use App\Models\Problem;
 use App\Models\Risk;
 use App\Models\Room;
@@ -35,6 +36,7 @@ class TaskDashboard
         'problem' => Problem::class,
         'risk' => Risk::class,
         'wbs' => Wbs::class,
+        'change' => ChangeRequest::class,
     ];
 
     private const LABELS = [
@@ -42,6 +44,7 @@ class TaskDashboard
         'problem' => '課題',
         'risk' => 'リスク',
         'wbs' => 'WBS',
+        'change' => '変更管理',
         'routinework' => '定例作業',
     ];
 
@@ -51,6 +54,7 @@ class TaskDashboard
         'problem' => 'problemfunction',
         'risk' => 'riskfunction',
         'wbs' => 'wbsfunction',
+        'change' => 'changefunction',
         'routinework' => 'routineworkfunction',
     ];
 

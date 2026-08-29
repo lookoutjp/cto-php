@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\ChangeRequest;
 use App\Models\Problem;
 use App\Models\Product;
 use App\Models\Risk;
@@ -44,6 +45,11 @@ class TaskKind
             'label' => '定例作業', 'model' => RoutineWorkList::class, 'function' => 'routineworkfunction',
             'date_label' => '実施日',
             'features' => ['date', 'team', 'situation', 'criteria', 'content', 'today'],
+        ],
+        'change' => [
+            'label' => '変更管理', 'model' => ChangeRequest::class, 'function' => 'changefunction',
+            'date_label' => '期限',
+            'features' => ['date', 'team', 'approver', 'content', 'stage', 'today', 'changedetail'],
         ],
     ];
 

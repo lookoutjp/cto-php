@@ -34,6 +34,9 @@
                         @if ($site->hasFunction('freeguestbookfunction'))
                             <x-nav-link :href="route('board.index')" :active="request()->routeIs('board.*')">掲示板</x-nav-link>
                         @endif
+                        @if ($site->hasFunction('memberlistfunction'))
+                            <x-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">メンバー</x-nav-link>
+                        @endif
                     @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る

@@ -42,6 +42,17 @@ class Room extends Model
     }
 
     /**
+     * サイトで機能フラグが有効か（旧ASP checkfunction_F / rooms.function_list）。
+     * function_list は "flagA,flagB,flagC," のようなカンマ区切り文字列。
+     */
+    public function hasFunction(string $flag): bool
+    {
+        $list = ','.str_replace(' ', '', (string) $this->function_list).',';
+
+        return str_contains($list, ','.$flag.',');
+    }
+
+    /**
      * このサイト(テナント)に所属する会員一覧。
      */
     public function members(): BelongsToMany

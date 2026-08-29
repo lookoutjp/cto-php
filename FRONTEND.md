@@ -39,6 +39,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/contents/{id}` | `Public\ContentController@show` | ContentDetail.asp | 本文HTML。非公開/非公開カテゴリ/他サイトは404。clicks++ |
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
 | `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
+| `/contact` `/contact/thanks` | `Public\InquiryController` | otoi.asp / otoi2 / otoi3 | お問い合わせフォーム。会員はプロフィールから自動入力。保存（`inquiries`、`site_id` 自動）＋ 受付確認メール（本人）＋ 新着通知メール（`rooms.site_mail`）。番号は `T{id}`。`rooms.function_list` に `otoiawasefunction` が無いサイトは 404（nav リンクも非表示） |
 
 ## モデルのスコープ
 
@@ -50,8 +51,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 - 会員登録・ログイン画面の日本語化（Breeze 雛形のまま英語）
 - Mypage の数値からのドリルダウン（旧ASP は `todo.asp?view=mynew` 等へリンク。会員向け業務画面がまだ無いのでリンクは未実装）
-- `checkfunction_F` 相当（サイトごとに機能 ON/OFF）— 現状 Mypage は全パネル表示
-- お問い合わせ（`otoi.asp` → `inquiries`）: フォーム送信
+- `checkfunction_F` 相当は `Room::hasFunction()` として実装済み（お問い合わせで使用）。
+  Mypage・その他ページへの適用は未（現状 Mypage は全パネル表示）
+- お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
 - 業務系（todo / Risk / Problem / Product / RoutineWork / Change / wbs / Survey）の会員向け画面
 - コンテンツへのコメント（`content_comments`）、掲示板（`guestbooks`）
 - カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）

@@ -97,6 +97,11 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Neon など PgBouncer(transaction pooling)経由で接続するときは
+            // サーバサイドのprepared statementが使えないため DB_EMULATE_PREPARES=true にする。
+            'options' => array_filter([
+                PDO::ATTR_EMULATE_PREPARES => env('DB_EMULATE_PREPARES', false) ? true : null,
+            ], fn ($v) => $v !== null),
         ],
 
         // Neon（サーバーレスPostgres）専用の接続。

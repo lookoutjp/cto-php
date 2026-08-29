@@ -124,7 +124,7 @@ foreach ($jobs as $job) {
             $db->table($targetTable)->truncate();
         }
 
-        $inserted = 0;
+        $mappedRows = [];
         foreach ($rows as $row) {
             $mapped = [];
             foreach ($row as $col => $val) {
@@ -147,16 +147,37 @@ foreach ($jobs as $job) {
                 $mapped['site_id'] = $job['siteId'];
             }
 
-            try {
-                if (!empty($job['upsertKey'])) {
-                    $key = $job['upsertKey'];
+            $mappedRows[] = $mapped;
+        }
+
+        $inserted = 0;
+        if (!empty($job['upsertKey'])) {
+            $key = $job['upsertKey'];
+            foreach ($mappedRows as $mapped) {
+                try {
                     $db->table($targetTable)->updateOrInsert([$key => $mapped[$key]], $mapped);
-                } else {
-                    $db->table($targetTable)->insert($mapped);
+                    $inserted++;
+                } catch (\Throwable $e) {
+                    $errors[] = "{$targetTable}: " . $e->getMessage();
                 }
-                $inserted++;
-            } catch (\Throwable $e) {
-                $errors[] = "{$targetTable}: " . $e->getMessage();
+            }
+        } else {
+            // まとめて bulk insert（Neon など遠隔DBでの往復回数を減らす）。
+            // 失敗チャンクは1行ずつ再試行してエラー箇所を特定する。
+            foreach (array_chunk($mappedRows, 200) as $chunk) {
+                try {
+                    $db->table($targetTable)->insert($chunk);
+                    $inserted += count($chunk);
+                } catch (\Throwable $e) {
+                    foreach ($chunk as $mapped) {
+                        try {
+                            $db->table($targetTable)->insert($mapped);
+                            $inserted++;
+                        } catch (\Throwable $e2) {
+                            $errors[] = "{$targetTable}: " . $e2->getMessage();
+                        }
+                    }
+                }
             }
         }
         echo "{$srcTable} -> {$targetTable} : {$inserted}/" . count($rows) . " rows\n";

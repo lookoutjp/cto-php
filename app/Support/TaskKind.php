@@ -23,17 +23,17 @@ class TaskKind
         'todo' => [
             'label' => 'TODO', 'model' => Todo::class, 'function' => 'todofunction',
             'date_label' => '期限',
-            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content', 'today'],
         ],
         'problem' => [
             'label' => '課題', 'model' => Problem::class, 'function' => 'problemfunction',
             'date_label' => '期限',
-            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content', 'today'],
         ],
         'risk' => [
             'label' => 'リスク', 'model' => Risk::class, 'function' => 'riskfunction',
             'date_label' => '期限',
-            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content', 'today'],
         ],
         'product' => [
             'label' => '成果物', 'model' => Product::class, 'function' => 'productfunction',
@@ -43,7 +43,7 @@ class TaskKind
         'routinework' => [
             'label' => '定例作業', 'model' => RoutineWorkList::class, 'function' => 'routineworkfunction',
             'date_label' => '実施日',
-            'features' => ['date', 'team', 'situation', 'criteria', 'content'],
+            'features' => ['date', 'team', 'situation', 'criteria', 'content', 'today'],
         ],
     ];
 

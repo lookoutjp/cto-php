@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Member;
 
+use App\Models\Member;
+use App\Models\MemberRoom;
 use App\Models\Room;
+use App\Models\StatusMaster;
 use App\Support\CurrentSite;
 use App\Support\TaskKind;
 use Illuminate\Contracts\View\View;
@@ -93,6 +96,64 @@ class TaskList extends Component
         $this->resetPage();
     }
 
+    /** 一覧から担当者・ステータスをその場で変更する。 */
+    public function quickUpdate(int $taskId, string $field, ?string $value): void
+    {
+        $tk = TaskKind::fromSlug($this->kind);
+        $task = $tk->query()->notDeleted()->find($taskId);
+        if (! $task) {
+            return;
+        }
+
+        if ($field === 'status') {
+            $ok = StatusMaster::query()
+                ->whereRaw('lower(kind) = ?', [strtolower($tk->statusKind())])
+                ->where('id', $value)->exists();
+            if (! $ok) {
+                return;
+            }
+            $task->status = (int) $value;
+        } elseif ($field === 'person_do') {
+            $value = $value ?: null;
+            if ($value !== null && ! in_array($value, $this->siteMemberIds(), true)) {
+                return;
+            }
+            $task->person_do = $value;
+        } else {
+            return;
+        }
+
+        $task->renewdate = now();
+        $task->save();
+    }
+
+    /** ✪ 本日のタスクトグル（dotoday を今日 <-> null）。 */
+    public function toggleToday(int $taskId): void
+    {
+        $tk = TaskKind::fromSlug($this->kind);
+        if (! $tk->has('today')) {
+            return;
+        }
+
+        $task = $tk->query()->notDeleted()->find($taskId);
+        if (! $task) {
+            return;
+        }
+
+        $isToday = $task->dotoday !== null && $task->dotoday->isToday();
+        $task->dotoday = $isToday ? null : now()->startOfDay();
+        $task->renewdate = now();
+        $task->save();
+    }
+
+    /** @return array<int, string> */
+    private function siteMemberIds(): array
+    {
+        return MemberRoom::query()
+            ->where('site_id', app(CurrentSite::class)->id())
+            ->pluck('member_id')->all();
+    }
+
     public function render(): View
     {
         $tk = TaskKind::fromSlug($this->kind);
@@ -120,6 +181,12 @@ class TaskList extends Component
         return view('livewire.member.task-list', [
             'tk' => $tk,
             'tasks' => $tasks,
+            'statusOptions' => StatusMaster::query()
+                ->whereRaw('lower(kind) = ?', [strtolower($tk->statusKind())])
+                ->orderBy('junban')->get(['id', 'statusname', 'percent']),
+            'memberOptions' => Member::query()
+                ->whereIn('member_id', $this->siteMemberIds())
+                ->orderBy('name')->get(['member_id', 'name']),
         ])->layout('layouts.app');
     }
 }

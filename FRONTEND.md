@@ -95,8 +95,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - レコード単位のアクセス制御（旧ASP同様「参加者なら誰でも編集可」を踏襲。person_do/maker ベースの制限を入れるかは要検討）
 - Mypage 集計 → 一覧のドリルダウンは todo/problem/risk のみ（wbs は一覧未実装、routineGrid のリンクも未）
 - 一覧の即時編集は status / person_do / dotoday のみ。期限・チーム等は詳細の編集フォームから
-- `checkfunction_F` 相当は `Room::hasFunction()`。お問い合わせ・タスク一覧の nav / 404 で使用。
-  Mypage 本体のパネル出し分けはまだ（全パネル表示）
+- `checkfunction_F` 相当は `Room::hasFunction()`。nav / 404 のほか、**Mypage 本体も
+  `TaskDashboard::enabledKinds()`（todo/problem/risk/wbs/routinework の各 `*function`）で
+  パネル・行を出し分け**。全機能オフのサイトでは案内文のみ
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
 - カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）
 - 画像・添付（`files`）→ S3/R2 前提なので後回し

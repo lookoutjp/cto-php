@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\StatusMaster;
 use App\Models\Wbs;
 use App\Support\CurrentSite;
+use App\Support\WbsScheduler;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -89,6 +90,107 @@ class WbsController extends Controller
             })->values();
 
         return view('member.wbs-check', ['rows' => $rows]);
+    }
+
+    /**
+     * スケジュール計算（CPM）のプレビュー。旧ASP には無い新機能。
+     * 先行→後続の Finish-to-Start で各リーフの最早開始/完了を計算し、
+     * 現在の日付と並べて表示。クリティカルパスも算出。
+     */
+    public function schedule(Request $request): View
+    {
+        $this->ensureEnabled();
+
+        $all = Wbs::query()->notDeleted()->get();
+        $rootId = $request->integer('root') ?: null;
+        $scopeIds = $rootId ? $this->subtreeIds($all, $rootId) : $all->pluck('id')->all();
+
+        try {
+            $result = (new WbsScheduler($all))->compute();
+            $error = null;
+        } catch (\Throwable $e) {
+            $result = null;
+            $error = $e->getMessage();
+        }
+
+        $display = $all->whereIn('id', $scopeIds)
+            ->sortBy([['deep', 'asc'], ['junban', 'asc']])->values();
+
+        return view('member.wbs-schedule', [
+            'all' => $display,
+            'result' => $result,
+            'error' => $error,
+            'rootId' => $rootId,
+            'rootTitle' => $rootId ? optional($all->firstWhere('id', $rootId))->title : null,
+        ]);
+    }
+
+    /**
+     * 計算結果を wbs.godate / wbs.duedate に書き戻す。
+     */
+    public function applySchedule(Request $request): RedirectResponse
+    {
+        $this->ensureEnabled();
+
+        $all = Wbs::query()->notDeleted()->get();
+        $rootId = $request->integer('root') ?: null;
+        $scopeIds = $rootId ? $this->subtreeIds($all, $rootId) : $all->pluck('id')->all();
+
+        try {
+            $result = (new WbsScheduler($all))->compute();
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $updateSummaries = $request->boolean('update_summaries');
+        $count = 0;
+
+        DB::transaction(function () use ($result, $updateSummaries, $scopeIds, &$count) {
+            foreach ($result['nodes'] as $id => $n) {
+                if ($n['es'] === null || ! in_array($id, $scopeIds, true)) {
+                    continue;
+                }
+                Wbs::query()->whereKey($id)->update([
+                    'godate' => $n['es']->toDateString(),
+                    'duedate' => $n['ef']->toDateString(),
+                    'renewdate' => now(),
+                ]);
+                $count++;
+            }
+
+            if ($updateSummaries) {
+                foreach ($result['rollup'] as $id => $r) {
+                    if ($r['start'] === null || ! in_array($id, $scopeIds, true)) {
+                        continue;
+                    }
+                    Wbs::query()->whereKey($id)->update([
+                        'godate' => $r['start']->toDateString(),
+                        'duedate' => $r['end']->toDateString(),
+                        'renewdate' => now(),
+                    ]);
+                    $count++;
+                }
+            }
+        });
+
+        return redirect()->route('wbs.schedule', $rootId ? ['root' => $rootId] : [])
+            ->with('status', "{$count} 件の日付を更新しました。");
+    }
+
+    /** @return list<int> $rootId とその全子孫の id（自身を含む） */
+    private function subtreeIds(\Illuminate\Support\Collection $all, int $rootId): array
+    {
+        $byFather = $all->groupBy(fn ($w) => (int) $w->father_id);
+        $out = [$rootId];
+        $walk = function ($id) use (&$walk, $byFather, &$out) {
+            foreach ($byFather[(int) $id] ?? [] as $child) {
+                $out[] = (int) $child->id;
+                $walk($child->id);
+            }
+        };
+        $walk($rootId);
+
+        return $out;
     }
 
     public function create(Request $request): View

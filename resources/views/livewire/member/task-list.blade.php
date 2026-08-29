@@ -46,27 +46,42 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($tasks as $task)
-                            <tr class="hover:bg-gray-50">
+                            <tr wire:key="task-{{ $task->id }}" class="hover:bg-gray-50">
                                 <td class="whitespace-nowrap px-3 py-2 text-gray-500">{{ $task->id }}</td>
                                 <td class="px-3 py-2">
-                                    <a href="{{ route('tasks.show', [$tk->slug, $task->id]) }}"
-                                       class="font-medium text-gray-900 hover:underline">{{ $task->title }}</a>
+                                    <div class="flex items-center gap-1.5">
+                                        @if ($tk->has('today'))
+                                            @php($isToday = $task->dotoday && $task->dotoday->isToday())
+                                            <button type="button" wire:click="toggleToday({{ $task->id }})"
+                                                    title="{{ $isToday ? '本日のタスクから外す' : '本日のタスクにする' }}"
+                                                    class="shrink-0 text-sm {{ $isToday ? 'text-amber-500' : 'text-gray-300 hover:text-amber-400' }}">✪</button>
+                                        @endif
+                                        <a href="{{ route('tasks.show', [$tk->slug, $task->id]) }}"
+                                           class="font-medium text-gray-900 hover:underline">{{ $task->title }}</a>
+                                    </div>
                                     @if ($task->content)
                                         <p class="mt-0.5 max-w-md truncate text-xs text-gray-400">{{ \Illuminate\Support\Str::limit(strip_tags($task->content), 60) }}</p>
                                     @endif
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->categoryModel)->categoryname ?? '—' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2">
-                                    @php($st = optional($task->statusMaster))
-                                    <span @class([
-                                        'rounded px-1.5 py-0.5 text-xs',
-                                        'bg-gray-100 text-gray-600' => (int) $st->percent === 0,
-                                        'bg-blue-100 text-blue-700' => $st->percent > 0 && $st->percent < 100,
-                                        'bg-green-100 text-green-700' => (int) $st->percent === 100,
-                                        'bg-amber-100 text-amber-700' => in_array((int) $st->percent, [-1, -2], true),
-                                    ])>{{ $st->statusname ?? '—' }}</span>
+                                    <select wire:change="quickUpdate({{ $task->id }}, 'status', $event.target.value)"
+                                            class="rounded border-gray-200 bg-white py-1 pe-7 ps-2 text-xs text-gray-700 focus:border-gray-400 focus:ring-0">
+                                        <option value="">—</option>
+                                        @foreach ($statusOptions as $opt)
+                                            <option value="{{ $opt->id }}" @selected((int) $task->status === (int) $opt->id)>{{ $opt->statusname }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->assignee)->name ?? '未設定' }}</td>
+                                <td class="whitespace-nowrap px-3 py-2">
+                                    <select wire:change="quickUpdate({{ $task->id }}, 'person_do', $event.target.value)"
+                                            class="rounded border-gray-200 bg-white py-1 pe-7 ps-2 text-xs text-gray-700 focus:border-gray-400 focus:ring-0">
+                                        <option value="">未設定</option>
+                                        @foreach ($memberOptions as $m)
+                                            <option value="{{ $m->member_id }}" @selected((string) $task->person_do === (string) $m->member_id)>{{ $m->name ?: $m->member_id }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
                                 @if ($tk->has('team'))
                                     <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->team)->levelname ?? '未設定' }}</td>
                                 @endif

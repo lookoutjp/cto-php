@@ -16,6 +16,10 @@
         </div>
     </article>
 
+    @if ((int) $content->commentok === 1 && $site?->hasFunction('commentfunction'))
+        <livewire:public.content-comments :content="$content" />
+    @endif
+
     <div class="mt-6 text-sm">
         <a href="{{ route('contents.index') }}" class="text-gray-600 hover:text-gray-900 hover:underline">&larr; コンテンツ一覧へ</a>
     </div>

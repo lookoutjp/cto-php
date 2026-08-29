@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Member\BoardController;
 use App\Http\Controllers\Member\SurveyController;
 use App\Http\Controllers\Member\TaskController;
 use App\Http\Controllers\Member\WbsController;
@@ -71,6 +72,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
         Route::get('/surveys/{id}', [SurveyController::class, 'show'])->whereNumber('id')->name('surveys.show');
         Route::post('/surveys/{id}/answer', [SurveyController::class, 'answer'])->whereNumber('id')->name('surveys.answer');
+
+        // 掲示板（コミュニティ） — 旧 meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp
+        Route::get('/board', [BoardController::class, 'index'])->name('board.index');
+        Route::get('/board/threads/{thread}', [BoardController::class, 'show'])->whereNumber('thread')->name('board.show');
+        Route::post('/board/threads/{thread}/reply', [BoardController::class, 'reply'])->whereNumber('thread')->name('board.reply');
+        Route::get('/board/categories/{category}', [BoardController::class, 'category'])->whereNumber('category')->name('board.category');
+        Route::get('/board/categories/{category}/new', [BoardController::class, 'create'])->whereNumber('category')->name('board.create');
+        Route::post('/board/categories/{category}', [BoardController::class, 'store'])->whereNumber('category')->name('board.store');
     });
 });
 

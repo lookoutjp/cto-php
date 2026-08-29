@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\RelationResource\Pages;
+use App\Filament\Resources\RelationResource\RelationManagers;
+use App\Models\Relation;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+class RelationResource extends Resource
+{
+    protected static ?string $model = Relation::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('delete_to')
+                    ->numeric()
+                    ->default(null),
+                Forms\Components\TextInput::make('id_from')
+                    ->numeric()
+                    ->default(null),
+                Forms\Components\TextInput::make('id_from_kind')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('id_to')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('id_to_kind')
+                    ->maxLength(255)
+                    ->default(null),
+                Forms\Components\TextInput::make('rtype')
+                    ->required()
+                    ->maxLength(255),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('delete_to')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('id_from')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('id_from_kind')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('id_to')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('id_to_kind')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('rtype')
+                    ->searchable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListRelations::route('/'),
+            'create' => Pages\CreateRelation::route('/create'),
+            'edit' => Pages\EditRelation::route('/{record}/edit'),
+        ];
+    }
+}

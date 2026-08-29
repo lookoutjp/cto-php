@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * 旧Access: guestbookc テーブルから自動生成
+     * 論理グループ: tenant（テナントごとの業務DB）
+     */
+    public function up(): void
+    {
+        Schema::create('guestbook_categories', function (Blueprint $table) {
+            $table->id('id');
+            $table->text('intro')->nullable();
+            $table->dateTime('madetime')->nullable();
+            $table->text('member')->nullable();
+            $table->string('name', 225);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('guestbook_categories');
+    }
+};

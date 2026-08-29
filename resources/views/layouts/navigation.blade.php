@@ -15,19 +15,21 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         マイページ
                     </x-nav-link>
-                    @foreach (\App\Support\TaskKind::all() as $tk)
-                        @if ($site?->hasFunction($tk->function))
-                            <x-nav-link :href="route('tasks.index', $tk->slug)"
-                                        :active="request()->routeIs('tasks.*') && request()->route('kind') === $tk->slug">
-                                {{ $tk->label }}
-                            </x-nav-link>
+                    @if ($site && auth()->user()?->isProjectMemberOf($site->site_id))
+                        @foreach (\App\Support\TaskKind::all() as $tk)
+                            @if ($site->hasFunction($tk->function))
+                                <x-nav-link :href="route('tasks.index', $tk->slug)"
+                                            :active="request()->routeIs('tasks.*') && request()->route('kind') === $tk->slug">
+                                    {{ $tk->label }}
+                                </x-nav-link>
+                            @endif
+                        @endforeach
+                        @if ($site->hasFunction('wbsfunction'))
+                            <x-nav-link :href="route('wbs.index')" :active="request()->routeIs('wbs.*')">WBS</x-nav-link>
                         @endif
-                    @endforeach
-                    @if ($site?->hasFunction('wbsfunction'))
-                        <x-nav-link :href="route('wbs.index')" :active="request()->routeIs('wbs.*')">WBS</x-nav-link>
-                    @endif
-                    @if ($site?->hasFunction('surveyfunction'))
-                        <x-nav-link :href="route('surveys.index')" :active="request()->routeIs('surveys.*')">サーベイ</x-nav-link>
+                        @if ($site->hasFunction('surveyfunction'))
+                            <x-nav-link :href="route('surveys.index')" :active="request()->routeIs('surveys.*')">サーベイ</x-nav-link>
+                        @endif
                     @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る

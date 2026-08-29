@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CurrentSite;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -80,6 +81,28 @@ class Member extends Authenticatable implements FilamentUser
     public function managesSite(string $siteId): bool
     {
         return $this->manageableSiteIds()->contains($siteId);
+    }
+
+    /**
+     * 指定サイトの「プロジェクト参加者」か（旧ASP: ninshou = 1 または -1）。
+     * TODO / 課題 / リスク / WBS / サーベイ / Mypage など業務系画面の利用条件。
+     * ninshou = 0（＝コンテンツ閲覧のみの一般会員）は不可。スーパー管理者は常に可。
+     */
+    public function isProjectMemberOf(?string $siteId = null): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $siteId ??= app(CurrentSite::class)->idOrNull();
+        if ($siteId === null) {
+            return false;
+        }
+
+        return $this->rooms()
+            ->where('rooms.site_id', $siteId)
+            ->wherePivotIn('ninshou', [1, -1])
+            ->exists();
     }
 
     /**

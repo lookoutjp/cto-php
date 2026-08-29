@@ -13,6 +13,19 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   - `$site`（現在の `Room`）は `AppServiceProvider` の View Composer が
     `components.layouts.public` / `public.*` / `livewire.public.*` に注入
 
+## アクセス制御
+
+| 対象 | 条件 | 実装 |
+|---|---|---|
+| `/admin`（Filament） | 現在サイトの**管理員**（`ninshou = -1`）or スーパー管理者 | `Member::canAccessPanel()` |
+| `/tasks/*` `/wbs/*` `/surveys/*` | 現在サイトの**プロジェクト参加者**（`ninshou = 1` or `-1`）or スーパー管理者 | `EnsureProjectMember` ミドルウェア + `Member::isProjectMemberOf()`。Livewire の即時編集メソッドにも `guardWrite()` |
+| `/mypage` | 誰でも（要ログイン）。非参加者には `mypage-lite`（機能が使えない旨の案内）を表示 | `MypageController` で分岐 |
+| 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
+
+- `ninshou = 0` = コンテンツ閲覧のみの会員。PM機能は不可。旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
+- **レコード単位のアクセス制御は無し**（旧ASP同様、参加者なら他人のタスクも編集・削除できる協働ツール）。
+- nav は `isProjectMemberOf()` で業務系リンクを出し分け。
+
 ## サイト（テナント）解決
 
 `App\Http\Middleware\ResolveCurrentSite` は「管理画面」と「公開フロント」で対象サイトの決め方を変える:
@@ -58,7 +71,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - **WBS の編集・並び替え・階層操作は未実装**（v1 は閲覧のみ）
 - サーベイの作成・締切変更は管理側（未実装）。`specify_yn`（記名アンケート＝誰がどれに投票したか表示）も未対応
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）
-- タスクのアクセス制御（現状ログイン会員なら誰でも編集可。旧 ninshou / person_do ベースの制御は未）
+- レコード単位のアクセス制御（旧ASP同様「参加者なら誰でも編集可」を踏襲。person_do/maker ベースの制限を入れるかは要検討）
 - Mypage 集計 → 一覧のドリルダウンは todo/problem/risk のみ（wbs は一覧未実装、routineGrid のリンクも未）
 - 一覧の即時編集は status / person_do / dotoday のみ。期限・チーム等は詳細の編集フォームから
 - `checkfunction_F` 相当は `Room::hasFunction()`。お問い合わせ・タスク一覧の nav / 404 で使用。

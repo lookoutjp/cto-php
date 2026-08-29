@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Member\BoardController;
+use App\Http\Controllers\Member\MemberListController;
 use App\Http\Controllers\Member\RoutineWorkController;
 use App\Http\Controllers\Member\SurveyController;
 use App\Http\Controllers\Member\TaskController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Public\FaqController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\InquiryController;
 use App\Http\Controllers\Public\NewsController;
+use App\Http\Controllers\Public\SitePageController;
 use App\Livewire\Public\NewsIndex;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +29,10 @@ Route::get('/contents', [ContentController::class, 'index'])->name('contents.ind
 Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
 
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+
+// 管理員の言葉 / リンク集（旧 managerwords.asp / friendlink）
+Route::get('/manager', [SitePageController::class, 'managerWords'])->name('manager-words');
+Route::get('/links', [SitePageController::class, 'links'])->name('links.index');
 
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
 Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
@@ -85,6 +91,9 @@ Route::middleware('auth')->group(function () {
         // 定例作業の一括生成 — 旧 RoutineWorkMake.asp
         Route::get('/routinework/generate', [RoutineWorkController::class, 'generateForm'])->name('routinework.generate');
         Route::post('/routinework/generate', [RoutineWorkController::class, 'generate'])->name('routinework.generate.run');
+
+        // メンバー一覧 — 旧 memberlist.asp
+        Route::get('/members', [MemberListController::class, 'index'])->name('members.index');
 
         // 掲示板（コミュニティ） — 旧 meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp
         Route::get('/board', [BoardController::class, 'index'])->name('board.index');

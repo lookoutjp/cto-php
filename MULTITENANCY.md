@@ -38,6 +38,10 @@
 - `member_room.ninshou`: `-1` = そのサイトの管理員、`0`/`1` = 一般権限レベル（旧ASP `isManager` は `ninshou == -1`）
 - **`/admin`（Filament）へのアクセス** = `Member::canAccessPanel()` = 「1サイト以上の管理員」または「スーパー管理者」。
   一般会員（ninshou 0/1 のみ）はログイン画面で `These credentials do not match our records.` になる。
+- **パスワード**: `members.password` は旧ASP由来の非bcryptハッシュが大半。
+  `App\Auth\LegacyAwareUserProvider`（`config/auth.php` の `providers.users.driver = legacy-aware-eloquent`）が
+  旧形式（PBKDF2-HMAC-MD5 / 無ソルトMD5切り詰め、`App\Auth\LegacyPasswordVerifier`）を検証し、
+  ログイン成功時に bcrypt へ静かに移行する。Breeze `/login` と Filament `/admin/login` の両方で機能する。
 - **サイト切替の候補・`CurrentSite` の対象** = `Member::manageableSiteIds()`
   - スーパー管理者（`config('app.super_admin_member_ids')`）: `rooms` 全件
   - それ以外: `member_room` で `ninshou = -1` のサイトのみ
@@ -64,11 +68,8 @@ app(\App\Support\CurrentSite::class)->set('demo');
 
 - **管理画面内のリソース単位の権限**: サイト内での編集可否（旧 `admin_kengen.asp` 相当）は未実装。
   Filament の Policy で `Member::managesSite()` を使う想定。
-- **レガシーパスワード**: `members.password` は旧ASP由来の非bcryptハッシュが多く、Filament の
-  `Auth::attempt` では通らない（初回ログイン時のbcrypt移行は cto-php 側では未実装。
-  Breeze の `/login` 側には既存実装あり）。管理員が `/admin` に入れるようにするには
-  この移行を Filament ログインにも通す必要がある。
 - **`members.email` の重複**: `office` / `u187` / `demouser` が同一メール。email ログインは先頭1件を拾う。
+  実運用前に一意化が必要。
 - **`site_id` の NOT NULL 化**: 全テナント投入後に別マイグレーションで。
 - **他テナント（demo / miraipm）のデータ投入**: `schema-gen/load_data.php` にジョブを追加。
 - **`Wbs::descendantsOf()` の再帰CTE**: 外側クエリのグローバルスコープで結果的に絞られているが、

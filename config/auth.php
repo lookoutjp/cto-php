@@ -63,7 +63,9 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // 旧ASP由来の非bcryptパスワードを検証し、ログイン成功時にbcryptへ移行する
+            // カスタムドライバ（App\Providers\AppServiceProvider::boot で登録）。
+            'driver' => 'legacy-aware-eloquent',
             'model' => env('AUTH_MODEL', Member::class),
         ],
 

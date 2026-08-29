@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Member;
+use App\Models\Room;
 use App\Support\CurrentSite;
 use Closure;
 use Illuminate\Http\Request;
@@ -32,6 +33,14 @@ class ResolveCurrentSite
         $user = $request->user();
 
         if (! $user instanceof Member) {
+            // 未ログイン（公開フロント）: ホスト名からサイトを決める。
+            // 該当なしなら既定サイト。いずれにせよ必ず set() して
+            // BelongsToSite のスコープが確実に効くようにする（全サイト横断防止）。
+            $current->set(
+                Room::resolveSiteIdFromHost($request->getHost())
+                    ?? config('app.default_site', 'www')
+            );
+
             return $next($request);
         }
 

@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Auth\LegacyAwareUserProvider;
 use App\Auth\Passwords\CustomPasswordBrokerManager;
+use App\Models\Room;
 use App\Support\CurrentSite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
         // UserProvider。config/auth.php の providers.users.driver で参照。
         Auth::provider('legacy-aware-eloquent', function ($app, array $config) {
             return new LegacyAwareUserProvider($app['hash'], $config['model']);
+        });
+
+        // 公開フロントの各ビューに現在のサイト情報($site)を渡す。
+        View::composer(['components.layouts.public', 'public.*', 'livewire.public.*'], function ($view) {
+            $view->with('site', once(fn () => Room::find(app(CurrentSite::class)->id())));
         });
     }
 }

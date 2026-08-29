@@ -7,7 +7,9 @@
 
 - **サイト / テナント** = 旧ASPの `SiteID`（例: `www`, `demo`, `miraipm`）。`rooms` テーブルの主キー。
 - 認証系（`members` / `member_room` / `rooms` / `levels`）は元々全サイト共有なので変更なし。
-- 業務系35テーブル（`contents` / `todos` / `wbs` / `inquiries` …）に `site_id`（string 50, index, nullable）を追加。
+- 業務系テーブル（`contents` / `todos` / `wbs` / `inquiries` …）に `site_id`（string 50, index）を追加。
+  当初 nullable だったが `2026_09_02_000001_make_site_id_not_null` で全テーブル NOT NULL ＋ 既定値 `'www'`。
+- `members.email` は `2026_09_02_000000` で重複を解消（代表以外は local-part に `+<member_id>`）し、一意インデックス。
 
 ## 構成要素
 
@@ -68,9 +70,6 @@ app(\App\Support\CurrentSite::class)->set('demo');
 
 - **管理画面内のリソース単位の権限**: サイト内での編集可否（旧 `admin_kengen.asp` 相当）は未実装。
   Filament の Policy で `Member::managesSite()` を使う想定。
-- **`members.email` の重複**: `office` / `u187` / `demouser` が同一メール。email ログインは先頭1件を拾う。
-  実運用前に一意化が必要。
-- **`site_id` の NOT NULL 化**: 全テナント投入後に別マイグレーションで。
 - **他テナント（demo / miraipm）のデータ投入**: `schema-gen/load_data.php` にジョブを追加。
 - **`Wbs::descendantsOf()` の再帰CTE**: 外側クエリのグローバルスコープで結果的に絞られているが、
   CTE内部にも `site_id` 条件を入れた方が安全（大規模データ時のパフォーマンス）。

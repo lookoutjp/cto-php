@@ -7,6 +7,10 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 - Blade（サーバーレンダリング）+ Livewire 3（検索・ページネーション等の動的部分）
 - Tailwind v3 + `@tailwindcss/forms` + `@tailwindcss/typography`（`prose` で本文HTMLを整形）
+- ロケール: `APP_LOCALE=ja`（`config/app.php` の既定も `ja`、`fallback_locale=en`）。
+  `lang/ja.json`（Breeze 認証・プロフィール画面の `__()` 文言）＋ `lang/ja/{validation,auth,passwords,pagination}.php`。
+  業務系の画面は Blade に直接日本語を書いており `__()` は使っていない。日付は Carbon の
+  `isoFormat('YYYY年M月D日')` が基本（ロケール非依存）、曜日等が要る箇所は `ddd` で ja 出力される
 - レイアウト: `resources/views/components/layouts/public.blade.php`（匿名コンポーネント）
   - Livewire からは `->layout('components.layouts.public', ['title' => '...'])`
   - Blade からは `<x-layouts.public :title="...">`
@@ -72,7 +76,6 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 ## 未実装（旧ASPの主要導線の残り）
 
-- 会員登録・ログイン画面の日本語化（Breeze 雛形のまま英語）
 - **change（変更管理）は保留**: `statuses`/`categories` に `change` kind が無く、`change_requests` は1件のみ。ステータス体系が未定義なので画面化を見送り
 - routinework: `routine_works`（定例作業の定義／繰り返しルール）からの `routine_work_lists` 自動生成は未。一覧の閲覧・編集のみ
 - スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は未

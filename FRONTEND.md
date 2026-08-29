@@ -62,6 +62,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/contents` | `Public\ContentController@index` | contents.asp | 公開カテゴリ（`ninshou` null/0）ごとに公開コンテンツ（`ok=1`） |
 | `/contents/{id}` | `Public\ContentController@show` | ContentDetail.asp | 本文HTML。非公開/非公開カテゴリ/他サイトは404。clicks++ |
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
+| `/register` | `Auth\RegisteredUserController` | reguser_*.asp | 会員登録。お名前・ふりがな・メール・電話（任意）・パスワード。現在サイトに `member_room`（`ninshou = 0` = コンテンツ閲覧のみ）を作成し自動ログイン。プロジェクト機能の利用には管理員が `ninshou` を 1 以上に引き上げる（＝旧「本承認」）。`newmemberregfunction` が無いサイトは 404 |
 | `/manager` | `Public\SitePageController@managerWords` | managerwords.asp | `rooms.managerwords`（HTML）をそのまま表示。見出しは `rooms.manager_shouko`（無ければ「管理員」）。`managerwordsfunction` 必須 |
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
 | `/members` | `Member\MemberListController` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。`memberlistfunction` 必須 |

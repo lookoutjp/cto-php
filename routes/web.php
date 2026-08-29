@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Member\BoardController;
 use App\Http\Controllers\Member\MemberListController;
+use App\Http\Controllers\Member\MessageController;
 use App\Http\Controllers\Member\RoutineWorkController;
 use App\Http\Controllers\Member\SurveyController;
 use App\Http\Controllers\Member\TaskController;
@@ -94,6 +95,14 @@ Route::middleware('auth')->group(function () {
 
         // メンバー一覧 — 旧 memberlist.asp
         Route::get('/members', [MemberListController::class, 'index'])->name('members.index');
+
+        // 社内メッセージ（伝言） — 旧 Member_MessageSend.asp
+        Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
+        Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
+        Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::get('/messages/{id}', [MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
+        Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->whereNumber('id')->name('messages.destroy');
 
         // 掲示板（コミュニティ） — 旧 meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp
         Route::get('/board', [BoardController::class, 'index'])->name('board.index');

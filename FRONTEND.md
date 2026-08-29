@@ -65,6 +65,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/manager` | `Public\SitePageController@managerWords` | managerwords.asp | `rooms.managerwords`（HTML）をそのまま表示。見出しは `rooms.manager_shouko`（無ければ「管理員」）。`managerwordsfunction` 必須 |
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
 | `/members` | `Member\MemberListController` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。`memberlistfunction` 必須 |
+| `/messages` `/messages/sent` `/messages/create` `/messages/{id}` | `Member\MessageController` | Member_MessageSend.asp | 社内メッセージ（伝言）。受信箱／送信箱／作成／詳細（受信者は開くと既読）／削除（送信者=`delete_from`、受信者=`delete_to` の論理削除）。宛先はサイト参加者のみ。`dengonfunction` 必須 |
 | `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
 | `/contact` `/contact/thanks` | `Public\InquiryController` | otoi.asp / otoi2 / otoi3 | お問い合わせフォーム。会員はプロフィールから自動入力。保存（`inquiries`、`site_id` 自動）＋ 受付確認メール（本人）＋ 新着通知メール（`rooms.site_mail`）。番号は `T{id}`。`rooms.function_list` に `otoiawasefunction` が無いサイトは 404（nav リンクも非表示） |
 | `/tasks/{kind}`（todo/problem/risk/product/routinework） | `Livewire\Member\TaskList` + `Member\TaskController` | todo.asp / Problem.asp / Risk.asp / product.asp / RoutineWorkList.asp | 一覧（フィルタ・キーワード検索・列ソート・20件/頁、**一覧上でステータス／担当者を `<select>` で即時変更、✪ で「本日のタスク」(`dotoday`) トグル**）／詳細／新規起票・編集・論理削除（`delete_to=1`）。`{kind}function` が無いサイトは 404。`App\Support\TaskKind` の `features` で任意フィールド（期限/チーム/状況/完了基準/承認者/内容/ステージ/責任者/today）を出し分け。product は期限なし、routinework は `actiondate`（表示「実施日」）。Mypage の集計値からドリルダウン（todo/problem/risk） |
@@ -106,7 +107,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
 - カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）
 - 画像・添付（`files`）→ S3/R2 前提なので後回し
-- 伝言・メッセージ（`messages` / `dengonfunction`）、オンラインメンバー（`onlinemembersfunction`）、
-  セミナー（`seminarfunction`）、作品公開（`sakuhinkoukaifunction`）、
-  おすすめ・人気コンテンツ（`osusume/ninkicontentsfunction`）、バージョン履歴（`sys_versions` 空）は未実装
+- オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`）、
+  作品公開（`sakuhinkoukaifunction`）、おすすめ・人気コンテンツ（`osusume/ninkicontentsfunction`）、
+  バージョン履歴（`sys_versions` 空）は未実装
 - 会員個人ページ（旧 memberpage.asp）は未実装（メンバー一覧から個別ページへのリンクなし）

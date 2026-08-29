@@ -32,7 +32,7 @@ class SiteSwitcher extends Component
             return;
         }
 
-        session(['site_id' => $value]);
+        session(['admin_site_id' => $value]);
 
         $this->redirect(url()->previous() ?: '/admin');
     }

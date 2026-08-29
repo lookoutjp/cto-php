@@ -15,12 +15,18 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 ## サイト（テナント）解決
 
-`App\Http\Middleware\ResolveCurrentSite`:
-- ログイン中 Member → `manageableSiteIds()`（管理画面向け）
-- 未ログイン（公開フロント）→ `Room::resolveSiteIdFromHost(HTTP host)`。
-  `rooms.sitedomain` のホスト部分と一致するサイト。該当なしは `config('app.default_site')`。
-- どの経路でも必ず `CurrentSite::set()` するので `BelongsToSite` のスコープが常に効く
-  （＝来訪者が他サイトのデータを見ることはない）
+`App\Http\Middleware\ResolveCurrentSite` は「管理画面」と「公開フロント」で対象サイトの決め方を変える:
+
+| コンテキスト | 対象サイト集合 | 解決順 | session キー |
+|---|---|---|---|
+| /admin + Member | `manageableSiteIds()`（管理員/スーパー管理者） | session → 先頭。無ければ `denyAll()` | `admin_site_id` |
+| 公開フロント + Member | `accessibleSiteIds()`（所属サイト） | ホスト → session → 既定サイト → 先頭 | `site_id` |
+| 公開フロント + ゲスト | 全 rooms | `Room::resolveSiteIdFromHost()` → 既定サイト | — |
+
+- 管理画面コンテキストの判定 = リクエストパスが `admin/*`、または Referer が `/admin` 始まり
+  （livewire/update は web ミドルウェア経由で管理画面からも飛んでくるため）
+- どの経路でも必ず `CurrentSite::set()`（またはゲストは host 解決）するので、
+  `BelongsToSite` のスコープが常に効く（他サイトのデータは見えない）
 
 ## 実装済みページ
 
@@ -32,6 +38,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/contents` | `Public\ContentController@index` | contents.asp | 公開カテゴリ（`ninshou` null/0）ごとに公開コンテンツ（`ok=1`） |
 | `/contents/{id}` | `Public\ContentController@show` | ContentDetail.asp | 本文HTML。非公開/非公開カテゴリ/他サイトは404。clicks++ |
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
+| `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
 
 ## モデルのスコープ
 
@@ -41,8 +48,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 ## 未実装（旧ASPの主要導線の残り）
 
-- 会員登録・ログイン後の導線（Breeze の雛形はあるが日本語化・旧UX合わせは未着手）
-- Mypage（`Mypage.asp`）: 自分のタスク・進捗サマリ
+- 会員登録・ログイン画面の日本語化（Breeze 雛形のまま英語）
+- Mypage の数値からのドリルダウン（旧ASP は `todo.asp?view=mynew` 等へリンク。会員向け業務画面がまだ無いのでリンクは未実装）
+- `checkfunction_F` 相当（サイトごとに機能 ON/OFF）— 現状 Mypage は全パネル表示
 - お問い合わせ（`otoi.asp` → `inquiries`）: フォーム送信
 - 業務系（todo / Risk / Problem / Product / RoutineWork / Change / wbs / Survey）の会員向け画面
 - コンテンツへのコメント（`content_comments`）、掲示板（`guestbooks`）

@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
 
         // WBS（階層） — 旧 wbs.asp / WbsAdd.asp / WbsDetail.asp
         Route::get('/wbs', [WbsController::class, 'index'])->name('wbs.index');
+        Route::get('/wbs/check', [WbsController::class, 'check'])->name('wbs.check');
         Route::get('/wbs/create', [WbsController::class, 'create'])->name('wbs.create');
         Route::post('/wbs', [WbsController::class, 'store'])->name('wbs.store');
         Route::get('/wbs/{id}', [WbsController::class, 'show'])->whereNumber('id')->name('wbs.show');

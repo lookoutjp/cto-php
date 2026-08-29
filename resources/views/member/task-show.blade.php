@@ -71,6 +71,10 @@
                     </div>
                 @endif
             @endforeach
+
+            @if (array_key_exists($tk->slug, \App\Support\TaskRef::KINDS))
+                <livewire:member.relations-panel :kind="$tk->slug" :id="$task->id" :key="'rel-'.$tk->slug.'-'.$task->id" />
+            @endif
         </div>
     </div>
 </x-app-layout>

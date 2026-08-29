@@ -10,9 +10,7 @@
         <div class="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
 
             @if (session('status'))
-                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                    {{ session('status') }}
-                </div>
+                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('status') }}</div>
             @endif
 
             <div class="rounded-lg bg-white p-6 shadow-sm">
@@ -21,54 +19,58 @@
                     <div class="flex gap-2">
                         <a href="{{ route('tasks.edit', [$tk->slug, $task->id]) }}"
                            class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">編集</a>
-                        <form method="post" action="{{ route('tasks.destroy', [$tk->slug, $task->id]) }}"
-                              onsubmit="return confirm('削除しますか？')">
+                        <form method="post" action="{{ route('tasks.destroy', [$tk->slug, $task->id]) }}" onsubmit="return confirm('削除しますか？')">
                             @csrf @method('DELETE')
                             <button class="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">削除</button>
                         </form>
                     </div>
                 </div>
 
+                @php
+                    $rows = [
+                        ['ステータス', optional($task->statusMaster)->statusname ?? '—'],
+                        ['分類', optional($task->categoryModel)->categoryname ?? '—'],
+                        ['担当者', optional($task->assignee)->name ?? '未設定'],
+                    ];
+                    if ($tk->has('team')) $rows[] = ['主管チーム', optional($task->team)->levelname ?? '未設定'];
+                    if ($tk->has('responsible')) $rows[] = ['責任者', $task->responsible_party ?: '—'];
+                    if ($tk->has('approver')) $rows[] = ['承認者', optional(\App\Models\Member::find($task->approver))->name ?? ($task->approver ?: '—')];
+                    $rows[] = ['起票者', optional($task->creator)->name ?? $task->maker ?? '—'];
+                    $rows[] = ['更新日', optional($task->renewdate)->isoFormat('YYYY年M月D日') ?? '—'];
+                @endphp
+
                 <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">ステータス</dt>
-                        <dd class="text-gray-900">{{ optional($task->statusMaster)->statusname ?? '—' }}</dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">分類</dt>
-                        <dd class="text-gray-900">{{ optional($task->categoryModel)->categoryname ?? '—' }}</dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">担当者</dt>
-                        <dd class="text-gray-900">{{ optional($task->assignee)->name ?? '未設定' }}</dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">主管チーム</dt>
-                        <dd class="text-gray-900">{{ optional($task->team)->levelname ?? '未設定' }}</dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">期限</dt>
-                        <dd class="{{ $task->isOverdue() ? 'font-semibold text-red-600' : 'text-gray-900' }}">
-                            {{ optional($task->duedate)->isoFormat('YYYY年M月D日') ?? '未設定' }}
-                        </dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">起票者</dt>
-                        <dd class="text-gray-900">{{ optional($task->creator)->name ?? $task->maker ?? '—' }}</dd></div>
-                    <div class="flex gap-2"><dt class="w-24 shrink-0 text-gray-500">更新日</dt>
-                        <dd class="text-gray-900">{{ optional($task->renewdate)->isoFormat('YYYY年M月D日') ?? '—' }}</dd></div>
+                    @if ($tk->has('date'))
+                        <div class="flex gap-2">
+                            <dt class="w-24 shrink-0 text-gray-500">{{ $tk->dateLabel }}</dt>
+                            <dd class="{{ $task->isOverdue() ? 'font-semibold text-red-600' : 'text-gray-900' }}">
+                                {{ optional($task->{$tk->dateColumn()})->isoFormat('YYYY年M月D日') ?? '未設定' }}
+                            </dd>
+                        </div>
+                    @endif
+                    @foreach ($rows as [$label, $value])
+                        <div class="flex gap-2">
+                            <dt class="w-24 shrink-0 text-gray-500">{{ $label }}</dt>
+                            <dd class="text-gray-900">{{ $value }}</dd>
+                        </div>
+                    @endforeach
                 </dl>
             </div>
 
-            @if ($task->content)
-                <div class="rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="mb-2 text-sm font-semibold text-gray-500">内容</h3>
-                    <div class="prose prose-sm max-w-none">{!! nl2br(e($task->content)) !!}</div>
-                </div>
-            @endif
-
-            @if ($task->situation)
-                <div class="rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="mb-2 text-sm font-semibold text-gray-500">状況</h3>
-                    <div class="prose prose-sm max-w-none">{!! nl2br(e($task->situation)) !!}</div>
-                </div>
-            @endif
-
-            @if ($task->completioncriteria)
-                <div class="rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="mb-2 text-sm font-semibold text-gray-500">完了基準</h3>
-                    <div class="prose prose-sm max-w-none">{!! nl2br(e($task->completioncriteria)) !!}</div>
-                </div>
-            @endif
+            @php
+                $panels = [];
+                if ($tk->has('content')) $panels['内容'] = $task->content;
+                if ($tk->has('situation')) $panels['状況'] = $task->situation;
+                if ($tk->has('criteria')) $panels['完了基準'] = $task->completioncriteria;
+            @endphp
+            @foreach ($panels as $label => $body)
+                @if (filled($body))
+                    <div class="rounded-lg bg-white p-6 shadow-sm">
+                        <h3 class="mb-2 text-sm font-semibold text-gray-500">{{ $label }}</h3>
+                        <div class="prose prose-sm max-w-none">{!! nl2br(e($body)) !!}</div>
+                    </div>
+                @endif
+            @endforeach
         </div>
     </div>
 </x-app-layout>

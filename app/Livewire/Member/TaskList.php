@@ -29,26 +29,43 @@ class TaskList extends Component
     #[Url]
     public string $dir = 'desc';
 
-    /** @var array<string, string> */
-    public array $filters = [
-        'my' => '私の担当',
-        'mynew' => '新規',
-        'mydoing' => '対応中',
-        'myhere' => '期限接近',
-        'mylate' => '遅延',
-        'myfinished' => '完了',
-        'all' => 'すべて',
-    ];
-
-    private const SORTABLE = ['id', 'title', 'status', 'person_do', 'team_id', 'duedate', 'maker', 'renewdate'];
-
     public function mount(string $kind): void
     {
-        $tk = $this->taskKind(); // 不正な kind なら 404
+        $tk = TaskKind::fromSlug($this->kind);
 
         if (! Room::find(app(CurrentSite::class)->id())?->hasFunction($tk->function)) {
             throw new NotFoundHttpException;
         }
+    }
+
+    /** @return array<string, string> */
+    public function getFiltersProperty(): array
+    {
+        $tk = TaskKind::fromSlug($this->kind);
+
+        $filters = ['my' => '私の担当', 'mynew' => '新規', 'mydoing' => '対応中'];
+        if ($tk->has('date')) {
+            $filters['myhere'] = '期限接近';
+            $filters['mylate'] = '遅延';
+        }
+        $filters['myfinished'] = '完了';
+        $filters['all'] = 'すべて';
+
+        return $filters;
+    }
+
+    /** @return list<string> */
+    private function sortable(TaskKind $tk): array
+    {
+        $cols = ['id', 'title', 'status', 'person_do', 'renewdate'];
+        if ($tk->has('team')) {
+            $cols[] = 'team_id';
+        }
+        if ($tk->dateColumn()) {
+            $cols[] = $tk->dateColumn();
+        }
+
+        return $cols;
     }
 
     public function setView(string $view): void
@@ -59,7 +76,7 @@ class TaskList extends Component
 
     public function sortBy(string $column): void
     {
-        if (! in_array($column, self::SORTABLE, true)) {
+        if (! in_array($column, $this->sortable(TaskKind::fromSlug($this->kind)), true)) {
             return;
         }
         if ($this->sort === $column) {
@@ -76,18 +93,19 @@ class TaskList extends Component
         $this->resetPage();
     }
 
-    private function taskKind(): TaskKind
-    {
-        return TaskKind::fromSlug($this->kind);
-    }
-
     public function render(): View
     {
-        $tk = $this->taskKind();
+        $tk = TaskKind::fromSlug($this->kind);
         $memberId = auth()->id();
 
-        $sortCol = in_array($this->sort, self::SORTABLE, true) ? $this->sort : 'renewdate';
+        $sortable = $this->sortable($tk);
+        $sortCol = in_array($this->sort, $sortable, true) ? $this->sort : 'renewdate';
         $sortDir = $this->dir === 'asc' ? 'asc' : 'desc';
+
+        $with = ['statusMaster', 'categoryModel', 'assignee', 'creator'];
+        if ($tk->has('team')) {
+            $with[] = 'team';
+        }
 
         $tasks = $tk->query()
             ->notDeleted()
@@ -95,7 +113,7 @@ class TaskList extends Component
             ->when($this->keyword !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('title', 'ilike', '%'.$this->keyword.'%')
                 ->orWhere('content', 'ilike', '%'.$this->keyword.'%')))
-            ->with(['statusMaster', 'categoryModel', 'assignee', 'creator', 'team'])
+            ->with($with)
             ->orderBy($sortCol, $sortDir)
             ->paginate(20);
 

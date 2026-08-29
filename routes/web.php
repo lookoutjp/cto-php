@@ -36,8 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 業務系タスク（todo / problem / risk） — 旧 todo.asp / Problem.asp / Risk.asp
-    Route::whereIn('kind', ['todo', 'problem', 'risk'])->group(function () {
+    // 業務系タスク（todo / problem / risk / product / routinework）
+    Route::whereIn('kind', \App\Support\TaskKind::slugs())->group(function () {
         Route::get('/tasks/{kind}', TaskList::class)->name('tasks.index');
         Route::get('/tasks/{kind}/create', [TaskController::class, 'create'])->name('tasks.create');
         Route::post('/tasks/{kind}', [TaskController::class, 'store'])->name('tasks.store');

@@ -2,13 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Auth\LegacyPasswordVerifier;
-use App\Models\Member;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -45,36 +42,17 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $member = Member::where('email', $this->string('email'))->first();
+        // 旧ASP由来の非bcryptパスワードの検証とbcryptへの移行は
+        // App\Auth\LegacyAwareUserProvider（config/auth.php の providers.users）が担う。
+        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey());
 
-        // Laravel 12は Hash::check() に bcrypt以外の文字列を渡すと例外を投げる
-        // (verifyAlgorithmチェック)。旧ASPから移行した会員はbcrypt形式ではないため、
-        // Auth::attempt()を呼ぶ前にbcrypt形式かどうかで処理を分ける。
-        if ($member && str_starts_with((string) $member->password, '$2y$')) {
-            if (Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-                RateLimiter::clear($this->throttleKey());
-
-                return;
-            }
-        } elseif ($member) {
-            // 旧ASPシステムから移行した会員は、bcryptではなく旧パスワード形式
-            // (PBKDF2-HMAC-MD5、または無ソルトMD5切り詰め)のまま保存されている。
-            // ここで旧形式を検証し、一致すればログインさせた上でbcryptへ静かに移行する
-            // (旧ASP側のVerifySecret()と同じ「初回ログイン成功時に新形式へ移行」方式)。
-            if (LegacyPasswordVerifier::verify($this->string('password'), $member->password) > 0) {
-                $member->forceFill(['password' => Hash::make($this->string('password'))])->save();
-                Auth::login($member, $this->boolean('remember'));
-                RateLimiter::clear($this->throttleKey());
-
-                return;
-            }
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
         }
 
-        RateLimiter::hit($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'email' => trans('auth.failed'),
-        ]);
+        RateLimiter::clear($this->throttleKey());
     }
 
     /**

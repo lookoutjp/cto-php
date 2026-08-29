@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Auth\LegacyAwareUserProvider;
 use App\Auth\Passwords\CustomPasswordBrokerManager;
 use App\Support\CurrentSite;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 旧ASP由来の非bcryptパスワードでもログインでき、成功時にbcryptへ移行する
+        // UserProvider。config/auth.php の providers.users.driver で参照。
+        Auth::provider('legacy-aware-eloquent', function ($app, array $config) {
+            return new LegacyAwareUserProvider($app['hash'], $config['model']);
+        });
     }
 }

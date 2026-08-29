@@ -9,18 +9,34 @@
     <div class="py-8">
         <div class="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
 
+            @if (session('status'))
+                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('status') }}</div>
+            @endif
+
             <div class="rounded-lg bg-white p-6 shadow-sm">
-                @if ($node->parent)
-                    <a href="{{ route('wbs.show', $node->parent->id) }}" class="text-xs text-gray-500 hover:underline">
-                        &larr; {{ $node->parent->title }}
-                    </a>
-                @endif
-                <h1 class="mt-1 text-lg font-bold text-gray-900">
-                    {{ $node->title }}
-                    @if ($node->iscategory)
-                        <span class="ml-2 rounded bg-gray-100 px-1.5 py-0.5 align-middle text-xs font-normal text-gray-500">サマリ</span>
-                    @endif
-                </h1>
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        @if ($node->parent)
+                            <a href="{{ route('wbs.show', $node->parent->id) }}" class="text-xs text-gray-500 hover:underline">
+                                &larr; {{ $node->parent->title }}
+                            </a>
+                        @endif
+                        <h1 class="mt-1 text-lg font-bold text-gray-900">
+                            {{ $node->title }}
+                            @if ($node->iscategory)
+                                <span class="ml-2 rounded bg-gray-100 px-1.5 py-0.5 align-middle text-xs font-normal text-gray-500">サマリ</span>
+                            @endif
+                        </h1>
+                    </div>
+                    <div class="flex shrink-0 gap-2">
+                        <a href="{{ route('wbs.create', ['parent' => $node->id]) }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">子項目を追加</a>
+                        <a href="{{ route('wbs.edit', $node->id) }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">編集</a>
+                        <form method="post" action="{{ route('wbs.destroy', $node->id) }}" onsubmit="return confirm('削除しますか？')">
+                            @csrf @method('DELETE')
+                            <button class="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">削除</button>
+                        </form>
+                    </div>
+                </div>
 
                 <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
                     @php

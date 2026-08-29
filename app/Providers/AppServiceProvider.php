@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Auth\Passwords\CustomPasswordBrokerManager;
+use App\Support\CurrentSite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,6 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // 現在のサイト(テナント)を表すシングルトン。BelongsToSite トレイトが参照する。
+        $this->app->singleton(CurrentSite::class);
+
         // 旧Access由来のpassword_reset_tokensテーブル構成に対応するため、
         // 標準のPasswordBrokerManagerをCustomPasswordBrokerManagerに差し替える。
         // 'auth.password' は PasswordResetServiceProvider が DeferredProvider として

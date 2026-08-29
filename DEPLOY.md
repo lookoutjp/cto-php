@@ -1,13 +1,18 @@
-# GreenGeeksへのデプロイ手順
+# デプロイ手順
 
-前提: cPanelにSSH/Terminalアクセスあり、PHP 8.2系、MariaDB 11.4系（`SELECT VERSION();`で確認済み）。
+前提: PHP 8.2以上、PostgreSQL 14以上。DBは **Neon**（サーバーレスPostgres）を想定。
+アプリのホスティングは Laravel Cloud / Laravel Forge + VPS / Fly.io など。
+（旧: GreenGeeks共有ホスティング + MariaDB。有償SaaS化に伴い PostgreSQL へ移行）
 
-## 1. 本番用データベースの作成
+## 1. 本番用データベースの作成（Neon）
 
-cPanelの「MySQL Databases」で以下を作成する。
+1. https://neon.tech でプロジェクトを作成（リージョンは利用者に近い場所）
+2. 生成された **pooled connection string** を控える。形式:
+   `postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require`
+3. `.env` には分解して設定する（下記4）。`DB_SSLMODE=require` を忘れない。
 
-- データベース名（例: `youraccount_cto`）
-- 専用ユーザーとパスワードを作成し、そのデータベースに全権限を付与
+ローカル開発は PostgreSQL 16 をローカルにインストールして使用（`cto_php` データベース）。
+本番との差分は `.env` のみ。
 
 ## 2. コードの転送
 
@@ -43,13 +48,15 @@ php artisan key:generate
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://あなたのドメイン
+APP_DEFAULT_SITE=www
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=youraccount_cto
-DB_USERNAME=youraccount_ctouser
-DB_PASSWORD=（cPanelで設定したパスワード）
+DB_CONNECTION=pgsql
+DB_HOST=ep-xxxx-pooler.REGION.aws.neon.tech
+DB_PORT=5432
+DB_DATABASE=（Neonのデータベース名）
+DB_USERNAME=（Neonのユーザー名）
+DB_PASSWORD=（Neonのパスワード）
+DB_SSLMODE=require
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
@@ -62,6 +69,20 @@ php artisan migrate --force
 ```
 
 （`--force`は本番環境での確認プロンプトをスキップするフラグ）
+
+## 5b. 既存データの投入（初回のみ）
+
+旧Access(.mdb)からのデータ移行は Windows 上で行う（ACE OLEDB が必要なため）:
+
+```powershell
+# 1. Access → CSV（Windows PowerShell）
+powershell -ExecutionPolicy Bypass -File schema-gen\export_access.ps1 -OutDir <出力先>
+# 2. CSV → PostgreSQL
+php schema-gen\load_data.php <出力先>
+```
+
+`load_data.php` は業務テーブルに `site_id='www'` を自動付与し、bigserialのシーケンスを
+投入済み最大IDに合わせる。テナントを増やすときはこのスクリプトを拡張する。
 
 ## 6. ドキュメントルートを`public/`に向ける
 

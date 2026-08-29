@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToSite;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wbs extends Model
 {
+    use BelongsToSite;
+
     protected $table = 'wbs';
     public $timestamps = false;
     protected $guarded = [];

@@ -30,6 +30,9 @@
                         @if ($site->hasFunction('surveyfunction'))
                             <x-nav-link :href="route('surveys.index')" :active="request()->routeIs('surveys.*')">サーベイ</x-nav-link>
                         @endif
+                        @if ($site->hasFunction('freeguestbookfunction'))
+                            <x-nav-link :href="route('board.index')" :active="request()->routeIs('board.*')">掲示板</x-nav-link>
+                        @endif
                     @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る

@@ -51,4 +51,39 @@ class GuestbookCategory extends Model
     {
         return $this->isSiteBoard() ? 'サイト掲示板' : strip_tags((string) $this->name, '<br>');
     }
+
+    /**
+     * 参加者を限定しているコミュニティか（旧ASP: guestbookc.member の "||id||id||" リスト）。
+     * サイト掲示板(id=1)とリスト空は無制限。
+     *
+     * @return list<string> 許可された member_id（空 = 無制限）
+     */
+    public function allowedMemberIds(): array
+    {
+        if ($this->isSiteBoard()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            'trim',
+            preg_split('/\|\|/', (string) $this->member) ?: []
+        ), fn ($v) => $v !== ''));
+    }
+
+    /** この会員がこのコミュニティを閲覧・投稿できるか。管理員・スーパー管理者は常に可。 */
+    public function allowsMember(?Member $member): bool
+    {
+        $allowed = $this->allowedMemberIds();
+        if ($allowed === []) {
+            return true;
+        }
+
+        if (! $member) {
+            return false;
+        }
+
+        return $member->isSuperAdmin()
+            || $member->managesSite((string) $this->site_id)
+            || in_array((string) $member->getKey(), $allowed, true);
+    }
 }

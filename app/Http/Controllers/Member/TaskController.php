@@ -150,6 +150,20 @@ class TaskController extends Controller
             $rules[$tk->dateColumn()] = ['nullable', 'date'];
             $names[$tk->dateColumn()] = $tk->dateLabel;
         }
+        if ($tk->has('changedetail')) {
+            $rules['occurrence_day'] = ['nullable', 'date'];
+            $rules['scope_of_impact'] = ['nullable', 'string'];
+            $rules['hour_estimation'] = ['nullable', 'numeric', 'min:0'];
+            $rules['judge_result'] = ['nullable', Rule::in(['ok', 'no'])];
+            $rules['ng_reason'] = ['nullable', 'string'];
+            $rules['do_content'] = ['nullable', 'string'];
+            $rules['done_day'] = ['nullable', 'date'];
+            $names += [
+                'occurrence_day' => '発生日', 'scope_of_impact' => '影響範囲',
+                'hour_estimation' => '工数見積', 'judge_result' => '判定結果',
+                'ng_reason' => '却下理由', 'do_content' => '対応内容', 'done_day' => '完了日',
+            ];
+        }
 
         return $request->validate($rules, [], $names);
     }

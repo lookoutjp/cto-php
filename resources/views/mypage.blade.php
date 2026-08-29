@@ -66,7 +66,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @php($linkable = ['todo', 'problem', 'risk'])
+                            @php($linkable = ['todo', 'problem', 'risk', 'change'])
                             @foreach ($statusGrid as $row)
                                 @php($canLink = in_array($row['view'], $linkable, true))
                                 @php($cell = function ($bucket, $count) use ($row, $canLink) {

@@ -83,7 +83,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 ## 未実装（旧ASPの主要導線の残り）
 
-- **change（変更管理）は保留**: `statuses`/`categories` に `change` kind が無く、`change_requests` は1件のみ。ステータス体系が未定義なので画面化を見送り
+- change（変更管理）: `statuses` に `kind='change'`（起票→調査中→判定待ち→承認待ち→対応中→完了／却下／保留）をマイグレーションで投入し、`TaskKind` に `change` を追加（`features` に `changedetail` = 発生日・工数見積・判定結果・完了日・影響範囲・対応内容・却下理由）。ステージは既存の `categories.kind='stage'` を流用。一覧/CRUD は汎用の TaskList / TaskController。関連タスクパネルは未対応（`TaskRef::KINDS` に未登録）
 - routinework: `App\Support\RoutineWorkGenerator` が `routine_works`（繰り返しルール: circle = day/week/month/year、`circle_number`）から `routine_work_lists` を生成。会員は `/routinework/generate`（旧 RoutineWorkMake.asp）で期間指定、cron 用に `php artisan routinework:generate --days=N [--site=]`。同一マスター×同一 actiondate は重複作成しない
 - スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は未
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）

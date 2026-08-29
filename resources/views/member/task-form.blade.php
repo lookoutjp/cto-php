@@ -134,6 +134,51 @@
                     </div>
                 @endif
 
+                @if ($tk->has('changedetail'))
+                    <div class="space-y-4 rounded-lg border border-gray-200 p-4">
+                        <h3 class="text-sm font-semibold text-gray-500">変更管理</h3>
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">発生日</label>
+                                <input type="date" name="occurrence_day"
+                                       value="{{ old('occurrence_day', optional($task->occurrence_day)->format('Y-m-d')) }}"
+                                       class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">工数見積（時間）</label>
+                                <input type="number" name="hour_estimation" step="0.5" min="0" value="{{ $val('hour_estimation') }}"
+                                       class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">判定結果</label>
+                                <select name="judge_result" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                                    <option value="">未判定</option>
+                                    <option value="ok" @selected($sel('judge_result', 'ok'))>承認</option>
+                                    <option value="no" @selected($sel('judge_result', 'no'))>却下</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">完了日</label>
+                                <input type="date" name="done_day"
+                                       value="{{ old('done_day', optional($task->done_day)->format('Y-m-d')) }}"
+                                       class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">影響範囲</label>
+                            <textarea name="scope_of_impact" rows="3" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ $val('scope_of_impact') }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">対応内容</label>
+                            <textarea name="do_content" rows="3" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ $val('do_content') }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">却下理由</label>
+                            <textarea name="ng_reason" rows="2" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ $val('ng_reason') }}</textarea>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="flex items-center gap-3 pt-2">
                     <button type="submit" class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                         {{ $mode === 'create' ? '起票する' : '更新する' }}

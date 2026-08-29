@@ -1,12 +1,25 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\ContentController;
+use App\Http\Controllers\Public\FaqController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\NewsController;
+use App\Livewire\Public\NewsIndex;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// ---- 公開フロント（旧ASP: index / news / contents / faq 相当）----
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/news', NewsIndex::class)->name('news.index');
+Route::get('/news/{news}', [NewsController::class, 'show'])->name('news.show');
+
+Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
+
+Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+
+// ---- 会員（Breeze）----
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

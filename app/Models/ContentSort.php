@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\BelongsToSite;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -14,6 +15,19 @@ class ContentSort extends Model
     protected $table = 'content_sorts';
     public $timestamps = false;
     protected $guarded = [];
+
+    /**
+     * 未ログインの来訪者に見せてよいカテゴリ（旧ASP: ninshou is null or 0）。
+     */
+    public function scopePublicVisible(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->whereNull('ninshou')->orWhere('ninshou', 0));
+    }
+
+    public function scopeListingOrder(Builder $query): Builder
+    {
+        return $query->orderBy('junban')->orderBy('id');
+    }
 
     public function parent(): BelongsTo
     {

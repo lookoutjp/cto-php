@@ -15,6 +15,33 @@ class Room extends Model
     protected $guarded = [];
 
     /**
+     * HTTP ホスト名からサイト(テナント)を引く。旧ASP conn.asp の
+     * 「HTTP_HOST からドメインを引いて siteid を決める」に相当。
+     * 該当なしなら null（呼び出し側で config('app.default_site') に fallback）。
+     */
+    public static function resolveSiteIdFromHost(?string $host): ?string
+    {
+        if (blank($host)) {
+            return null;
+        }
+
+        $host = strtolower(preg_replace('/:\d+$/', '', $host));
+        $bare = preg_replace('/^www\./', '', $host);
+
+        return static::query()
+            ->get(['site_id', 'sitedomain'])
+            ->first(function (Room $room) use ($host, $bare) {
+                $domain = strtolower((string) parse_url((string) $room->sitedomain, PHP_URL_HOST));
+                if ($domain === '') {
+                    return false;
+                }
+                $domain = preg_replace('/^www\./', '', $domain);
+
+                return $domain === $host || $domain === $bare;
+            })?->site_id;
+    }
+
+    /**
      * このサイト(テナント)に所属する会員一覧。
      */
     public function members(): BelongsToMany

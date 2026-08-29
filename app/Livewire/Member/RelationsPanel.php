@@ -22,6 +22,8 @@ class RelationsPanel extends Component
     public string $linkType = 'pred';      // pred | succ | rel
     public string $targetKind = 'wbs';
     public ?int $targetId = null;
+    public string $depType = 'FS';
+    public int $lagDays = 0;
 
     public function mount(string $kind, int $id): void
     {
@@ -37,6 +39,8 @@ class RelationsPanel extends Component
             'targetKind' => ['required', 'in:'.implode(',', array_keys(TaskRef::KINDS))],
             'targetId' => ['required', 'integer'],
             'linkType' => ['required', 'in:pred,succ,rel'],
+            'depType' => ['required', 'in:FS,SS,FF,SF'],
+            'lagDays' => ['integer', 'between:-365,365'],
         ], [
             'targetId.required' => '追加する対象を選択してください。',
             'targetId.integer' => '追加する対象を選択してください。',
@@ -50,13 +54,13 @@ class RelationsPanel extends Component
 
         match ($this->linkType) {
             // pred: 相手が先行 → 相手(from) → 自分(to)
-            'pred' => Relations::add($this->targetKind, $this->targetId, $this->kind, $this->id, Relation::SEQUENCE),
+            'pred' => Relations::add($this->targetKind, $this->targetId, $this->kind, $this->id, Relation::SEQUENCE, $this->depType, $this->lagDays),
             // succ: 自分が先行 → 自分(from) → 相手(to)
-            'succ' => Relations::add($this->kind, $this->id, $this->targetKind, $this->targetId, Relation::SEQUENCE),
+            'succ' => Relations::add($this->kind, $this->id, $this->targetKind, $this->targetId, Relation::SEQUENCE, $this->depType, $this->lagDays),
             'rel' => Relations::add($this->kind, $this->id, $this->targetKind, $this->targetId, Relation::RELATED),
         };
 
-        $this->reset('targetId');
+        $this->reset('targetId', 'lagDays');
     }
 
     public function removeLink(int $relationId): void
@@ -85,6 +89,7 @@ class RelationsPanel extends Component
             'conflicts' => $conflicts,
             'targetOptions' => TaskRef::options($this->targetKind),
             'kinds' => TaskRef::LABELS,
+            'depTypes' => \App\Models\Relation::DEP_TYPES,
         ]);
     }
 }

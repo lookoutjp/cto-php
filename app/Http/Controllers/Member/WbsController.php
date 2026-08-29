@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
+use App\Models\Holiday;
 use App\Models\Level;
 use App\Models\Member;
 use App\Models\MemberRoom;
@@ -104,9 +105,10 @@ class WbsController extends Controller
         $all = Wbs::query()->notDeleted()->get();
         $rootId = $request->integer('root') ?: null;
         $scopeIds = $rootId ? $this->subtreeIds($all, $rootId) : $all->pluck('id')->all();
+        $calMode = $request->query('calendar') === 'calendar' ? 'calendar' : 'working';
 
         try {
-            $result = (new WbsScheduler($all))->compute();
+            $result = (new WbsScheduler($all, \App\Support\WorkCalendar::forCurrentSite($calMode)))->compute();
             $error = null;
         } catch (\Throwable $e) {
             $result = null;
@@ -122,6 +124,7 @@ class WbsController extends Controller
             'error' => $error,
             'rootId' => $rootId,
             'rootTitle' => $rootId ? optional($all->firstWhere('id', $rootId))->title : null,
+            'calMode' => $calMode,
         ]);
     }
 
@@ -135,9 +138,10 @@ class WbsController extends Controller
         $all = Wbs::query()->notDeleted()->get();
         $rootId = $request->integer('root') ?: null;
         $scopeIds = $rootId ? $this->subtreeIds($all, $rootId) : $all->pluck('id')->all();
+        $calMode = $request->input('calendar') === 'calendar' ? 'calendar' : 'working';
 
         try {
-            $result = (new WbsScheduler($all))->compute();
+            $result = (new WbsScheduler($all, \App\Support\WorkCalendar::forCurrentSite($calMode)))->compute();
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -175,6 +179,43 @@ class WbsController extends Controller
 
         return redirect()->route('wbs.schedule', $rootId ? ['root' => $rootId] : [])
             ->with('status', "{$count} 件の日付を更新しました。");
+    }
+
+    // --- 休日カレンダー ------------------------------------------------
+
+    public function holidays(): View
+    {
+        $this->ensureEnabled();
+
+        return view('member.wbs-holidays', [
+            'holidays' => Holiday::query()->orderBy('date')->get(),
+        ]);
+    }
+
+    public function storeHoliday(Request $request): RedirectResponse
+    {
+        $this->ensureEnabled();
+
+        $data = $request->validate([
+            'date' => ['required', 'date'],
+            'label' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        Holiday::query()->firstOrCreate(
+            ['date' => $data['date']],
+            ['label' => $data['label'] ?? null],
+        );
+
+        return back()->with('status', '休日を追加しました。');
+    }
+
+    public function destroyHoliday(int $id): RedirectResponse
+    {
+        $this->ensureEnabled();
+
+        Holiday::query()->whereKey($id)->delete();
+
+        return back()->with('status', '休日を削除しました。');
     }
 
     /** @return list<int> $rootId とその全子孫の id（自身を含む） */

@@ -16,9 +16,21 @@ class Relation extends Model
     /** 単なる関連リンク（順序なし。旧ASP rtype='relation'）。 */
     public const RELATED = 'relation';
 
+    /** 依存タイプ（rtype=SEQUENCE のとき）。FS=先行完了→後続開始 など。 */
+    public const DEP_TYPES = [
+        'FS' => '完了→開始',
+        'SS' => '開始→開始',
+        'FF' => '完了→完了',
+        'SF' => '開始→完了',
+    ];
+
     protected $table = 'relations';
     public $timestamps = false;
     protected $guarded = [];
+
+    protected $casts = [
+        'lag_days' => 'integer',
+    ];
 
     public function scopeActive(Builder $q): Builder
     {

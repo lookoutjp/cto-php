@@ -56,6 +56,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/wbs/check', [WbsController::class, 'check'])->name('wbs.check');
         Route::get('/wbs/schedule', [WbsController::class, 'schedule'])->name('wbs.schedule');
         Route::post('/wbs/schedule/apply', [WbsController::class, 'applySchedule'])->name('wbs.schedule.apply');
+        Route::get('/wbs/holidays', [WbsController::class, 'holidays'])->name('wbs.holidays');
+        Route::post('/wbs/holidays', [WbsController::class, 'storeHoliday'])->name('wbs.holidays.store');
+        Route::delete('/wbs/holidays/{id}', [WbsController::class, 'destroyHoliday'])->whereNumber('id')->name('wbs.holidays.destroy');
         Route::get('/wbs/create', [WbsController::class, 'create'])->name('wbs.create');
         Route::post('/wbs', [WbsController::class, 'store'])->name('wbs.store');
         Route::get('/wbs/{id}', [WbsController::class, 'show'])->whereNumber('id')->name('wbs.show');

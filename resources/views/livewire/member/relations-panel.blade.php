@@ -27,6 +27,11 @@
                                 @else
                                     <span class="text-gray-400">{{ $item->title }}</span>
                                 @endif
+                                @if ($label !== '関連')
+                                    <span class="text-[10px] text-gray-400">
+                                        {{ $item->dep_type }}@if ($item->lag_days) {{ $item->lag_days > 0 ? '+' : '' }}{{ $item->lag_days }}d @endif
+                                    </span>
+                                @endif
                                 <button wire:click="removeLink({{ $item->relation_id }})"
                                         class="ml-auto text-xs text-gray-300 hover:text-red-600" title="削除">✕</button>
                             </li>
@@ -56,6 +61,15 @@
                     <option value="{{ $tid }}">#{{ $tid }} {{ \Illuminate\Support\Str::limit($ttitle, 40) }}</option>
                 @endforeach
             </select>
+            @if ($linkType !== 'rel')
+                <select wire:model="depType" class="rounded-lg border-gray-300 text-xs shadow-sm focus:border-gray-500 focus:ring-gray-500" title="依存タイプ">
+                    @foreach ($depTypes as $code => $labelJa)
+                        <option value="{{ $code }}">{{ $code }}（{{ $labelJa }}）</option>
+                    @endforeach
+                </select>
+                <input type="number" wire:model="lagDays" min="-365" max="365" title="ラグ日数（負=前倒し）"
+                       class="w-16 rounded-lg border-gray-300 text-xs shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            @endif
             <button wire:click="addLink" class="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">追加</button>
         </div>
     </div>

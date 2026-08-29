@@ -70,7 +70,7 @@
                 <input type="number" wire:model="lagDays" min="-365" max="365" title="ラグ日数（負=前倒し）"
                        class="w-16 rounded-lg border-gray-300 text-xs shadow-sm focus:border-gray-500 focus:ring-gray-500">
             @endif
-            <button wire:click="addLink" class="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">追加</button>
+            <button wire:click="addLink" class="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-brand-fg hover:bg-brand-dark">追加</button>
         </div>
     </div>
 </div>

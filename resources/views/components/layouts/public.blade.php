@@ -8,11 +8,13 @@
     <title>{{ $title ? $title.' | ' : '' }}{{ $site?->sitename ?? config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @include('partials.theme-style')
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
+    <div class="h-1 bg-brand"></div>
     <header class="border-b border-gray-200 bg-white">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
-            <a href="{{ route('home') }}" class="text-lg font-bold tracking-tight text-gray-900">
+            <a href="{{ route('home') }}" class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
                 {{ $site?->sitename ?? config('app.name') }}
             </a>
             <nav class="flex items-center gap-1 text-sm">
@@ -27,7 +29,7 @@
                     <a href="{{ route($routeName) }}"
                        @class([
                            'rounded-md px-3 py-2 transition',
-                           'bg-gray-900 text-white' => request()->routeIs($routeName),
+                           'bg-brand text-brand-fg' => request()->routeIs($routeName),
                            'text-gray-600 hover:bg-gray-100 hover:text-gray-900' => ! request()->routeIs($routeName),
                        ])>{{ $label }}</a>
                 @endforeach

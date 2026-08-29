@@ -40,7 +40,7 @@
                 @error('body') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
                 <div class="text-right">
                     <button type="submit"
-                            class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
+                            class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                         投稿する
                     </button>
                 </div>

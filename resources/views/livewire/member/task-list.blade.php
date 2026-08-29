@@ -4,7 +4,7 @@
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-xl font-bold text-gray-900">{{ $tk->label }}一覧</h1>
             <a href="{{ route('tasks.create', $tk->slug) }}"
-               class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
+               class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                 新規起票
             </a>
         </div>
@@ -14,7 +14,7 @@
                 <button type="button" wire:click="setView('{{ $key }}')"
                     @class([
                         'rounded-full px-3 py-1 text-xs font-medium transition',
-                        'bg-gray-900 text-white' => $view === $key,
+                        'bg-brand text-brand-fg' => $view === $key,
                         'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50' => $view !== $key,
                     ])>{{ $label }}</button>
             @endforeach

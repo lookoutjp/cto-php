@@ -13,9 +13,11 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('partials.theme-style')
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
+            <div class="h-1 bg-brand"></div>
             @include('layouts.navigation')
 
             <!-- Page Heading -->

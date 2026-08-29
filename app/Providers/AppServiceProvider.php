@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
 
         // 現在のサイト情報($site)を、公開フロント・会員画面・共通レイアウトのビューに渡す。
         View::composer([
-            'components.layouts.public', 'layouts.app', 'layouts.navigation',
+            'components.layouts.public', 'layouts.app', 'layouts.navigation', 'layouts.guest',
             'public.*', 'livewire.public.*',
             'member.*', 'livewire.member.*', 'mypage',
         ], function ($view) {

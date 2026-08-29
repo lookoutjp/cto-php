@@ -7,6 +7,12 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 - Blade（サーバーレンダリング）+ Livewire 3（検索・ページネーション等の動的部分）
 - Tailwind v3 + `@tailwindcss/forms` + `@tailwindcss/typography`（`prose` で本文HTMLを整形）
+- テーマカラー: `rooms.sitecolor`（旧ASP `css/inc_Stytle.asp` の gold/spring/blue…13種）を
+  `App\Support\ThemePalette` が CSS変数 `--brand{,-dark,-light,-bg,-fg}` ＋ `--brand-name`
+  （`rooms.sitename_color`）に変換。3レイアウト（public / app / guest）が `<head>` で
+  `partials/theme-style` を出力し、Tailwind の `brand` カラー（`bg-brand` `text-brand-fg`
+  `hover:bg-brand-dark` `ring-brand` 等）がそれを参照。ボタン・アクティブnav・フォーカスリング・
+  ヘッダーのアクセントバー・サイト名に適用。旧Breeze の indigo アクセントは全廃
 - ロケール: `APP_LOCALE=ja`（`config/app.php` の既定も `ja`、`fallback_locale=en`）。
   `lang/ja.json`（Breeze 認証・プロフィール画面の `__()` 文言）＋ `lang/ja/{validation,auth,passwords,pagination}.php`。
   業務系の画面は Blade に直接日本語を書いており `__()` は使っていない。日付は Carbon の
@@ -92,8 +98,5 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - `checkfunction_F` 相当は `Room::hasFunction()`。お問い合わせ・タスク一覧の nav / 404 で使用。
   Mypage 本体のパネル出し分けはまだ（全パネル表示）
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
-- 業務系（todo / Risk / Problem / Product / RoutineWork / Change / wbs / Survey）の会員向け画面
-- コンテンツへのコメント（`content_comments`）、掲示板（`guestbooks`）
 - カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）
-- サイトごとのテーマカラー（`rooms.sitecolor` = gold/spring/css-orange）
 - 画像・添付（`files`）→ S3/R2 前提なので後回し

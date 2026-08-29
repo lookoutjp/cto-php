@@ -28,7 +28,7 @@
                 </div>
                 <div class="flex items-center justify-end gap-3">
                     <a href="{{ route('board.category', $cat->id) }}" class="text-sm text-gray-500 hover:underline">キャンセル</a>
-                    <button type="submit" class="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700">投稿</button>
+                    <button type="submit" class="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">投稿</button>
                 </div>
             </form>
         </div>

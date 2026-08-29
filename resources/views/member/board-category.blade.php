@@ -19,7 +19,7 @@
 
             <div class="flex justify-end">
                 <a href="{{ route('board.create', $cat->id) }}"
-                   class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">新規投稿</a>
+                   class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">新規投稿</a>
             </div>
 
             <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">

@@ -30,7 +30,7 @@
                 <span class="text-gray-500">日数の数え方:</span>
                 @foreach (['working' => '稼働日（土日・休日を除外）', 'calendar' => '暦日'] as $m => $ml)
                     <a href="{{ route('wbs.schedule', array_filter(['root' => $rootId, 'calendar' => $m === 'working' ? null : $m])) }}"
-                       @class(['rounded-full px-3 py-1', 'bg-gray-900 text-white' => $calMode === $m, 'bg-white text-gray-600 ring-1 ring-gray-200' => $calMode !== $m])>{{ $ml }}</a>
+                       @class(['rounded-full px-3 py-1', 'bg-brand text-brand-fg' => $calMode === $m, 'bg-white text-gray-600 ring-1 ring-gray-200' => $calMode !== $m])>{{ $ml }}</a>
                 @endforeach
                 <a href="{{ route('wbs.holidays') }}" class="ml-auto text-gray-500 underline">休日カレンダーを編集</a>
             </div>
@@ -94,7 +94,7 @@
                         <input type="checkbox" name="update_summaries" value="1" class="rounded border-gray-300 text-gray-900 focus:ring-gray-500">
                         サマリ項目の日付も配下から更新する
                     </label>
-                    <button type="submit" class="ml-auto rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700">
+                    <button type="submit" class="ml-auto rounded-lg bg-brand px-5 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
                         計算結果を反映
                     </button>
                 </form>

@@ -5,6 +5,7 @@ use App\Http\Controllers\Member\TaskController;
 use App\Http\Controllers\Member\WbsController;
 use App\Http\Controllers\MypageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\EnsureProjectMember;
 use App\Livewire\Member\TaskList;
 use App\Http\Controllers\Public\ContentController;
 use App\Http\Controllers\Public\FaqController;
@@ -38,25 +39,27 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 業務系タスク（todo / problem / risk / product / routinework）
-    Route::whereIn('kind', \App\Support\TaskKind::slugs())->group(function () {
-        Route::get('/tasks/{kind}', TaskList::class)->name('tasks.index');
-        Route::get('/tasks/{kind}/create', [TaskController::class, 'create'])->name('tasks.create');
-        Route::post('/tasks/{kind}', [TaskController::class, 'store'])->name('tasks.store');
-        Route::get('/tasks/{kind}/{id}', [TaskController::class, 'show'])->whereNumber('id')->name('tasks.show');
-        Route::get('/tasks/{kind}/{id}/edit', [TaskController::class, 'edit'])->whereNumber('id')->name('tasks.edit');
-        Route::put('/tasks/{kind}/{id}', [TaskController::class, 'update'])->whereNumber('id')->name('tasks.update');
-        Route::delete('/tasks/{kind}/{id}', [TaskController::class, 'destroy'])->whereNumber('id')->name('tasks.destroy');
+    // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ
+    Route::middleware(EnsureProjectMember::class)->group(function () {
+        Route::whereIn('kind', \App\Support\TaskKind::slugs())->group(function () {
+            Route::get('/tasks/{kind}', TaskList::class)->name('tasks.index');
+            Route::get('/tasks/{kind}/create', [TaskController::class, 'create'])->name('tasks.create');
+            Route::post('/tasks/{kind}', [TaskController::class, 'store'])->name('tasks.store');
+            Route::get('/tasks/{kind}/{id}', [TaskController::class, 'show'])->whereNumber('id')->name('tasks.show');
+            Route::get('/tasks/{kind}/{id}/edit', [TaskController::class, 'edit'])->whereNumber('id')->name('tasks.edit');
+            Route::put('/tasks/{kind}/{id}', [TaskController::class, 'update'])->whereNumber('id')->name('tasks.update');
+            Route::delete('/tasks/{kind}/{id}', [TaskController::class, 'destroy'])->whereNumber('id')->name('tasks.destroy');
+        });
+
+        // WBS（階層） — 旧 wbs.asp。v1 は閲覧のみ
+        Route::get('/wbs', [WbsController::class, 'index'])->name('wbs.index');
+        Route::get('/wbs/{id}', [WbsController::class, 'show'])->whereNumber('id')->name('wbs.show');
+
+        // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp
+        Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+        Route::get('/surveys/{id}', [SurveyController::class, 'show'])->whereNumber('id')->name('surveys.show');
+        Route::post('/surveys/{id}/answer', [SurveyController::class, 'answer'])->whereNumber('id')->name('surveys.answer');
     });
-
-    // WBS（階層） — 旧 wbs.asp。v1 は閲覧のみ
-    Route::get('/wbs', [WbsController::class, 'index'])->name('wbs.index');
-    Route::get('/wbs/{id}', [WbsController::class, 'show'])->whereNumber('id')->name('wbs.show');
-
-    // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp
-    Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
-    Route::get('/surveys/{id}', [SurveyController::class, 'show'])->whereNumber('id')->name('surveys.show');
-    Route::post('/surveys/{id}/answer', [SurveyController::class, 'answer'])->whereNumber('id')->name('surveys.answer');
 });
 
 require __DIR__.'/auth.php';

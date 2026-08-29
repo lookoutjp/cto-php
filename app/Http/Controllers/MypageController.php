@@ -14,6 +14,11 @@ class MypageController extends Controller
         /** @var Member $member */
         $member = $request->user();
 
+        // ninshou = 0（コンテンツ閲覧のみ）の会員には簡易版を出す。
+        if (! $member->isProjectMemberOf()) {
+            return view('mypage-lite', ['member' => $member]);
+        }
+
         $dashboard = TaskDashboard::for($member->getKey());
 
         return view('mypage', [

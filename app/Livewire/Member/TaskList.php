@@ -39,6 +39,13 @@ class TaskList extends Component
         if (! Room::find(app(CurrentSite::class)->id())?->hasFunction($tk->function)) {
             throw new NotFoundHttpException;
         }
+
+        abort_unless(auth()->user()?->isProjectMemberOf(), 403);
+    }
+
+    private function guardWrite(): void
+    {
+        abort_unless(auth()->user()?->isProjectMemberOf(), 403);
     }
 
     /** @return array<string, string> */
@@ -99,6 +106,7 @@ class TaskList extends Component
     /** 一覧から担当者・ステータスをその場で変更する。 */
     public function quickUpdate(int $taskId, string $field, ?string $value): void
     {
+        $this->guardWrite();
         $tk = TaskKind::fromSlug($this->kind);
         $task = $tk->query()->notDeleted()->find($taskId);
         if (! $task) {
@@ -130,6 +138,7 @@ class TaskList extends Component
     /** ✪ 本日のタスクトグル（dotoday を今日 <-> null）。 */
     public function toggleToday(int $taskId): void
     {
+        $this->guardWrite();
         $tk = TaskKind::fromSlug($this->kind);
         if (! $tk->has('today')) {
             return;

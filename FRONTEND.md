@@ -89,7 +89,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）
 - WBS D&D は SortableJS の `forceFallback: true`（ポインタイベント）。タッチ端末での操作性は要確認
 - サーベイの作成・締切変更は管理側（未実装）。`specify_yn`（記名アンケート＝誰がどれに投票したか表示）も未対応
-- 掲示板: コミュニティの参加者制限（旧 `guestbook_categories.member` の `||id||` リスト）は未適用（現状は参加者なら全カテゴリ閲覧・投稿可、旧ASP も実質未強制）。管理員返信（`revert`）の入力・投稿削除・コミュニティ CRUD は Filament 側。旧 CKEditor リッチ入力は素の textarea に
+- 掲示板: コミュニティの参加者制限は `GuestbookCategory::allowsMember()`（旧 `guestbook_categories.member` の `||id||` リスト、空 or サイト掲示板 id=1 は無制限、管理員/スーパー管理者は常に可）で適用。一覧は許可カテゴリのみ表示、直リンクは 403。管理員返信（`revert`）の入力・投稿削除・コミュニティ CRUD は Filament 側。旧 CKEditor リッチ入力は素の textarea に
 - コンテンツのコメント: 削除・管理は Filament（`ContentCommentResource`）。旧 `Contentcomment_about.asp`（プライバシーポリシー）リンクは省略
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）
 - レコード単位のアクセス制御（旧ASP同様「参加者なら誰でも編集可」を踏襲。person_do/maker ベースの制限を入れるかは要検討）

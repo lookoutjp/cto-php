@@ -27,8 +27,11 @@ class BoardController extends Controller
     {
         $this->ensureEnabled();
 
+        $member = request()->user();
         $siteBoard = GuestbookCategory::query()->find(GuestbookCategory::SITE_BOARD_ID);
-        $communities = GuestbookCategory::query()->communities()->get();
+        $communities = GuestbookCategory::query()->communities()->get()
+            ->filter(fn (GuestbookCategory $c) => $c->allowsMember($member))
+            ->values();
 
         $counts = Guestbook::query()->real()->threads()
             ->selectRaw('category, count(*) as c')
@@ -114,6 +117,8 @@ class BoardController extends Controller
             throw new NotFoundHttpException;
         }
 
+        $this->findCategory((int) $parent->category); // コミュニティのアクセス制御
+
         $data = $this->validated($request);
 
         $rootId = in_array((string) ($parent->parent ?? '0'), ['0', ''], true)
@@ -150,6 +155,9 @@ class BoardController extends Controller
         if (! $cat) {
             throw new NotFoundHttpException;
         }
+
+        // 参加者を限定しているコミュニティ（旧 guestbookc.member）へのアクセス制御
+        abort_unless($cat->allowsMember(request()->user()), 403, 'このコミュニティに参加していません。');
 
         return $cat;
     }

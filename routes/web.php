@@ -51,9 +51,16 @@ Route::middleware('auth')->group(function () {
             Route::delete('/tasks/{kind}/{id}', [TaskController::class, 'destroy'])->whereNumber('id')->name('tasks.destroy');
         });
 
-        // WBS（階層） — 旧 wbs.asp。v1 は閲覧のみ
+        // WBS（階層） — 旧 wbs.asp / WbsAdd.asp / WbsDetail.asp
         Route::get('/wbs', [WbsController::class, 'index'])->name('wbs.index');
+        Route::get('/wbs/create', [WbsController::class, 'create'])->name('wbs.create');
+        Route::post('/wbs', [WbsController::class, 'store'])->name('wbs.store');
         Route::get('/wbs/{id}', [WbsController::class, 'show'])->whereNumber('id')->name('wbs.show');
+        Route::get('/wbs/{id}/edit', [WbsController::class, 'edit'])->whereNumber('id')->name('wbs.edit');
+        Route::put('/wbs/{id}', [WbsController::class, 'update'])->whereNumber('id')->name('wbs.update');
+        Route::delete('/wbs/{id}', [WbsController::class, 'destroy'])->whereNumber('id')->name('wbs.destroy');
+        Route::post('/wbs/{id}/move/{direction}', [WbsController::class, 'move'])
+            ->whereNumber('id')->whereIn('direction', ['up', 'down', 'indent', 'outdent'])->name('wbs.move');
 
         // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp
         Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');

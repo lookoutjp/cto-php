@@ -99,6 +99,22 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        // Neon（サーバーレスPostgres）専用の接続。
+        // NEON_DATABASE_URL に Neon の接続文字列をそのまま入れる:
+        //   postgresql://USER:PASS@ep-xxxx.REGION.aws.neon.tech/DBNAME?sslmode=require
+        // 疎通確認は `php artisan db:neon-check`。
+        // 本番は DB_CONNECTION=pgsql のまま DB_HOST 等を Neon の値にするのが基本で、
+        // この接続はローカルから Neon を検証したいとき用。
+        'neon' => [
+            'driver' => 'pgsql',
+            'url' => env('NEON_DATABASE_URL'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'require',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

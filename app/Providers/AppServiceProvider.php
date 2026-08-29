@@ -41,8 +41,12 @@ class AppServiceProvider extends ServiceProvider
             return new LegacyAwareUserProvider($app['hash'], $config['model']);
         });
 
-        // 公開フロントの各ビューに現在のサイト情報($site)を渡す。
-        View::composer(['components.layouts.public', 'public.*', 'livewire.public.*'], function ($view) {
+        // 現在のサイト情報($site)を、公開フロント・会員画面・共通レイアウトのビューに渡す。
+        View::composer([
+            'components.layouts.public', 'layouts.app', 'layouts.navigation',
+            'public.*', 'livewire.public.*',
+            'member.*', 'livewire.member.*', 'mypage',
+        ], function ($view) {
             $view->with('site', once(fn () => Room::find(app(CurrentSite::class)->id())));
         });
     }

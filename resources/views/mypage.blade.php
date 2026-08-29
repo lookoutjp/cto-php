@@ -56,13 +56,20 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
+                            @php($linkable = ['todo', 'problem', 'risk'])
                             @foreach ($statusGrid as $row)
+                                @php($canLink = in_array($row['view'], $linkable, true))
+                                @php($cell = function ($bucket, $count) use ($row, $canLink) {
+                                    return $canLink && $count > 0
+                                        ? '<a href="'.route('tasks.index', ['kind' => $row['view'], 'view' => 'my'.$bucket]).'" class="block hover:underline">'.$count.'</a>'
+                                        : $count;
+                                })
                                 <tr>
                                     <th class="px-5 py-3 text-left font-medium text-gray-700">{{ $row['label'] }}</th>
-                                    <td class="px-3 py-3 text-center tabular-nums text-gray-900">{{ $row['new'] }}</td>
-                                    <td @class(['px-3 py-3 text-center tabular-nums', 'bg-amber-50 font-semibold text-amber-800' => $row['here'] > 0, 'text-gray-400' => $row['here'] === 0])>{{ $row['here'] }}</td>
-                                    <td @class(['px-3 py-3 text-center tabular-nums', 'bg-red-50 font-semibold text-red-800' => $row['late'] > 0, 'text-gray-400' => $row['late'] === 0])>{{ $row['late'] }}</td>
-                                    <td @class(['px-3 py-3 text-center tabular-nums', 'text-gray-700' => $row['nulldate'] > 0, 'text-gray-400' => $row['nulldate'] === 0])>{{ $row['nulldate'] }}</td>
+                                    <td class="px-3 py-3 text-center tabular-nums text-gray-900">{!! $cell('new', $row['new']) !!}</td>
+                                    <td @class(['px-3 py-3 text-center tabular-nums', 'bg-amber-50 font-semibold text-amber-800' => $row['here'] > 0, 'text-gray-400' => $row['here'] === 0])>{!! $cell('here', $row['here']) !!}</td>
+                                    <td @class(['px-3 py-3 text-center tabular-nums', 'bg-red-50 font-semibold text-red-800' => $row['late'] > 0, 'text-gray-400' => $row['late'] === 0])>{!! $cell('late', $row['late']) !!}</td>
+                                    <td @class(['px-3 py-3 text-center tabular-nums', 'text-gray-700' => $row['nulldate'] > 0, 'text-gray-400' => $row['nulldate'] === 0])>{!! $cell('nulldate', $row['nulldate']) !!}</td>
                                 </tr>
                             @endforeach
                         </tbody>

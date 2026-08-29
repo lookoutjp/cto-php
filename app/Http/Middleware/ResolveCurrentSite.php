@@ -11,17 +11,18 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * リクエストごとに CurrentSite を確定させる。
  *
- * ログイン中 Member の場合、切り替えられるサイトは accessibleSiteIds() に限る:
- *   - スーパー管理者: 全サイト
- *   - それ以外: member_room で所属しているサイトのみ
+ * ログイン中 Member が対象にできるサイト = manageableSiteIds()
+ * （管理員 = 旧ASP ninshou -1、またはスーパー管理者）。
+ * 現状データを触るのは Filament 管理画面のみのため、管理員スコープで統一している。
+ * 一般会員向けフロントを作るときは Member::accessibleSiteIds() を使う別解決が要る。
  *
  * 解決順:
- *   1. session('site_id') が「アクセス可能」なら採用
- *   2. なければ accessibleSiteIds() の先頭を採用し session に保存
- *   3. アクセス可能なサイトが1つも無ければ denyAll()（業務データは1件も見えない）
+ *   1. session('site_id') がその集合に含まれていれば採用
+ *   2. なければ集合の先頭を採用し session に保存
+ *   3. 集合が空なら denyAll()（業務データは1件も見えない）
  *
- * 未ログイン（フロント）の場合はここでは何もしない。CurrentSite が
- * 必要に応じて session / default_site から解決する。
+ * 未ログインの場合はここでは何もしない。CurrentSite が必要に応じて
+ * session / default_site から解決する。
  */
 class ResolveCurrentSite
 {
@@ -34,7 +35,7 @@ class ResolveCurrentSite
             return $next($request);
         }
 
-        $accessible = $user->accessibleSiteIds()->all();
+        $accessible = $user->manageableSiteIds()->all();
 
         if ($accessible === []) {
             $request->session()->forget('site_id');

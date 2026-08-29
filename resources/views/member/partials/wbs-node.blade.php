@@ -1,8 +1,9 @@
 @php($st = optional($node->statusMaster))
-<li>
-    <div class="group flex items-center gap-2 px-4 py-2 hover:bg-gray-50" style="padding-left: {{ 1 + $depth * 1.5 }}rem">
-        <span class="w-4 shrink-0 text-center text-gray-300">
-            @if ($node->kids->isNotEmpty()) ▾ @elseif ($node->iscategory) ▸ @else · @endif
+<li data-id="{{ $node->id }}" class="wbs-item">
+    <div class="group flex items-center gap-2 border-b border-gray-50 px-2 py-1.5 hover:bg-gray-50">
+        <span class="wbs-handle shrink-0 cursor-grab select-none px-1 text-gray-300 hover:text-gray-500" title="ドラッグで移動">⠿</span>
+        <span class="w-3 shrink-0 text-center text-gray-300">
+            @if ($node->iscategory) ▸ @else · @endif
         </span>
         <a href="{{ route('wbs.show', $node->id) }}"
            class="min-w-0 flex-1 truncate {{ $node->iscategory ? 'font-semibold text-gray-900' : 'text-gray-700' }} hover:underline">
@@ -24,12 +25,6 @@
         </span>
 
         <span class="flex shrink-0 items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
-            @foreach (['up' => '↑', 'down' => '↓', 'indent' => '⇥', 'outdent' => '⇤'] as $dir => $icon)
-                <form method="post" action="{{ route('wbs.move', [$node->id, $dir]) }}">
-                    @csrf
-                    <button class="rounded px-1 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-700" title="{{ ['up'=>'上へ','down'=>'下へ','indent'=>'字下げ','outdent'=>'字上げ'][$dir] }}">{{ $icon }}</button>
-                </form>
-            @endforeach
             <a href="{{ route('wbs.create', ['parent' => $node->id]) }}" class="rounded px-1 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-700" title="子項目を追加">＋</a>
             <a href="{{ route('wbs.edit', $node->id) }}" class="rounded px-1 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-700" title="編集">✎</a>
             <form method="post" action="{{ route('wbs.destroy', $node->id) }}" onsubmit="return confirm('削除しますか？')">
@@ -39,11 +34,9 @@
         </span>
     </div>
 
-    @if ($node->kids->isNotEmpty())
-        <ul>
-            @foreach ($node->kids as $kid)
-                @include('member.partials.wbs-node', ['node' => $kid, 'depth' => $depth + 1])
-            @endforeach
-        </ul>
-    @endif
+    <ul class="wbs-sortable ms-6 min-h-[6px]" data-parent-id="{{ $node->id }}">
+        @foreach ($node->kids as $kid)
+            @include('member.partials.wbs-node', ['node' => $kid])
+        @endforeach
+    </ul>
 </li>

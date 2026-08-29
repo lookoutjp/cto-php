@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MypageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\ContentController;
 use App\Http\Controllers\Public\FaqController;
@@ -20,9 +21,8 @@ Route::get('/contents/{content}', [ContentController::class, 'show'])->name('con
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
 // ---- 会員（Breeze）----
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Mypage（旧 Mypage.asp）: ログイン後の入口。route 名は Breeze 互換のため 'dashboard' のまま。
+Route::get('/mypage', MypageController::class)->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

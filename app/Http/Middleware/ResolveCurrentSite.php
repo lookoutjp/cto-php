@@ -7,23 +7,28 @@ use App\Models\Room;
 use App\Support\CurrentSite;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * リクエストごとに CurrentSite を確定させる。
  *
- * ログイン中 Member が対象にできるサイト = manageableSiteIds()
- * （管理員 = 旧ASP ninshou -1、またはスーパー管理者）。
- * 現状データを触るのは Filament 管理画面のみのため、管理員スコープで統一している。
- * 一般会員向けフロントを作るときは Member::accessibleSiteIds() を使う別解決が要る。
+ * 「管理画面(/admin)」と「公開フロント」で対象サイトの決め方が違う:
  *
- * 解決順:
- *   1. session('site_id') がその集合に含まれていれば採用
- *   2. なければ集合の先頭を採用し session に保存
- *   3. 集合が空なら denyAll()（業務データは1件も見えない）
+ *   管理画面 + ログイン中 Member
+ *     → 対象は manageableSiteIds()（管理員 = 旧ASP ninshou -1、またはスーパー管理者）
+ *     → session('admin_site_id') で切替（SiteSwitcher が書く）
+ *     → 管理サイトが無ければ denyAll()
  *
- * 未ログインの場合はここでは何もしない。CurrentSite が必要に応じて
- * session / default_site から解決する。
+ *   公開フロント + ログイン中 Member
+ *     → 対象は accessibleSiteIds()（所属していれば ninshou 問わない）
+ *     → ホスト名 → session('site_id') → 既定サイト → 先頭 の順で解決
+ *
+ *   公開フロント + 未ログイン
+ *     → ホスト名（rooms.sitedomain）→ 既定サイト
+ *
+ * livewire/update は web ミドルウェア経由で管理画面からも来るため、
+ * リクエストパスだけでなく Referer も見て管理画面コンテキストか判定する。
  */
 class ResolveCurrentSite
 {
@@ -31,40 +36,69 @@ class ResolveCurrentSite
     {
         $current = app(CurrentSite::class);
         $user = $request->user();
+        $default = config('app.default_site', 'www');
 
+        // --- ゲスト（公開フロント）---
         if (! $user instanceof Member) {
-            // 未ログイン（公開フロント）: ホスト名からサイトを決める。
-            // 該当なしなら既定サイト。いずれにせよ必ず set() して
-            // BelongsToSite のスコープが確実に効くようにする（全サイト横断防止）。
-            $current->set(
-                Room::resolveSiteIdFromHost($request->getHost())
-                    ?? config('app.default_site', 'www')
-            );
+            $current->set(Room::resolveSiteIdFromHost($request->getHost()) ?? $default);
 
             return $next($request);
         }
 
-        $accessible = $user->manageableSiteIds()->all();
+        // --- 管理画面コンテキスト ---
+        if ($this->isAdminContext($request)) {
+            $manageable = $user->manageableSiteIds()->all();
+
+            if ($manageable === []) {
+                $request->session()->forget('admin_site_id');
+                $current->denyAll();
+
+                return $next($request);
+            }
+
+            $picked = $request->session()->get('admin_site_id');
+            if (! in_array($picked, $manageable, true)) {
+                $picked = $manageable[0];
+                $request->session()->put('admin_site_id', $picked);
+            }
+            $current->set($picked);
+
+            return $next($request);
+        }
+
+        // --- 公開フロント + ログイン中 Member ---
+        $accessible = $user->accessibleSiteIds()->all();
 
         if ($accessible === []) {
-            $request->session()->forget('site_id');
             $current->denyAll();
 
             return $next($request);
         }
 
-        $sessionSite = $request->session()->get('site_id');
+        $fromHost = Room::resolveSiteIdFromHost($request->getHost());
+        $fromSession = $request->session()->get('site_id');
 
-        if ($sessionSite !== null && in_array($sessionSite, $accessible, true)) {
-            $current->set($sessionSite);
+        $picked = match (true) {
+            in_array($fromHost, $accessible, true) => $fromHost,
+            in_array($fromSession, $accessible, true) => $fromSession,
+            in_array($default, $accessible, true) => $default,
+            default => $accessible[0],
+        };
 
-            return $next($request);
-        }
-
-        $resolved = $accessible[0];
-        $current->set($resolved);
-        $request->session()->put('site_id', $resolved);
+        $current->set($picked);
+        $request->session()->put('site_id', $picked);
 
         return $next($request);
+    }
+
+    private function isAdminContext(Request $request): bool
+    {
+        if ($request->is('admin', 'admin/*')) {
+            return true;
+        }
+
+        $refererPath = (string) parse_url((string) $request->headers->get('referer'), PHP_URL_PATH);
+
+        return Str::startsWith($refererPath, '/admin');
     }
 }

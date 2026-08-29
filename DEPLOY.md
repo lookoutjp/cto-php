@@ -72,10 +72,22 @@ DB_DATABASE=（Neonのデータベース名）
 DB_USERNAME=（Neonのユーザー名）
 DB_PASSWORD=（Neonのパスワード）
 DB_SSLMODE=require
+DB_EMULATE_PREPARES=true   # Neon pooled(PgBouncer)経由では必須。無いと 25P02 で落ちる
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 ```
+
+または `DB_URL` に pooled 接続文字列をまるごと入れてもよい:
+```env
+DB_URL=postgresql://USER:PASS@ep-xxxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require
+DB_EMULATE_PREPARES=true
+```
+
+> **libpq のバージョン**: Neon は SNI でエンドポイントを判定するため、古い libpq
+> （XAMPP同梱の11系など）だと `Endpoint ID is not specified` エラーになる。
+> PostgreSQL 14以降の libpq が必要（ローカル開発機では PostgreSQL 16 の
+> `libpq.dll` とその依存DLLを PHP フォルダにコピーして対応した）。
 
 ## 5. migrationの実行
 

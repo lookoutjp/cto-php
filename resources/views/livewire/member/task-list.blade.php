@@ -9,9 +9,8 @@
             </a>
         </div>
 
-        {{-- フィルタ --}}
         <div class="mb-4 flex flex-wrap gap-2">
-            @foreach ($filters as $key => $label)
+            @foreach ($this->filters as $key => $label)
                 <button type="button" wire:click="setView('{{ $key }}')"
                     @class([
                         'rounded-full px-3 py-1 text-xs font-medium transition',
@@ -31,27 +30,18 @@
                 <table class="min-w-full divide-y divide-gray-100 text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500">
                         <tr>
-                            @php($col = fn ($k, $l) => $k)
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('id')" class="hover:text-gray-900">#</button>
-                            </th>
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('title')" class="hover:text-gray-900">タイトル</button>
-                            </th>
+                            <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('id')" class="hover:text-gray-900">#</button></th>
+                            <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('title')" class="hover:text-gray-900">タイトル</button></th>
                             <th class="px-3 py-2 text-left font-medium">分類</th>
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('status')" class="hover:text-gray-900">ステータス</button>
-                            </th>
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('person_do')" class="hover:text-gray-900">担当者</button>
-                            </th>
-                            <th class="px-3 py-2 text-left font-medium">主管チーム</th>
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('duedate')" class="hover:text-gray-900">期限</button>
-                            </th>
-                            <th class="px-3 py-2 text-left font-medium">
-                                <button wire:click="sortBy('renewdate')" class="hover:text-gray-900">更新日</button>
-                            </th>
+                            <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('status')" class="hover:text-gray-900">ステータス</button></th>
+                            <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('person_do')" class="hover:text-gray-900">担当者</button></th>
+                            @if ($tk->has('team'))
+                                <th class="px-3 py-2 text-left font-medium">主管チーム</th>
+                            @endif
+                            @if ($tk->has('date'))
+                                <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('{{ $tk->dateColumn() }}')" class="hover:text-gray-900">{{ $tk->dateLabel }}</button></th>
+                            @endif
+                            <th class="px-3 py-2 text-left font-medium"><button wire:click="sortBy('renewdate')" class="hover:text-gray-900">更新日</button></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -77,10 +67,14 @@
                                     ])>{{ $st->statusname ?? '—' }}</span>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->assignee)->name ?? '未設定' }}</td>
-                                <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->team)->levelname ?? '未設定' }}</td>
-                                <td class="whitespace-nowrap px-3 py-2 {{ $task->isOverdue() ? 'font-semibold text-red-600' : 'text-gray-600' }}">
-                                    {{ optional($task->duedate)->isoFormat('YYYY/MM/DD') ?? '未設定' }}
-                                </td>
+                                @if ($tk->has('team'))
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ optional($task->team)->levelname ?? '未設定' }}</td>
+                                @endif
+                                @if ($tk->has('date'))
+                                    <td class="whitespace-nowrap px-3 py-2 {{ $task->isOverdue() ? 'font-semibold text-red-600' : 'text-gray-600' }}">
+                                        {{ optional($task->{$tk->dateColumn()})->isoFormat('YYYY/MM/DD') ?? '未設定' }}
+                                    </td>
+                                @endif
                                 <td class="whitespace-nowrap px-3 py-2 text-gray-400">{{ optional($task->renewdate)->isoFormat('YYYY/MM/DD') ?? '—' }}</td>
                             </tr>
                         @empty

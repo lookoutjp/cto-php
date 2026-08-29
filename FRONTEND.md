@@ -40,7 +40,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
 | `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
 | `/contact` `/contact/thanks` | `Public\InquiryController` | otoi.asp / otoi2 / otoi3 | お問い合わせフォーム。会員はプロフィールから自動入力。保存（`inquiries`、`site_id` 自動）＋ 受付確認メール（本人）＋ 新着通知メール（`rooms.site_mail`）。番号は `T{id}`。`rooms.function_list` に `otoiawasefunction` が無いサイトは 404（nav リンクも非表示） |
-| `/tasks/{kind}`（todo/problem/risk） | `Livewire\Member\TaskList` + `Member\TaskController` | todo.asp / Problem.asp / Risk.asp | 一覧（フィルタ: 私の担当/新規/対応中/期限接近/遅延/完了/すべて、キーワード検索、列ソート、20件/頁）／詳細／新規起票・編集・論理削除（`delete_to=1`）。`{kind}function` が無いサイトは 404。Mypage の集計値からドリルダウン |
+| `/tasks/{kind}`（todo/problem/risk/product/routinework） | `Livewire\Member\TaskList` + `Member\TaskController` | todo.asp / Problem.asp / Risk.asp / product.asp / RoutineWorkList.asp | 一覧（フィルタ・キーワード検索・列ソート・20件/頁）／詳細／新規起票・編集・論理削除（`delete_to=1`）。`{kind}function` が無いサイトは 404。`App\Support\TaskKind` の `features` で任意フィールド（期限/チーム/状況/完了基準/承認者/内容/ステージ/責任者）を出し分け。product は期限なし、routinework は `actiondate`（表示「実施日」）。Mypage の集計値からドリルダウン（todo/problem/risk） |
 
 ## モデルのスコープ
 
@@ -51,7 +51,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 ## 未実装（旧ASPの主要導線の残り）
 
 - 会員登録・ログイン画面の日本語化（Breeze 雛形のまま英語）
-- 業務系の残り: wbs（階層）, product, change, routinework, survey の会員画面
+- 業務系の残り: wbs（階層）, survey の会員画面
+- **change（変更管理）は保留**: `statuses`/`categories` に `change` kind が無く、`change_requests` は1件のみ。ステータス体系が未定義なので画面化を見送り
+- routinework: `routine_works`（定例作業の定義／繰り返しルール）からの `routine_work_lists` 自動生成は未。一覧の閲覧・編集のみ
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）
 - タスクのアクセス制御（現状ログイン会員なら誰でも編集可。旧 ninshou / person_do ベースの制御は未）
 - Mypage 集計 → 一覧のドリルダウンは todo/problem/risk のみ実装済み（wbs は一覧未実装）

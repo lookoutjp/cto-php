@@ -3,31 +3,47 @@
 namespace App\Support;
 
 use App\Models\Problem;
+use App\Models\Product;
 use App\Models\Risk;
+use App\Models\RoutineWorkList;
 use App\Models\Todo;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * 会員向けタスク系画面（todo / problem / risk）のメタ情報。
- * ルート {kind} からモデルや表示名を引く。
+ * 会員向けタスク系画面（todo / problem / risk / product / routinework）のメタ情報。
+ * ルート {kind} からモデル・表示名・使うフィールドを引く。
+ *
+ * features: 一覧/フォーム/詳細で出す任意フィールドの集合
+ *   date（期限系）, team, situation, criteria（完了基準）, approver, content,
+ *   stage, responsible（責任者）
  */
 class TaskKind
 {
     private const MAP = [
         'todo' => [
-            'label' => 'TODO',
-            'model' => Todo::class,
-            'function' => 'todofunction',
+            'label' => 'TODO', 'model' => Todo::class, 'function' => 'todofunction',
+            'date_label' => '期限',
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
         ],
         'problem' => [
-            'label' => '課題',
-            'model' => Problem::class,
-            'function' => 'problemfunction',
+            'label' => '課題', 'model' => Problem::class, 'function' => 'problemfunction',
+            'date_label' => '期限',
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
         ],
         'risk' => [
-            'label' => 'リスク',
-            'model' => Risk::class,
-            'function' => 'riskfunction',
+            'label' => 'リスク', 'model' => Risk::class, 'function' => 'riskfunction',
+            'date_label' => '期限',
+            'features' => ['date', 'team', 'situation', 'criteria', 'approver', 'content'],
+        ],
+        'product' => [
+            'label' => '成果物', 'model' => Product::class, 'function' => 'productfunction',
+            'date_label' => null,
+            'features' => ['content', 'stage', 'responsible'],
+        ],
+        'routinework' => [
+            'label' => '定例作業', 'model' => RoutineWorkList::class, 'function' => 'routineworkfunction',
+            'date_label' => '実施日',
+            'features' => ['date', 'team', 'situation', 'criteria', 'content'],
         ],
     ];
 
@@ -37,25 +53,45 @@ class TaskKind
         /** @var class-string<\Illuminate\Database\Eloquent\Model> */
         public readonly string $model,
         public readonly string $function,
+        public readonly ?string $dateLabel,
+        /** @var list<string> */
+        public readonly array $features,
     ) {}
 
     public static function fromSlug(string $slug): self
     {
         $def = self::MAP[$slug] ?? throw new NotFoundHttpException("unknown task kind: {$slug}");
 
-        return new self($slug, $def['label'], $def['model'], $def['function']);
+        return new self($slug, $def['label'], $def['model'], $def['function'], $def['date_label'], $def['features']);
     }
 
-    /** @return array<string, self> */
+    /** @return list<string> */
+    public static function slugs(): array
+    {
+        return array_keys(self::MAP);
+    }
+
+    /** @return array<int, self> */
     public static function all(): array
     {
-        return array_map(
-            fn (string $slug) => self::fromSlug($slug),
-            array_combine(array_keys(self::MAP), array_keys(self::MAP)),
-        );
+        return array_map([self::class, 'fromSlug'], self::slugs());
     }
 
-    /** @return \Illuminate\Database\Eloquent\Model */
+    public function has(string $feature): bool
+    {
+        return in_array($feature, $this->features, true);
+    }
+
+    public function dateColumn(): ?string
+    {
+        return $this->model::taskDateColumn();
+    }
+
+    public function statusKind(): string
+    {
+        return $this->model::$taskKind;
+    }
+
     public function newModel()
     {
         return new $this->model;

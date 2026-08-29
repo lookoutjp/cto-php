@@ -56,7 +56,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 | URL | 実装 | 旧ASP | 内容 |
 |---|---|---|---|
-| `/` | `Public\HomeController` + `public.home` | index.asp | サイト紹介（`rooms.siteintro`）+ 最新ニュース5件 |
+| `/` | `Public\HomeController` + `public.home` | index.asp | サイト紹介（`rooms.siteintro`）+ 最新ニュース5件 ＋ おすすめコンテンツ（`contents.recommend=1`、`osusumecontentsfunction`）＋ 人気コンテンツ（`clicks` 降順、`ninkicontentsfunction`） |
 | `/news` | `Livewire\Public\NewsIndex` | news.asp | 一覧・タイトル検索・32件/ページ。`newsdate <= now` のみ、`istop` 優先 |
 | `/news/{id}` | `Public\NewsController@show` | newsdetail.asp | 本文HTML + 前後リンク。未公開/他サイトは404。clicks++ |
 | `/contents` | `Public\ContentController@index` | contents.asp | 公開カテゴリ（`ninshou` null/0）ごとに公開コンテンツ（`ok=1`） |
@@ -107,7 +107,6 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
 - カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）
 - 画像・添付（`files`）→ S3/R2 前提なので後回し
-- オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`）、
-  作品公開（`sakuhinkoukaifunction`）、おすすめ・人気コンテンツ（`osusume/ninkicontentsfunction`）、
-  バージョン履歴（`sys_versions` 空）は未実装
+- オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
+  作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装
 - 会員個人ページ（旧 memberpage.asp）は未実装（メンバー一覧から個別ページへのリンクなし）

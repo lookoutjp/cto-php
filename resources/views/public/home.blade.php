@@ -10,6 +10,24 @@
         @endif
     </section>
 
+    @foreach (['おすすめコンテンツ' => $recommended, '人気コンテンツ' => $popular] as $heading => $list)
+        @if ($list->isNotEmpty())
+            <section class="mt-8">
+                <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ $heading }}</h2>
+                <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                    @foreach ($list as $c)
+                        <li class="px-4 py-3">
+                            <a href="{{ route('contents.show', $c) }}" class="font-medium text-gray-900 hover:text-gray-600 hover:underline">{{ $c->name }}</a>
+                            @if ($c->introduce)
+                                <p class="mt-0.5 truncate text-sm text-gray-500">{{ strip_tags($c->introduce) }}</p>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+    @endforeach
+
     <section class="mt-8">
         <div class="mb-3 flex items-baseline justify-between">
             <h2 class="text-lg font-semibold text-gray-900">最新ニュース</h2>

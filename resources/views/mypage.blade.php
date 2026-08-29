@@ -13,7 +13,15 @@
                 <p class="text-lg font-semibold text-gray-900">{{ $member->name ?: $member->getKey() }} さん</p>
             </div>
 
+            @php($noPanels = count($todayTasks) === 0 && count($statusGrid) === 0 && ! $routineGrid)
+            @if ($noPanels)
+                <div class="rounded-lg bg-white p-5 text-sm text-gray-500 shadow-sm">
+                    このサイトでは表示できる業務データがありません。
+                </div>
+            @endif
+
             {{-- 本日の計画作業 --}}
+            @if (count($todayTasks))
             <section class="rounded-lg bg-white shadow-sm">
                 <h3 class="border-b border-gray-100 px-5 py-3 font-semibold text-gray-900">本日の計画作業</h3>
                 <div class="divide-y divide-gray-100">
@@ -34,8 +42,10 @@
                     @endforeach
                 </div>
             </section>
+            @endif
 
             {{-- 管理タスク対応状況 --}}
+            @if (count($statusGrid))
             <section class="overflow-hidden rounded-lg bg-white shadow-sm">
                 <h3 class="border-b border-gray-100 px-5 py-3 font-semibold text-gray-900">管理タスク対応状況</h3>
                 <div class="overflow-x-auto">
@@ -76,8 +86,10 @@
                     </table>
                 </div>
             </section>
+            @endif
 
             {{-- 定例作業対応状況 --}}
+            @if ($routineGrid)
             <section class="overflow-hidden rounded-lg bg-white shadow-sm">
                 <h3 class="border-b border-gray-100 px-5 py-3 font-semibold text-gray-900">定例作業対応状況</h3>
                 <div class="overflow-x-auto">
@@ -103,6 +115,7 @@
                     </table>
                 </div>
             </section>
+            @endif
 
         </div>
     </div>

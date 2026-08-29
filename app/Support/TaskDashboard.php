@@ -4,10 +4,12 @@ namespace App\Support;
 
 use App\Models\Problem;
 use App\Models\Risk;
+use App\Models\Room;
 use App\Models\RoutineWorkList;
 use App\Models\StatusMaster;
 use App\Models\Todo;
 use App\Models\Wbs;
+use App\Support\CurrentSite;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -43,6 +45,18 @@ class TaskDashboard
         'routinework' => '定例作業',
     ];
 
+    /** kind => rooms.function_list のフラグ（旧ASP checkfunction_F 相当）。 */
+    private const FUNCTIONS = [
+        'todo' => 'todofunction',
+        'problem' => 'problemfunction',
+        'risk' => 'riskfunction',
+        'wbs' => 'wbsfunction',
+        'routinework' => 'routineworkfunction',
+    ];
+
+    /** @var list<string>|null */
+    private ?array $enabledKindsCache = null;
+
     public function __construct(private readonly string $memberId)
     {
     }
@@ -52,6 +66,26 @@ class TaskDashboard
         return new self($memberId);
     }
 
+    /** 現在のサイトで有効な kind（旧ASP: Mypage のパネル出し分け）。 */
+    public function enabledKinds(): array
+    {
+        if ($this->enabledKindsCache !== null) {
+            return $this->enabledKindsCache;
+        }
+
+        $room = Room::find(app(CurrentSite::class)->id());
+
+        return $this->enabledKindsCache = array_values(array_filter(
+            array_keys(self::FUNCTIONS),
+            fn (string $kind) => $room?->hasFunction(self::FUNCTIONS[$kind]) ?? false
+        ));
+    }
+
+    public function isEnabled(string $kind): bool
+    {
+        return in_array($kind, $this->enabledKinds(), true);
+    }
+
     /** 管理タスク対応状況グリッド（todo/problem/risk/wbs）。 */
     public function statusGrid(): array
     {
@@ -59,6 +93,9 @@ class TaskDashboard
         $rows = [];
 
         foreach (self::DATED_TYPES as $kind => $model) {
+            if (! $this->isEnabled($kind)) {
+                continue;
+            }
             $openStatusIds = $this->openStatusIds($kind);
             $newStatusIds = $this->statusIdsByPercent($kind, 0);
 
@@ -87,9 +124,13 @@ class TaskDashboard
         return $rows;
     }
 
-    /** 定例作業対応状況（actiondate ベース）。 */
-    public function routineGrid(): array
+    /** 定例作業対応状況（actiondate ベース）。無効なサイトでは null。 */
+    public function routineGrid(): ?array
     {
+        if (! $this->isEnabled('routinework')) {
+            return null;
+        }
+
         $today = Carbon::today();
         $openStatusIds = $this->openStatusIds('routinework');
         $newStatusIds = $this->statusIdsByPercent('routinework', 0);
@@ -123,6 +164,9 @@ class TaskDashboard
         $result = [];
 
         foreach (self::DATED_TYPES + ['routinework' => RoutineWorkList::class] as $kind => $model) {
+            if (! $this->isEnabled($kind)) {
+                continue;
+            }
             $result[$kind] = [
                 'label' => self::LABELS[$kind],
                 'items' => $model::query()

@@ -8,105 +8,106 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * WBS の簡易スケジューリング（CPM: Critical Path Method / Finish-to-Start）。
+ * WBS の簡易スケジューリング（CPM: Critical Path Method）。
  *
- * - 期間は tododays（暦日）。EF = ES + max(0, tododays - 1)。
- * - 後続の ES = すべての先行の EF + 1日、かつ自身の godate（あれば）以上。
- * - 先行が非wbs（todo/課題/リスク/成果物）の場合は、その duedate を固定制約として使う。
- * - フォワードパス → プロジェクト完了日 → バックワードパスで LS/LF/フロートを算出。
- * - フロート 0 = クリティカルパス。
- * - 依存に循環があれば例外。
+ * - 依存タイプ: FS / SS / FF / SF（relations.dep_type）。ラグ: relations.lag_days（負=リード）。
+ * - 期間・ラグは WorkCalendar に従う（'working' = 土日+休日除外 / 'calendar' = 暦日）。
+ * - EF = ES を起点に (tododays - 1) 稼働日進めた日。
+ * - フォワードパス → プロジェクト完了日 → バックワードパスで LS/LF/フロート。
+ * - フロート 0 = クリティカルパス。依存に循環があれば例外。
+ * - 先行が非wbs（todo/課題/リスク/成果物）の場合は、その duedate を FS 固定制約に。
  */
 class WbsScheduler
 {
-    /** @var Collection<int, Wbs> リーフ（iscategory=false, tododays を持つ）タスク */
+    /** @var Collection<int, Wbs> */
     private Collection $leaves;
 
-    /** @var array<int, list<array{kind:string,id:int}>> successorId => [predecessor refs] */
+    /** @var array<int, list<array{id:int,dep:string,lag:int}>> successorId => predecessor links */
     private array $preds = [];
 
-    /** @var array<int, list<int>> wbsId => [successor wbs ids]（wbs→wbs のみ） */
+    /** @var array<int, list<array{id:int,dep:string,lag:int}>> predId => successor links */
     private array $succs = [];
 
-    /** @var array<int, Carbon> 非wbs先行の duedate 制約: successorWbsId => 最大duedate */
+    /** @var array<int, Carbon> 非wbs先行の duedate 制約 */
     private array $externalConstraint = [];
 
     private ?Carbon $projectStart = null;
 
-    public function __construct(private readonly Collection $allWbs)
-    {
+    public function __construct(
+        private readonly Collection $allWbs,
+        private readonly WorkCalendar $cal = new WorkCalendar('calendar'),
+    ) {
     }
 
-    public static function forCurrentSite(): self
+    public static function forCurrentSite(string $calendarMode = 'working'): self
     {
-        return new self(Wbs::query()->notDeleted()->get());
+        return new self(
+            Wbs::query()->notDeleted()->get(),
+            WorkCalendar::forCurrentSite($calendarMode),
+        );
     }
 
-    /**
-     * @return array{
-     *   nodes: array<int, array{es:?Carbon,ef:?Carbon,ls:?Carbon,lf:?Carbon,float:?int,critical:bool,scheduled:bool}>,
-     *   rollup: array<int, array{start:?Carbon,end:?Carbon}>,
-     *   project_start:?Carbon, project_end:?Carbon,
-     * }
-     */
     public function compute(): array
     {
         $this->prepare();
+        $order = $this->topoSort();
 
-        $order = $this->topoSort(); // 例外 or ソート済み wbs id
         $es = [];
         $ef = [];
 
         foreach ($order as $id) {
-            $leaf = $this->leaves[$id];
-            $duration = max(0, (int) $leaf->tododays);
-
+            $duration = max(0, (int) $this->leaves[$id]->tododays);
             $candidates = [];
-            // wbs 先行
+
             foreach ($this->preds[$id] ?? [] as $p) {
-                if ($p['kind'] === 'wbs' && isset($ef[$p['id']])) {
-                    $candidates[] = $ef[$p['id']]->copy()->addDay();
+                if (! isset($es[$p['id']])) {
+                    continue;
                 }
+                $candidates[] = $this->forwardConstraint($es[$p['id']], $ef[$p['id']], $p['dep'], $p['lag'], $duration);
             }
-            // 非wbs 先行（固定制約）
+
             if (isset($this->externalConstraint[$id])) {
-                $candidates[] = $this->externalConstraint[$id]->copy()->addDay();
+                $candidates[] = $this->cal->addWorkingDays($this->externalConstraint[$id], 1);
             }
-            // 自身の着手予定
-            $ownStart = $leaf->godate ?? $leaf->start_date;
+
+            $ownStart = $this->leaves[$id]->godate ?? $this->leaves[$id]->start_date;
             if ($ownStart) {
-                $candidates[] = $ownStart->copy()->startOfDay();
+                $candidates[] = $this->cal->addWorkingDays($ownStart->copy()->startOfDay(), 0);
             }
             if ($candidates === []) {
-                $candidates[] = $this->projectStart->copy();
+                $candidates[] = $this->cal->addWorkingDays($this->projectStart, 0);
             }
 
-            $es[$id] = collect($candidates)->sortByDesc(fn ($c) => $c->timestamp)->first();
-            $ef[$id] = $es[$id]->copy()->addDays(max(0, $duration - 1));
+            $es[$id] = collect($candidates)->sortByDesc(fn (Carbon $c) => $c->timestamp)->first();
+            $ef[$id] = $this->cal->addWorkingDays($es[$id], max(0, $duration - 1));
         }
 
-        $projectEnd = collect($ef)->sortByDesc(fn ($c) => $c->timestamp)->first();
+        $projectEnd = collect($ef)->sortByDesc(fn (Carbon $c) => $c->timestamp)->first();
 
         // バックワードパス
         $lf = [];
         $ls = [];
         foreach (array_reverse($order) as $id) {
             $duration = max(0, (int) $this->leaves[$id]->tododays);
-            $succLs = [];
-            foreach ($this->succs[$id] ?? [] as $sid) {
-                if (isset($ls[$sid])) {
-                    $succLs[] = $ls[$sid]->copy()->subDay();
+            $candidates = [];
+
+            foreach ($this->succs[$id] ?? [] as $s) {
+                if (! isset($ls[$s['id']])) {
+                    continue;
                 }
+                $candidates[] = $this->backwardConstraint($ls[$s['id']], $lf[$s['id']], $s['dep'], $s['lag'], $duration);
             }
-            $lf[$id] = $succLs === [] ? ($projectEnd?->copy() ?? $ef[$id]->copy())
-                : collect($succLs)->sortBy(fn ($c) => $c->timestamp)->first();
-            $ls[$id] = $lf[$id]->copy()->subDays(max(0, $duration - 1));
+
+            $lf[$id] = $candidates === []
+                ? ($projectEnd?->copy() ?? $ef[$id]->copy())
+                : collect($candidates)->sortBy(fn (Carbon $c) => $c->timestamp)->first();
+            $ls[$id] = $this->cal->addWorkingDays($lf[$id], -max(0, $duration - 1));
         }
 
         $nodes = [];
         foreach ($order as $id) {
-            $float = ($es[$id] ?? null) && ($ls[$id] ?? null)
-                ? (int) round($es[$id]->diffInDays($ls[$id], false))
+            $float = (isset($es[$id], $ls[$id]))
+                ? $this->cal->workingDaysBetween($es[$id], $ls[$id])
                 : null;
             $nodes[$id] = [
                 'es' => $es[$id] ?? null,
@@ -114,7 +115,7 @@ class WbsScheduler
                 'ls' => $ls[$id] ?? null,
                 'lf' => $lf[$id] ?? null,
                 'float' => $float,
-                'critical' => $float === 0,
+                'critical' => $float !== null && $float <= 0,
                 'scheduled' => true,
             ];
         }
@@ -127,33 +128,52 @@ class WbsScheduler
         ];
     }
 
+    /** 先行(pEs/pEf) + 依存(dep/lag) から、後続の ES 下限を返す。 */
+    private function forwardConstraint(Carbon $pEs, Carbon $pEf, string $dep, int $lag, int $succDuration): Carbon
+    {
+        $shift = fn (Carbon $anchor, int $extra) => $this->cal->addWorkingDays($anchor, $extra + $lag);
+
+        return match ($dep) {
+            'SS' => $shift($pEs, 0),
+            'FF' => $this->cal->addWorkingDays($shift($pEf, 0), -max(0, $succDuration - 1)),
+            'SF' => $this->cal->addWorkingDays($shift($pEs, 0), -max(0, $succDuration - 1)),
+            default => $shift($pEf, 1), // FS
+        };
+    }
+
+    /** 後続(sLs/sLf) + 依存(dep/lag) から、先行の LF 上限を返す。 */
+    private function backwardConstraint(Carbon $sLs, Carbon $sLf, string $dep, int $lag, int $predDuration): Carbon
+    {
+        return match ($dep) {
+            'SS' => $this->cal->addWorkingDays($this->cal->addWorkingDays($sLs, -$lag), max(0, $predDuration - 1)),
+            'FF' => $this->cal->addWorkingDays($sLf, -$lag),
+            'SF' => $this->cal->addWorkingDays($this->cal->addWorkingDays($sLf, -$lag), max(0, $predDuration - 1)),
+            default => $this->cal->addWorkingDays($sLs, -(1 + $lag)), // FS
+        };
+    }
+
     private function prepare(): void
     {
-        $this->leaves = $this->allWbs
-            ->filter(fn (Wbs $w) => ! $w->iscategory)
-            ->keyBy('id');
-
+        $this->leaves = $this->allWbs->filter(fn (Wbs $w) => ! $w->iscategory)->keyBy('id');
         $leafIds = $this->leaves->keys()->all();
 
-        $rels = Relation::query()->active()->where('rtype', Relation::SEQUENCE)->get();
-
-        foreach ($rels as $r) {
+        foreach (Relation::query()->active()->where('rtype', Relation::SEQUENCE)->get() as $r) {
             $fromKind = strtolower((string) $r->id_from_kind);
             $toKind = strtolower((string) $r->id_to_kind);
             $fromId = (int) $r->id_from;
             $toId = (int) $r->id_to;
+            $dep = in_array($r->dep_type, ['FS', 'SS', 'FF', 'SF'], true) ? $r->dep_type : 'FS';
+            $lag = (int) $r->lag_days;
 
             if ($toKind !== 'wbs' || ! in_array($toId, $leafIds, true)) {
-                continue; // 後続が wbs リーフでなければスケジュール対象外
+                continue;
             }
 
             if ($fromKind === 'wbs' && in_array($fromId, $leafIds, true)) {
-                $this->preds[$toId][] = ['kind' => 'wbs', 'id' => $fromId];
-                $this->succs[$fromId][] = $toId;
+                $this->preds[$toId][] = ['id' => $fromId, 'dep' => $dep, 'lag' => $lag];
+                $this->succs[$fromId][] = ['id' => $toId, 'dep' => $dep, 'lag' => $lag];
             } else {
-                // 非wbs 先行: その duedate を固定制約に
-                $m = TaskRef::resolve($fromKind, $fromId);
-                $due = TaskRef::endDate($m);
+                $due = TaskRef::endDate(TaskRef::resolve($fromKind, $fromId));
                 if ($due) {
                     $cur = $this->externalConstraint[$toId] ?? null;
                     if (! $cur || $due->gt($cur)) {
@@ -163,11 +183,9 @@ class WbsScheduler
             }
         }
 
-        $starts = $this->leaves
-            ->map(fn (Wbs $w) => $w->godate ?? $w->start_date)
-            ->filter();
+        $starts = $this->leaves->map(fn (Wbs $w) => $w->godate ?? $w->start_date)->filter();
         $this->projectStart = ($starts->isNotEmpty()
-            ? $starts->sortBy(fn ($c) => $c->timestamp)->first()
+            ? $starts->sortBy(fn (Carbon $c) => $c->timestamp)->first()
             : Carbon::today())->copy()->startOfDay();
     }
 
@@ -176,10 +194,10 @@ class WbsScheduler
     {
         $ids = $this->leaves->keys()->all();
         $indeg = array_fill_keys($ids, 0);
-        foreach ($this->succs as $from => $tos) {
+        foreach ($this->succs as $tos) {
             foreach ($tos as $to) {
-                if (isset($indeg[$to])) {
-                    $indeg[$to]++;
+                if (isset($indeg[$to['id']])) {
+                    $indeg[$to['id']]++;
                 }
             }
         }
@@ -190,8 +208,8 @@ class WbsScheduler
             $id = array_shift($queue);
             $order[] = $id;
             foreach ($this->succs[$id] ?? [] as $to) {
-                if (isset($indeg[$to]) && --$indeg[$to] === 0) {
-                    $queue[] = $to;
+                if (isset($indeg[$to['id']]) && --$indeg[$to['id']] === 0) {
+                    $queue[] = $to['id'];
                 }
             }
         }
@@ -204,8 +222,6 @@ class WbsScheduler
     }
 
     /**
-     * サマリ(iscategory)ノードの開始/完了を、配下リーフの計算値からロールアップ。
-     *
      * @param  array<int, Carbon>  $es
      * @param  array<int, Carbon>  $ef
      * @return array<int, array{start:?Carbon,end:?Carbon}>
@@ -214,11 +230,11 @@ class WbsScheduler
     {
         $byFather = $this->allWbs->groupBy(fn (Wbs $w) => (int) $w->father_id);
 
-        $collectLeafIds = function ($nodeId) use (&$collectLeafIds, $byFather) {
+        $leafIdsUnder = function ($nodeId) use (&$leafIdsUnder, $byFather) {
             $out = [];
             foreach ($byFather[(int) $nodeId] ?? [] as $child) {
                 if ($child->iscategory) {
-                    $out = array_merge($out, $collectLeafIds($child->id));
+                    $out = array_merge($out, $leafIdsUnder($child->id));
                 } else {
                     $out[] = (int) $child->id;
                 }
@@ -229,12 +245,12 @@ class WbsScheduler
 
         $result = [];
         foreach ($this->allWbs->filter(fn (Wbs $w) => (bool) $w->iscategory) as $cat) {
-            $leafIds = $collectLeafIds($cat->id);
-            $starts = collect($leafIds)->map(fn ($lid) => $es[$lid] ?? null)->filter();
-            $ends = collect($leafIds)->map(fn ($lid) => $ef[$lid] ?? null)->filter();
+            $lids = $leafIdsUnder($cat->id);
+            $starts = collect($lids)->map(fn ($l) => $es[$l] ?? null)->filter();
+            $ends = collect($lids)->map(fn ($l) => $ef[$l] ?? null)->filter();
             $result[$cat->id] = [
-                'start' => $starts->isNotEmpty() ? $starts->sortBy(fn ($c) => $c->timestamp)->first() : null,
-                'end' => $ends->isNotEmpty() ? $ends->sortByDesc(fn ($c) => $c->timestamp)->first() : null,
+                'start' => $starts->isNotEmpty() ? $starts->sortBy(fn (Carbon $c) => $c->timestamp)->first() : null,
+                'end' => $ends->isNotEmpty() ? $ends->sortByDesc(fn (Carbon $c) => $c->timestamp)->first() : null,
             ];
         }
 

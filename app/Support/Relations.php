@@ -55,8 +55,10 @@ class Relations
         });
     }
 
-    public static function add(string $fromKind, int $fromId, string $toKind, int $toId, string $rtype): void
-    {
+    public static function add(
+        string $fromKind, int $fromId, string $toKind, int $toId, string $rtype,
+        string $depType = 'FS', int $lagDays = 0,
+    ): void {
         if ($fromKind === $toKind && $fromId === $toId) {
             return;
         }
@@ -76,6 +78,8 @@ class Relations
         $rel->id_from = $fromId;
         $rel->id_to_kind = $toKind;
         $rel->id_to = $toId;
+        $rel->dep_type = in_array($depType, ['FS', 'SS', 'FF', 'SF'], true) ? $depType : 'FS';
+        $rel->lag_days = $lagDays;
         $rel->delete_to = 0;
         $rel->save(); // BelongsToSite が site_id をセット
     }
@@ -103,6 +107,8 @@ class Relations
                 'id' => $otherId,
                 'model' => $model,
                 'title' => $model?->title ?? "(削除済み #{$otherId})",
+                'dep_type' => $r->dep_type ?: 'FS',
+                'lag_days' => (int) $r->lag_days,
             ];
         })->filter(fn ($x) => $x->kind !== '' );
     }

@@ -17,14 +17,23 @@
             @endif
 
             <p class="text-xs text-gray-500">
-                先行タスクの完了予定 + 1日 を後続タスクの開始予定とし、各タスクの期間（所要日数）から
-                最早開始・最早完了を計算します。フロート 0 の連なりが
+                先行→後続の依存（FS/SS/FF/SF）とラグを考慮し、各タスクの期間（所要日数）から
+                最早開始・最早完了を計算します。フロート 0 以下が
                 <span class="rounded bg-red-100 px-1 text-red-700">クリティカルパス</span> です。
                 @if ($rootTitle)
                     <br>対象: <span class="font-medium text-gray-700">{{ $rootTitle }}</span> 配下
                     ・<a href="{{ route('wbs.schedule') }}" class="text-gray-500 underline">全体を表示</a>
                 @endif
             </p>
+
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+                <span class="text-gray-500">日数の数え方:</span>
+                @foreach (['working' => '稼働日（土日・休日を除外）', 'calendar' => '暦日'] as $m => $ml)
+                    <a href="{{ route('wbs.schedule', array_filter(['root' => $rootId, 'calendar' => $m === 'working' ? null : $m])) }}"
+                       @class(['rounded-full px-3 py-1', 'bg-gray-900 text-white' => $calMode === $m, 'bg-white text-gray-600 ring-1 ring-gray-200' => $calMode !== $m])>{{ $ml }}</a>
+                @endforeach
+                <a href="{{ route('wbs.holidays') }}" class="ml-auto text-gray-500 underline">休日カレンダーを編集</a>
+            </div>
 
             @if ($result)
                 <div class="overflow-hidden rounded-lg bg-white shadow-sm">
@@ -80,6 +89,7 @@
                       onsubmit="return confirm('計算結果を各タスクの着手予定・期限に書き戻します。よろしいですか？')"
                       class="flex items-center gap-4 rounded-lg bg-white p-4 shadow-sm">
                     @csrf
+                    <input type="hidden" name="calendar" value="{{ $calMode }}">
                     <label class="flex items-center gap-2 text-sm text-gray-700">
                         <input type="checkbox" name="update_summaries" value="1" class="rounded border-gray-300 text-gray-900 focus:ring-gray-500">
                         サマリ項目の日付も配下から更新する

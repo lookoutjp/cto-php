@@ -14,13 +14,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$businessTables = @(
+  "category","Change","Content","ContentComment","ContentSort","custom","faq","files","filetag",
+  "guestbook","guestbookc","link","log","log_OKNG","message","news","otoi","problem","product",
+  "relation","risk","RoutineWork","RoutineWorkList","status","Survey","SurveyChoice",
+  "SurveyChoiceResult","surveyReplyList","todo","topmenu","wbs"
+)
+
 $jobs = @(
-  @{ mdb = "www.mdb"; sub = "export_www"; tables = @(
-      "category","Change","Content","ContentComment","ContentSort","custom","faq","files","filetag",
-      "guestbook","guestbookc","link","log","log_OKNG","message","news","otoi","problem","product",
-      "relation","risk","RoutineWork","RoutineWorkList","status","Survey","SurveyChoice",
-      "SurveyChoiceResult","surveyReplyList","todo","topmenu","wbs"
-  )},
+  @{ mdb = "www.mdb";     sub = "export_www";     tables = $businessTables },
+  @{ mdb = "demo.mdb";    sub = "export_demo";    tables = $businessTables },
+  @{ mdb = "miraipm.mdb"; sub = "export_miraipm"; tables = $businessTables },
   @{ mdb = "UserDB-now.mdb"; sub = "export_userdb"; tables = @("room","lebel","memberroom","member") }
 )
 
@@ -45,7 +49,12 @@ foreach ($job in $jobs) {
 
   foreach ($t in $job.tables) {
     $rs = New-Object -ComObject ADODB.Recordset
-    $rs.Open("SELECT * FROM [$t]", $conn, 3, 1)  # adOpenStatic, adLockReadOnly
+    try {
+      $rs.Open("SELECT * FROM [$t]", $conn, 3, 1)  # adOpenStatic, adLockReadOnly
+    } catch {
+      Write-Output ("{0,-22} SKIP (no such table in {1})" -f $t, $job.mdb)
+      continue
+    }
 
     $cols = @()
     foreach ($f in $rs.Fields) { $cols += $f.Name }

@@ -70,6 +70,18 @@ app(\App\Support\CurrentSite::class)->set('demo');
 
 - **管理画面内のリソース単位の権限**: サイト内での編集可否（旧 `admin_kengen.asp` 相当）は未実装。
   Filament の Policy で `Member::managesSite()` を使う想定。
-- **他テナント（demo / miraipm）のデータ投入**: `schema-gen/load_data.php` にジョブを追加。
+- （必要になれば）`Wbs::descendantsOf()` の再帰CTE内部にも `site_id` 条件を明示。
+
+## デモ / miraipm テナントの投入（完了）
+
+旧テナントはそれぞれ独立DBだったため id 空間が重複する。`schema-gen/load_tenant.php` が
+id と「同一テナント内の別業務テーブルを指す参照列」（content_sort / father_id / status /
+category / stage / survey_id / routine_work_id / relations.id_from,id_to / guestbooks.parent,top,category …）
+を一律オフセットして投入する（demo=+1,000,000、miraipm=+2,000,000）。
+
+- `export_access.ps1` に demo.mdb / miraipm.mdb のジョブを追加済み
+- `member` / `member_room` / `levels`（`lebel`）は全サイト共有で `load_data.php` が投入済み。person_do 等の会員参照・team_id は offset しない
+- `top_menus` / `site_customs` / `logs` / `files` 系は対象外（旧ASPナビ・S3前提）
+- 再実行は `where site_id = <tenant>` を削除してから入れ直すので冪等
 - **`Wbs::descendantsOf()` の再帰CTE**: 外側クエリのグローバルスコープで結果的に絞られているが、
   CTE内部にも `site_id` 条件を入れた方が安全（大規模データ時のパフォーマンス）。

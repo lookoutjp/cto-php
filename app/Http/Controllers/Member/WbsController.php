@@ -42,6 +42,55 @@ class WbsController extends Controller
         ]);
     }
 
+    /**
+     * 計画期間・工数チェック（旧 WBS_CheckFromTo.asp / WBS_CheckDays.asp）。
+     * サマリ(iscategory)ノードの計画値と、配下タスクの実集計を並べて差異を見せる。
+     */
+    public function check(): View
+    {
+        $this->ensureEnabled();
+
+        $all = Wbs::query()->notDeleted()->get();
+        $byFather = $all->groupBy(fn ($w) => (int) $w->father_id);
+
+        // 各ノードの子孫（リーフ含む全部）を集める
+        $descendants = function ($id) use (&$descendants, $byFather) {
+            $out = collect();
+            foreach ($byFather[(int) $id] ?? [] as $child) {
+                $out->push($child);
+                $out = $out->merge($descendants($child->id));
+            }
+
+            return $out;
+        };
+
+        $rows = $all->filter(fn ($w) => (bool) $w->iscategory)
+            ->sortBy([['deep', 'asc'], ['junban', 'asc']])
+            ->map(function ($cat) use ($descendants) {
+                $desc = $descendants($cat->id);
+                $leaves = $desc->filter(fn ($d) => ! $d->iscategory);
+
+                $sumDays = $leaves->sum(fn ($d) => (int) $d->tododays);
+                $starts = $leaves->map(fn ($d) => $d->godate ?? $d->start_date)->filter();
+                $ends = $leaves->map(fn ($d) => $d->duedate ?? $d->complete_date)->filter();
+                $minStart = $starts->sortBy(fn ($c) => $c->timestamp)->first();
+                $maxEnd = $ends->sortByDesc(fn ($c) => $c->timestamp)->first();
+
+                return (object) [
+                    'node' => $cat,
+                    'has_tasks' => $leaves->isNotEmpty(),
+                    'plan_days' => $cat->tododays,
+                    'actual_days' => $sumDays,
+                    'plan_start' => $cat->godate,
+                    'actual_start' => $minStart,
+                    'plan_end' => $cat->duedate,
+                    'actual_end' => $maxEnd,
+                ];
+            })->values();
+
+        return view('member.wbs-check', ['rows' => $rows]);
+    }
+
     public function create(Request $request): View
     {
         $this->ensureEnabled();

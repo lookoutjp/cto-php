@@ -22,6 +22,7 @@ class Wbs extends Model
 
     protected $casts = [
         'duedate' => 'datetime',
+        'godate' => 'datetime',
         'start_date' => 'datetime',
         'complete_date' => 'datetime',
         'dotoday' => 'datetime',

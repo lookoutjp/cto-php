@@ -11,6 +11,7 @@ use App\Models\Room;
 use App\Models\StatusMaster;
 use App\Models\Wbs;
 use App\Support\CurrentSite;
+use App\Support\WbsLoadAnalyzer;
 use App\Support\WbsScheduler;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -190,6 +191,22 @@ class WbsController extends Controller
         return view('member.wbs-holidays', [
             'holidays' => Holiday::query()->orderBy('date')->get(),
         ]);
+    }
+
+    /**
+     * リソース負荷分析（簡易リソース平準化）。旧ASP には無い新機能。
+     * 担当者 × 週で所要日数の合計を出し、週あたりの稼働可能日数を超える週を検出する。
+     */
+    public function load(Request $request): View
+    {
+        $this->ensureEnabled();
+
+        $capacity = (float) $request->integer('capacity', 5);
+        $capacity = max(1.0, min(7.0, $capacity));
+
+        $result = WbsLoadAnalyzer::forCurrentSite($capacity)->analyze();
+
+        return view('member.wbs-load', ['result' => $result, 'capacity' => $capacity]);
     }
 
     public function storeHoliday(Request $request): RedirectResponse

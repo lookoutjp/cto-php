@@ -1,7 +1,14 @@
 <?php
 /**
- * export_data.ps1 で出力したCSV群を、migrationと同じ列名マッピングでMariaDBへ投入する。
- * 実行: php schema-gen/load_data.php
+ * export_access.ps1 で出力したCSV群を、migrationと同じ列名マッピングで
+ * PostgreSQL（.env の既定接続 = pgsql）へ投入する。
+ *
+ * 実行: C:\xampp\php\php.exe schema-gen/load_data.php [CSVルート]
+ *
+ * 旧MariaDB版との差分:
+ *  - FK/トリガ抑止を SET session_replication_role = replica で行う（要スーパーユーザー）
+ *  - 投入後に bigserial 列のシーケンスを setval で復旧する
+ *  - Access Yes/No 由来の boolean 列（surveys）を明示的に正規化する
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -11,7 +18,7 @@ $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
 
-$scratch = 'C:/Users/user/AppData/Local/Temp/claude/C--inetpub-wwwroot-cto-asp/c6f402bd-63b4-442f-b9be-2231585bfa1d/scratchpad';
+$scratch = $argv[1] ?? 'C:/Users/user/AppData/Local/Temp/claude/C--inetpub-wwwroot-cto-asp/afb0ac0d-48b5-45c1-8098-a0c7626ea39c/scratchpad';
 
 $columnOverrides = [
     'ID' => 'id', 'SiteID' => 'site_id', 'siteid' => 'site_id',
@@ -35,6 +42,11 @@ $tableOverrides = [
     'SurveyChoiceResult' => 'survey_choice_results', 'surveyReplyList' => 'survey_reply_lists',
     'todo' => 'todos', 'topmenu' => 'top_menus', 'wbs' => 'wbs', 'category' => 'categories',
     'member' => 'members', 'room' => 'rooms', 'memberroom' => 'member_room', 'lebel' => 'levels',
+];
+
+// Access Yes/No 由来で、migration が boolean NOT NULL にした列
+$booleanColumns = [
+    'surveys' => ['open_yn', 'specify_yn'],
 ];
 
 function toSnake($name) {
@@ -62,21 +74,29 @@ function loadCsv($path) {
     return $rows;
 }
 
+function normalizeBool($v) {
+    if ($v === null || $v === '') return false;
+    $v = strtolower(trim((string) $v));
+    return in_array($v, ['1', '-1', 't', 'true', 'yes', 'on'], true);
+}
+
 $jobs = [
-    // [csvディレクトリ, [元テーブル名, ...], truncateするか, upsertキー(nullならinsert)]
     ['dir' => "$scratch/export_www", 'tables' => [
         'category','Change','Content','ContentComment','ContentSort','custom','faq','files','filetag',
         'guestbook','guestbookc','link','log','log_OKNG','message','news','otoi','problem','product',
         'relation','risk','RoutineWork','RoutineWorkList','status','Survey','SurveyChoice',
         'SurveyChoiceResult','surveyReplyList','todo','topmenu','wbs',
-    ], 'truncate' => true],
+    ], 'truncate' => true, 'siteId' => 'www'],
     ['dir' => "$scratch/export_userdb", 'tables' => ['room'], 'truncate' => true],
     ['dir' => "$scratch/export_userdb", 'tables' => ['lebel'], 'truncate' => true],
     ['dir' => "$scratch/export_userdb", 'tables' => ['memberroom'], 'truncate' => true],
     ['dir' => "$scratch/export_userdb", 'tables' => ['member'], 'truncate' => false, 'upsertKey' => 'member_id'],
 ];
 
-DB::statement('SET FOREIGN_KEY_CHECKS=0');
+DB::statement("SET session_replication_role = 'replica'");
+
+$touchedTables = [];
+$errors = [];
 
 foreach ($jobs as $job) {
     foreach ($job['tables'] as $srcTable) {
@@ -87,8 +107,9 @@ foreach ($jobs as $job) {
         }
         $rows = loadCsv($csvPath);
         $targetTable = $tableOverrides[$srcTable] ?? (toSnake($srcTable) . 's');
+        $touchedTables[$targetTable] = true;
 
-        if ($job['truncate']) {
+        if (!empty($job['truncate'])) {
             DB::table($targetTable)->truncate();
         }
 
@@ -96,7 +117,6 @@ foreach ($jobs as $job) {
         foreach ($rows as $row) {
             $mapped = [];
             foreach ($row as $col => $val) {
-                // memberroomはmigration側でid列をサロゲートキーと衝突回避のためlegacy_idに退避しているため合わせる
                 if ($srcTable === 'memberroom' && $col === 'id') {
                     $mapped['legacy_id'] = ($val === '') ? null : $val;
                     continue;
@@ -105,18 +125,57 @@ foreach ($jobs as $job) {
                 $mapped[$newCol] = ($val === '') ? null : $val;
             }
 
-            if (!empty($job['upsertKey'])) {
-                $key = $job['upsertKey'];
-                DB::table($targetTable)->updateOrInsert([$key => $mapped[$key]], $mapped);
-            } else {
-                DB::table($targetTable)->insert($mapped);
+            foreach ($booleanColumns[$targetTable] ?? [] as $bcol) {
+                if (array_key_exists($bcol, $mapped)) {
+                    $mapped[$bcol] = normalizeBool($mapped[$bcol]);
+                }
             }
-            $inserted++;
+
+            // 業務テーブルはこのジョブのサイトに属する（旧templatedbコピー方式の置き換え）
+            if (! empty($job['siteId'])) {
+                $mapped['site_id'] = $job['siteId'];
+            }
+
+            try {
+                if (!empty($job['upsertKey'])) {
+                    $key = $job['upsertKey'];
+                    DB::table($targetTable)->updateOrInsert([$key => $mapped[$key]], $mapped);
+                } else {
+                    DB::table($targetTable)->insert($mapped);
+                }
+                $inserted++;
+            } catch (\Throwable $e) {
+                $errors[] = "{$targetTable}: " . $e->getMessage();
+            }
         }
-        echo "{$srcTable} -> {$targetTable} : {$inserted} rows\n";
+        echo "{$srcTable} -> {$targetTable} : {$inserted}/" . count($rows) . " rows\n";
     }
 }
 
-DB::statement('SET FOREIGN_KEY_CHECKS=1');
+// bigserial 列のシーケンスを、投入済みの最大IDに合わせる
+foreach (array_keys($touchedTables) as $t) {
+    try {
+        $hasId = DB::selectOne(
+            "SELECT 1 AS ok FROM information_schema.columns WHERE table_name = ? AND column_name = 'id'",
+            [$t]
+        );
+        if (! $hasId) {
+            continue;
+        }
+        $seq = DB::selectOne("SELECT pg_get_serial_sequence(?, 'id') AS seq", [$t])->seq ?? null;
+        if ($seq) {
+            DB::statement("SELECT setval(?, COALESCE((SELECT MAX(id) FROM \"{$t}\"), 1))", [$seq]);
+        }
+    } catch (\Throwable $e) {
+        $errors[] = "seq {$t}: " . $e->getMessage();
+    }
+}
 
-echo "完了\n";
+DB::statement("SET session_replication_role = 'origin'");
+
+if ($errors) {
+    echo "\n--- エラー " . count($errors) . " 件 ---\n";
+    foreach (array_slice($errors, 0, 40) as $e) echo "  $e\n";
+}
+
+echo "\n完了\n";

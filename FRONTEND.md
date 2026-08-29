@@ -84,7 +84,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 ## 未実装（旧ASPの主要導線の残り）
 
 - **change（変更管理）は保留**: `statuses`/`categories` に `change` kind が無く、`change_requests` は1件のみ。ステータス体系が未定義なので画面化を見送り
-- routinework: `routine_works`（定例作業の定義／繰り返しルール）からの `routine_work_lists` 自動生成は未。一覧の閲覧・編集のみ
+- routinework: `App\Support\RoutineWorkGenerator` が `routine_works`（繰り返しルール: circle = day/week/month/year、`circle_number`）から `routine_work_lists` を生成。会員は `/routinework/generate`（旧 RoutineWorkMake.asp）で期間指定、cron 用に `php artisan routinework:generate --days=N [--site=]`。同一マスター×同一 actiondate は重複作成しない
 - スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は未
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）
 - スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）

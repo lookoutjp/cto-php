@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Member\BoardController;
+use App\Http\Controllers\Member\RoutineWorkController;
 use App\Http\Controllers\Member\SurveyController;
 use App\Http\Controllers\Member\TaskController;
 use App\Http\Controllers\Member\WbsController;
@@ -79,6 +80,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/surveys/{id}', [SurveyController::class, 'destroy'])->whereNumber('id')->name('surveys.destroy');
         Route::post('/surveys/{id}/toggle-open', [SurveyController::class, 'toggleOpen'])->whereNumber('id')->name('surveys.toggle-open');
         Route::post('/surveys/{id}/answer', [SurveyController::class, 'answer'])->whereNumber('id')->name('surveys.answer');
+
+        // 定例作業の一括生成 — 旧 RoutineWorkMake.asp
+        Route::get('/routinework/generate', [RoutineWorkController::class, 'generateForm'])->name('routinework.generate');
+        Route::post('/routinework/generate', [RoutineWorkController::class, 'generate'])->name('routinework.generate.run');
 
         // 掲示板（コミュニティ） — 旧 meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp
         Route::get('/board', [BoardController::class, 'index'])->name('board.index');

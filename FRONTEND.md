@@ -54,7 +54,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
 | `/contact` `/contact/thanks` | `Public\InquiryController` | otoi.asp / otoi2 / otoi3 | お問い合わせフォーム。会員はプロフィールから自動入力。保存（`inquiries`、`site_id` 自動）＋ 受付確認メール（本人）＋ 新着通知メール（`rooms.site_mail`）。番号は `T{id}`。`rooms.function_list` に `otoiawasefunction` が無いサイトは 404（nav リンクも非表示） |
 | `/tasks/{kind}`（todo/problem/risk/product/routinework） | `Livewire\Member\TaskList` + `Member\TaskController` | todo.asp / Problem.asp / Risk.asp / product.asp / RoutineWorkList.asp | 一覧（フィルタ・キーワード検索・列ソート・20件/頁、**一覧上でステータス／担当者を `<select>` で即時変更、✪ で「本日のタスク」(`dotoday`) トグル**）／詳細／新規起票・編集・論理削除（`delete_to=1`）。`{kind}function` が無いサイトは 404。`App\Support\TaskKind` の `features` で任意フィールド（期限/チーム/状況/完了基準/承認者/内容/ステージ/責任者/today）を出し分け。product は期限なし、routinework は `actiondate`（表示「実施日」）。Mypage の集計値からドリルダウン（todo/problem/risk） |
-| `/wbs` `/wbs/{id}` ほか | `Member\WbsController` | wbs.asp / WbsAdd.asp / WbsDetail.asp | 階層ツリー表示 ＋ 詳細 ＋ 追加・編集・論理削除 ＋ D&D並び替え（下記）＋ **`/wbs/check` 計画チェック**（旧 WBS_CheckFromTo/CheckDays: サマリ項目の計画工数/開始/完了 vs 配下タスク集計。超過=赤・余裕=黄・未計画=灰）。`wbsfunction` 必須 |
+| `/wbs` `/wbs/{id}` ほか | `Member\WbsController` | wbs.asp / WbsAdd.asp / WbsDetail.asp | 階層ツリー表示 ＋ 詳細 ＋ 追加・編集・論理削除 ＋ D&D並び替え（下記）＋ `/wbs/check` 計画チェック ＋ **`/wbs/schedule` スケジュール計算（CPM）**。`wbsfunction` 必須 |
+| `/wbs/check` | 旧 WBS_CheckFromTo/CheckDays | サマリ項目の計画工数/開始/完了 vs 配下タスク集計。超過=赤・余裕=黄・未計画=灰 |
+| `/wbs/schedule` `?root={id}` | 新機能 | `App\Support\WbsScheduler`（CPM: Finish-to-Start）。先行タスクの完了予定+1日を後続の開始予定に、`tododays`（暦日）で ES/EF を前進計算 → 後退計算で LS/LF/フロート → フロート0 = クリティカルパス。非wbs先行はその `duedate` を固定制約に。循環は検出してエラー。「計算結果を反映」で `godate`/`duedate` を書き戻す（`?root=` があればその配下のみ、サマリ項目は任意でロールアップ更新） |
 | 関連タスクパネル（`<livewire:member.relations-panel>`） | WBS詳細・タスク詳細に埋め込み | WbsDetail の relation 部分 | 先行/後続/関連（`relations` テーブル、`rtype` = `fromto`/`relation`）の一覧・追加・論理削除。kind をまたいで（wbs↔todo等）リンク可。先行タスクの完了予定 > このタスクの開始予定 なら ⚠ 警告。`App\Support\Relations` + `App\Support\TaskRef` |
 | `/surveys` `/surveys/{id}` `/surveys/{id}/answer` | `Member\SurveyController` | SurveyList_My.asp / Survey.asp | 回答可能なサーベイ一覧（open かつ選択肢あり、回答済み/未回答/受付終了バッジ）／回答フォーム（`selectable_numbers` で radio/checkbox）／集計結果（棒グラフ）。回答は `survey_choice_results`（選択ごと1行）＋ `survey_reply_lists`（回答済みマーカー）をトランザクションで。`surveyfunction` 必須 |
 
@@ -69,8 +71,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - 会員登録・ログイン画面の日本語化（Breeze 雛形のまま英語）
 - **change（変更管理）は保留**: `statuses`/`categories` に `change` kind が無く、`change_requests` は1件のみ。ステータス体系が未定義なので画面化を見送り
 - routinework: `routine_works`（定例作業の定義／繰り返しルール）からの `routine_work_lists` 自動生成は未。一覧の閲覧・編集のみ
-- WBS の関連・計画チェックは実装済み。ただし**クリティカルパス／先行完了→後続開始の自動日付繰り上げ**（真のスケジューリング）は未。現状は矛盾を警告するだけ
+- スケジューリングは Finish-to-Start のみ（SS/FF/SF、リード/ラグ、稼働日カレンダー、リソース平準化は未）。期間は暦日
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）
+- スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）
 - WBS D&D は SortableJS の `forceFallback: true`（ポインタイベント）。タッチ端末での操作性は要確認
 - サーベイの作成・締切変更は管理側（未実装）。`specify_yn`（記名アンケート＝誰がどれに投票したか表示）も未対応
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）

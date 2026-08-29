@@ -28,7 +28,10 @@
                             @endif
                         </h1>
                     </div>
-                    <div class="flex shrink-0 gap-2">
+                    <div class="flex shrink-0 flex-wrap gap-2">
+                        @if ($node->iscategory)
+                            <a href="{{ route('wbs.schedule', ['root' => $node->id]) }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">スケジュール計算</a>
+                        @endif
                         <a href="{{ route('wbs.create', ['parent' => $node->id]) }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">子項目を追加</a>
                         <a href="{{ route('wbs.edit', $node->id) }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">編集</a>
                         <form method="post" action="{{ route('wbs.destroy', $node->id) }}" onsubmit="return confirm('削除しますか？')">

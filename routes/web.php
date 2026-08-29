@@ -68,9 +68,16 @@ Route::middleware('auth')->group(function () {
         Route::delete('/wbs/{id}', [WbsController::class, 'destroy'])->whereNumber('id')->name('wbs.destroy');
         Route::post('/wbs/reorder', [WbsController::class, 'reorder'])->name('wbs.reorder');
 
-        // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp
+        // サーベイ（アンケート） — 旧 SurveyList_My.asp / Survey.asp / SurveyList_Mytask.asp
         Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+        Route::get('/surveys/manage', [SurveyController::class, 'manage'])->name('surveys.manage');
+        Route::get('/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
+        Route::post('/surveys', [SurveyController::class, 'store'])->name('surveys.store');
         Route::get('/surveys/{id}', [SurveyController::class, 'show'])->whereNumber('id')->name('surveys.show');
+        Route::get('/surveys/{id}/edit', [SurveyController::class, 'edit'])->whereNumber('id')->name('surveys.edit');
+        Route::put('/surveys/{id}', [SurveyController::class, 'update'])->whereNumber('id')->name('surveys.update');
+        Route::delete('/surveys/{id}', [SurveyController::class, 'destroy'])->whereNumber('id')->name('surveys.destroy');
+        Route::post('/surveys/{id}/toggle-open', [SurveyController::class, 'toggleOpen'])->whereNumber('id')->name('surveys.toggle-open');
         Route::post('/surveys/{id}/answer', [SurveyController::class, 'answer'])->whereNumber('id')->name('surveys.answer');
 
         // 掲示板（コミュニティ） — 旧 meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp

@@ -71,6 +71,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/wbs/holidays` | 新機能 | `holidays` テーブル（`site_id` 自動）の追加・削除。スケジュール計算の「稼働日」モードで除外される休日。土日は自動で非稼働日 |
 | 関連タスクパネル（`<livewire:member.relations-panel>`） | WBS詳細・タスク詳細に埋め込み | WbsDetail の relation 部分 | 先行/後続/関連（`relations` テーブル、`rtype` = `fromto`/`relation`）の一覧・追加・論理削除。先行/後続は依存タイプ（FS/SS/FF/SF）とラグ日数も指定可（一覧に「SS +2d」等を表示）。kind をまたいで（wbs↔todo等）リンク可。先行タスクの完了予定 > このタスクの開始予定 なら ⚠ 警告。`App\Support\Relations` + `App\Support\TaskRef` |
 | `/surveys` `/surveys/{id}` `/surveys/{id}/answer` | `Member\SurveyController` | SurveyList_My.asp / Survey.asp | 回答可能なサーベイ一覧（open かつ選択肢あり、回答済み/未回答/受付終了バッジ）／回答フォーム（`selectable_numbers` で radio/checkbox）／集計結果（棒グラフ）。回答は `survey_choice_results`（選択ごと1行）＋ `survey_reply_lists`（回答済みマーカー）をトランザクションで。`surveyfunction` 必須 |
+| `/surveys/manage` `/surveys/create` `/surveys/{id}/edit` ほか | `Member\SurveyController@manage/create/store/edit/update/destroy/toggleOpen` | SurveyList_Mytask.asp / Survey_new.asp / Surveyedit_son.asp | サーベイの作成・編集・締切／再開（`open_yn`）・論理削除（`delete_to=1`）。一覧は「自分が作成したもの」＋管理員は全件。選択肢は Alpine の可変行（タイトル＋説明）。**回答が付いた後は選択肢を編集不可**（メタ情報は可）。回答期限は `endOfDay` で保存 |
 | `/board` `/board/categories/{id}` `/board/threads/{id}` ほか | `Member\BoardController` | meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp | 掲示板。`/board`=コミュニティ一覧（`guestbook_categories`。id=1 は「サイト掲示板」既定カテゴリで一覧では別枠表示）／`categories/{id}`=スレッド一覧（`guestbooks` の `parent='0'`、返信数・管理員返信バッジ、10件/頁）／`threads/{id}`=スレッド詳細（本文＋`revert` 管理員返信＋`parent`/`top`/`space_num` の自己参照ツリーで返信をインデント表示、各ノードに Alpine 開閉式の返信フォーム）／`categories/{id}/new` 新規スレッド。返信は `top`=スレッド先頭ID・`space_num`=親+1 を自動セット。`create_date` に投稿時刻。旧Access由来の空行は `Guestbook::scopeReal()` で除外。管理員返信の編集は Filament（`GuestbookResource`）。`freeguestbookfunction` 必須 |
 | コンテンツのコメント（`<livewire:public.content-comments>`） | 公開コンテンツ詳細に埋め込み | ContentCommentSon.asp / ContentComment_Write.asp / ContentCommentList.asp | `commentfunction` かつ `contents.commentok=1` のとき表示。`content_comments` を新しい順・10件/頁。閲覧は誰でも、投稿はプロジェクト参加者のみ（未ログインは「ログインすると…」、`ninshou=0` は不可の旨）。`time` は旧データにあわせ `Y/m/d H:i:s` 文字列で保存 |
 
@@ -88,7 +89,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）
 - スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）
 - WBS D&D は SortableJS の `forceFallback: true`（ポインタイベント）。タッチ端末での操作性は要確認
-- サーベイの作成・締切変更は管理側（未実装）。`specify_yn`（記名アンケート＝誰がどれに投票したか表示）も未対応
+- サーベイの作成・編集・締切は `/surveys/manage` 系で対応済み。`specify_yn`（記名アンケート＝誰がどれに投票したか集計で表示）はフラグ保存のみで、集計画面での本人表示は未対応
 - 掲示板: コミュニティの参加者制限は `GuestbookCategory::allowsMember()`（旧 `guestbook_categories.member` の `||id||` リスト、空 or サイト掲示板 id=1 は無制限、管理員/スーパー管理者は常に可）で適用。一覧は許可カテゴリのみ表示、直リンクは 403。管理員返信（`revert`）の入力・投稿削除・コミュニティ CRUD は Filament 側。旧 CKEditor リッチ入力は素の textarea に
 - コンテンツのコメント: 削除・管理は Filament（`ContentCommentResource`）。旧 `Contentcomment_about.asp`（プライバシーポリシー）リンクは省略
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）

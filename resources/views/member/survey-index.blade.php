@@ -4,7 +4,13 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-4xl space-y-4 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-end">
+                <a href="{{ route('surveys.manage') }}"
+                   class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    作成・管理
+                </a>
+            </div>
             <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                 @if ($surveys->isEmpty())
                     <p class="px-5 py-8 text-center text-sm text-gray-400">回答できるサーベイはありません。</p>

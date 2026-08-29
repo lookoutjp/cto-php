@@ -17,6 +17,8 @@
 | `app/Models/Concerns/BelongsToSite.php` | 業務モデル用トレイト。読み取りをグローバルスコープで絞り、作成時に `site_id` を自動セット |
 | `config/app.php` の `default_site` | `CurrentSite` が解決できないときの fallback（`APP_DEFAULT_SITE`、既定 `www`） |
 | `database/migrations/2026_08_30_000000_add_site_id_to_tenant_tables.php` | 35テーブルへの `site_id` 追加 + 既存行を `www` でバックフィル |
+| `app/Http/Middleware/ResolveCurrentSite.php` | リクエストごとに `session('site_id')`→Member所属サイトの順で `CurrentSite` を確定。web グループ全体 + Filamentパネルの authMiddleware に登録済み |
+| `app/Livewire/SiteSwitcher.php` + `resources/views/livewire/site-switcher.blade.php` | Filament管理画面トップバーのサイト切替セレクタ。`rooms` 全件を出し、選択で `session('site_id')` を更新して画面をフルリロード。サイトが1つのときは非表示 |
 
 ## CurrentSite の解決順
 
@@ -43,9 +45,10 @@ app(\App\Support\CurrentSite::class)->set('demo');
 
 ## 未対応（次のステップ）
 
-- **Filament管理画面のサイト切替UI**: 現状 `/admin` は `default_site`（www）固定。
-  スーパー管理者が見るサイトを選べるセレクタ（トップバー or 専用ページ）が必要。
-- **Web/APIミドルウェア**: ログイン後に `session('site_id')` を確定させる `ResolveCurrentSite` ミドルウェア。
+- **サイト切替の権限制御**: 現状ログイン中の Member は `rooms` 全件に切り替えられる。
+  本来は「所属サイト（`member_room`）のみ」または「スーパー管理者のみ全サイト」に絞るべき。
+  `SiteSwitcher::render()` / `updatedSiteId()` の候補一覧と、`ResolveCurrentSite` の検証を
+  Member の所属で絞る。
 - **`site_id` の NOT NULL 化**: 全テナント投入後に別マイグレーションで。
 - **他テナント（demo / miraipm）のデータ投入**: `schema-gen/load_data.php` にジョブを追加。
 - **`Wbs::descendantsOf()` の再帰CTE**: 外側クエリのグローバルスコープで結果的に絞られているが、

@@ -69,6 +69,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/wbs/check` | 旧 WBS_CheckFromTo/CheckDays | サマリ項目の計画工数/開始/完了 vs 配下タスク集計。超過=赤・余裕=黄・未計画=灰 |
 | `/wbs/schedule` `?root={id}` `?calendar=working\|calendar` | 新機能 | `App\Support\WbsScheduler`（CPM）。依存タイプ FS/SS/FF/SF ＋ リード/ラグ（`relations.dep_type` / `lag_days`）を考慮し `tododays` で ES/EF を前進計算 → 後退計算で LS/LF/フロート → フロート0以下 = クリティカルパス。日数の数え方は `App\Support\WorkCalendar` で「稼働日」（土日＋`holidays` を除外, 既定）/「暦日」を切替。非wbs先行はその `duedate` を固定制約に。循環は検出してエラー。「計算結果を反映」で `godate`/`duedate` を書き戻す（`?root=` があればその配下のみ、サマリ項目は任意でロールアップ更新） |
 | `/wbs/holidays` | 新機能 | `holidays` テーブル（`site_id` 自動）の追加・削除。スケジュール計算の「稼働日」モードで除外される休日。土日は自動で非稼働日 |
+| `/wbs/load` `?capacity=N` | 新機能 | `App\Support\WbsLoadAnalyzer`。各リーフ WBS の `tododays` を期間（着手予定〜期限）の稼働日に均等配分し、担当者 × ISO週 で合計。週あたり稼働可能日数（既定 5、3〜6 で切替）超の週を過負荷として色分け＋内訳表示。簡易リソース平準化の第一歩（自動再配置はしない） |
 | 関連タスクパネル（`<livewire:member.relations-panel>`） | WBS詳細・タスク詳細に埋め込み | WbsDetail の relation 部分 | 先行/後続/関連（`relations` テーブル、`rtype` = `fromto`/`relation`）の一覧・追加・論理削除。先行/後続は依存タイプ（FS/SS/FF/SF）とラグ日数も指定可（一覧に「SS +2d」等を表示）。kind をまたいで（wbs↔todo等）リンク可。先行タスクの完了予定 > このタスクの開始予定 なら ⚠ 警告。`App\Support\Relations` + `App\Support\TaskRef` |
 | `/surveys` `/surveys/{id}` `/surveys/{id}/answer` | `Member\SurveyController` | SurveyList_My.asp / Survey.asp | 回答可能なサーベイ一覧（open かつ選択肢あり、回答済み/未回答/受付終了バッジ）／回答フォーム（`selectable_numbers` で radio/checkbox）／集計結果（棒グラフ）。回答は `survey_choice_results`（選択ごと1行）＋ `survey_reply_lists`（回答済みマーカー）をトランザクションで。`surveyfunction` 必須 |
 | `/surveys/manage` `/surveys/create` `/surveys/{id}/edit` ほか | `Member\SurveyController@manage/create/store/edit/update/destroy/toggleOpen` | SurveyList_Mytask.asp / Survey_new.asp / Surveyedit_son.asp | サーベイの作成・編集・締切／再開（`open_yn`）・論理削除（`delete_to=1`）。一覧は「自分が作成したもの」＋管理員は全件。選択肢は Alpine の可変行（タイトル＋説明）。**回答が付いた後は選択肢を編集不可**（メタ情報は可）。回答期限は `endOfDay` で保存 |
@@ -85,7 +86,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 - change（変更管理）: `statuses` に `kind='change'`（起票→調査中→判定待ち→承認待ち→対応中→完了／却下／保留）をマイグレーションで投入し、`TaskKind` に `change` を追加（`features` に `changedetail` = 発生日・工数見積・判定結果・完了日・影響範囲・対応内容・却下理由）。ステージは既存の `categories.kind='stage'` を流用。一覧/CRUD は汎用の TaskList / TaskController。関連タスクパネルは未対応（`TaskRef::KINDS` に未登録）
 - routinework: `App\Support\RoutineWorkGenerator` が `routine_works`（繰り返しルール: circle = day/week/month/year、`circle_number`）から `routine_work_lists` を生成。会員は `/routinework/generate`（旧 RoutineWorkMake.asp）で期間指定、cron 用に `php artisan routinework:generate --days=N [--site=]`。同一マスター×同一 actiondate は重複作成しない
-- スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は未
+- スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は `/wbs/load` の負荷分析（過負荷週の検出）まで。自動でのタスク再配置は未
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）
 - スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）
 - WBS D&D は SortableJS の `forceFallback: true`（ポインタイベント）。タッチ端末での操作性は要確認

@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/wbs', [WbsController::class, 'index'])->name('wbs.index');
         Route::get('/wbs/check', [WbsController::class, 'check'])->name('wbs.check');
         Route::get('/wbs/schedule', [WbsController::class, 'schedule'])->name('wbs.schedule');
+        Route::get('/wbs/load', [WbsController::class, 'load'])->name('wbs.load');
         Route::post('/wbs/schedule/apply', [WbsController::class, 'applySchedule'])->name('wbs.schedule.apply');
         Route::get('/wbs/holidays', [WbsController::class, 'holidays'])->name('wbs.holidays');
         Route::post('/wbs/holidays', [WbsController::class, 'storeHoliday'])->name('wbs.holidays.store');

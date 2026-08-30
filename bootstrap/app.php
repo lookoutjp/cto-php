@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\ResolveCurrentSite::class,
         ]);
+
+        // Stripe Webhook は CSRF 検証から除外（Cashier のルートは path 'stripe'）。
+        $middleware->validateCsrfTokens(except: [
+            'stripe/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -44,6 +44,13 @@ class RegisteredUserController extends Controller
     {
         $this->ensureRegistrationOpen();
 
+        $room = Room::find(app(CurrentSite::class)->id());
+        if ($room && ! $room->canAddMembers(1)) {
+            throw ValidationException::withMessages([
+                'email' => 'このサイトは現在のプランの会員数上限に達しているため、新規登録を受け付けていません。サイト管理者にお問い合わせください。',
+            ]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'nameread' => ['nullable', 'string', 'max:255'],

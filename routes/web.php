@@ -10,6 +10,7 @@ use App\Http\Controllers\Member\WbsController;
 use App\Http\Controllers\MypageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureProjectMember;
+use App\Http\Middleware\EnsureTenantBillingActive;
 use App\Livewire\Member\TaskList;
 use App\Http\Controllers\Public\ContentController;
 use App\Http\Controllers\Public\FaqController;
@@ -48,8 +49,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ
-    Route::middleware(EnsureProjectMember::class)->group(function () {
+    // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ。
+    // 支払い滞納中のテナントは書き込み系をブロック（閲覧は可）。
+    Route::middleware([EnsureProjectMember::class, EnsureTenantBillingActive::class])->group(function () {
         Route::whereIn('kind', \App\Support\TaskKind::slugs())->group(function () {
             Route::get('/tasks/{kind}', TaskList::class)->name('tasks.index');
             Route::get('/tasks/{kind}/create', [TaskController::class, 'create'])->name('tasks.create');

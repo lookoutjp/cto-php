@@ -28,14 +28,28 @@
 
 Stripe キー未設定でもアプリは通常どおり動作する（`Plans::purchasable()` が空 → 契約操作は不可、全テナント free）。
 
-## Stripe 準備ができてから（残作業）
+## Stripe テストモードでの疎通確認（2026-08-30 完了）
 
-1. Stripe アカウント作成 → テストキーを `.env` に（`STRIPE_KEY` / `STRIPE_SECRET`）
-2. Stripe ダッシュボードで **JPY・月次の Price** を standard / pro 分作成 → `STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PRO`
-3. `php artisan cashier:webhook` で Webhook エンドポイントを作成 → `STRIPE_WEBHOOK_SECRET`
-   （ローカルは `stripe listen --forward-to localhost:8010/stripe/webhook`）
-4. `Billing` ページから実際に Checkout → サブスク作成 → `swap` / `cancel` / Billing Portal を通しで確認
-5. トライアル（`config/plans.php` に `trial_days` を足し `newSubscription()->trialDays()`）を入れるか決定
+- Stripe アカウント作成済み。テストキーを `.env` に設定済み（`STRIPE_KEY` / `STRIPE_SECRET`）。
+- Product / Price はダッシュボードでなく API で作成した → `schema-gen`... ではなく手元スクリプトで
+  `plan_key` メタデータ付き。`STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PRO` に設定済み（¥3,000 / ¥10,000、JPY 月次）。
+  再作成が要る場合は `metadata['plan_key']` で既存を検索して再利用する冪等スクリプトを書けばよい。
+- Webhook: Stripe CLI（`winget install Stripe.StripeCli`）。ローカルは
+  `stripe listen --forward-to localhost:8010/stripe/webhook --api-key sk_test_...`。
+  署名シークレットは `stripe listen --print-secret` で取得し `STRIPE_WEBHOOK_SECRET` に設定済み
+  （このシークレットはアカウント固定なので毎回同じ）。
+- **通しで確認済み**（demo テナント、テスト PaymentMethod `pm_card_visa`）:
+  Checkout 画面への遷移 → サブスク作成でスタンダード反映（カード `•••• 4242`）→
+  `swap` standard→pro → `cancel`（猶予期間 UI・`ends_at` 表示）→ `resume` →
+  滞納（`stripe_status = past_due`）で業務系の書き込みが 402・GET は 200。
+  Webhook（`customer.subscription.*` / `invoice.*` 等）はすべて 200 で処理。
+- 確認後、demo は `cancelNow()` で free 状態に戻してある。
+
+### 本番移行時にやること
+
+1. 本番キー（`sk_live_` / `pk_live_`）に差し替え、本番ダッシュボードで JPY 月次 Price を作成
+2. 本番は `php artisan cashier:webhook` で Stripe 側にエンドポイント登録 → 署名シークレットを `.env` に
+3. `trial` を入れるなら `config/plans.php` に `trial_days`、`newSubscription()->trialDays()` を追加
 
 ## まだ手を付けていない設計判断
 

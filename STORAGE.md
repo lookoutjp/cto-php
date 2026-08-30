@@ -42,11 +42,29 @@
 `FileItemResource::fillFromUpload()` が保存前に `fileext`/`filename`/`size_bytes`/`mime`/`tag_id`/`member_id` を整える。
 削除アクションは R2 オブジェクトも消す。BelongsToSite で現在の管理サイトに自動スコープ。
 
+## 添付ファイル（コンテンツ / WBS / タスク）— 旧ASPに無かった新機能
+
+`files`（独立ライブラリ）とは別の polymorphic な `attachments` テーブル（`2026_09_04_000000`）。
+
+| 要素 | 役割 |
+|---|---|
+| `App\Models\Attachment`（`attachments`） | `attachable_type`/`attachable_id` の morphTo、`storage_key`/`original_name`/`ext`/`size_bytes`/`mime`/`member_id`。`BelongsToSite` |
+| `App\Models\Concerns\HasAttachments` | `attachments()` morphMany。モデルが**物理削除**されたら添付レコード＋R2オブジェクトも消す（`deleting` フック）。※タスク/WBSは論理削除（`delete_to=1`）なのでフックは効かない — 孤児は残る |
+| 適用モデル | Content / Wbs / Todo / Problem / Risk / Product / RoutineWorkList / ChangeRequest |
+| `App\Support\Attachables` | 短い type 文字列（`content`/`wbs`/`todo`…）→ モデルクラスの解決。Livewire にモデルを渡さない |
+| `App\Livewire\AttachmentsPanel` | `<livewire:attachments-panel type="wbs" :id="..." />`。task-show / wbs-show / contents-show に埋め込み。一覧（画像は `temporaryUrl` でサムネイル）＋アップロード＋削除 |
+| `App\Http\Controllers\AttachmentController@download` | `/attachments/{id}/download`。**認可**: コンテンツの添付は公開コンテンツならゲストも可 / 非公開・WBS・タスクはプロジェクト参加者のみ。R2 からアプリ経由でストリーム |
+| キー | `sites/{site_id}/attachments/{uuid}.{ext}` |
+| 容量 | `Plans::storageUsageBytes()` は `files` ＋ `attachments` の合計 |
+
+## 画像プレビュー
+
+会員ファイルライブラリ `/files` と添付パネルで、画像（`FileStorage::isImage()`）は
+`Storage::disk('s3')->temporaryUrl($key, +30min)` の署名URLを `<img>` に出してサムネイル表示。
+R2 が直接配信するのでアプリの帯域は使わない（DL 本体は従来どおりアプリ経由ストリーム）。
+
 ## 未対応（次のステップ）
 
-- コンテンツ / WBS / タスクへの**添付**（`files` は今は独立ライブラリ。旧ASPにも無かった機能なので新規設計。
-  polymorphic な `attachments` テーブルを別途）
-- 画像のインラインプレビュー / サムネイル（`FileStorage::isImage()` は用意済み、UI 未使用）
+- 添付の Filament 側 UI（現状は会員フロントの Livewire パネルのみ。ContentResource 等に RelationManager）
 - FileUpload でファイルを差し替えた際の旧 R2 オブジェクトの掃除（現状は孤児が残る）
-- ダウンロードを `temporaryUrl()`（署名URLへリダイレクト）に切り替えると帯域がアプリを通らない。
-  現状は `Storage::download()` でアプリがプロキシする（監査・アクセス制御がシンプル）
+- タスク/WBS 論理削除時の添付クリーンアップ

@@ -77,6 +77,11 @@
             <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                 @forelse ($files as $file)
                     <div class="flex items-start gap-3 border-b border-gray-100 px-5 py-3 text-sm last:border-0">
+                        @if ($file->preview_url ?? null)
+                            <a href="{{ $file->preview_url }}" target="_blank" rel="noopener" class="shrink-0">
+                                <img src="{{ $file->preview_url }}" alt="" class="h-12 w-12 rounded object-cover ring-1 ring-gray-200">
+                            </a>
+                        @endif
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                 <span class="font-medium text-gray-900">{{ $file->downloadName() }}</span>

@@ -110,6 +110,6 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   `TaskDashboard::enabledKinds()`（todo/problem/risk/wbs/routinework の各 `*function`）で
   パネル・行を出し分け**。全機能オフのサイトでは案内文のみ
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
-- コンテンツ / WBS / タスクへの**添付**（`files` は今は独立ライブラリ `/files` のみ。詳細は `STORAGE.md`）
+- **新機能: コンテンツ / WBS / タスクへの添付**（`<livewire:attachments-panel>` を contents-show / wbs-show / task-show に埋め込み。`attachments` テーブル + `HasAttachments` トレイト。画像はサムネイル表示。認可は公開コンテンツならゲスト可・それ以外は参加者。詳細は `STORAGE.md`）
 - オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
   作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装

@@ -37,6 +37,10 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 Route::get('/manager', [SitePageController::class, 'managerWords'])->name('manager-words');
 Route::get('/links', [SitePageController::class, 'links'])->name('links.index');
 
+// 添付ファイル（コンテンツ/WBS/タスク）— 認可はコントローラ側。公開コンテンツの添付はゲストも可
+Route::get('/attachments/{id}/download', [\App\Http\Controllers\AttachmentController::class, 'download'])
+    ->whereNumber('id')->name('attachments.download');
+
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
 Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
 Route::get('/contact/thanks', [InquiryController::class, 'thanks'])->name('contact.thanks');

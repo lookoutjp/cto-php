@@ -16,6 +16,10 @@
         </div>
     </article>
 
+    <div class="mt-6">
+        <livewire:attachments-panel type="content" :id="$content->id" :key="'att-content-'.$content->id" />
+    </div>
+
     @if ((int) $content->commentok === 1 && $site?->hasFunction('commentfunction'))
         <livewire:public.content-comments :content="$content" />
     @endif

@@ -80,6 +80,8 @@
 
             <livewire:member.relations-panel kind="wbs" :id="$node->id" :key="'rel-wbs-'.$node->id" />
 
+            <livewire:attachments-panel type="wbs" :id="$node->id" :key="'att-wbs-'.$node->id" />
+
             @if ($children->isNotEmpty())
                 <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                     <h3 class="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-500">子タスク</h3>

@@ -86,6 +86,8 @@
             @if (array_key_exists($tk->slug, \App\Support\TaskRef::KINDS))
                 <livewire:member.relations-panel :kind="$tk->slug" :id="$task->id" :key="'rel-'.$tk->slug.'-'.$task->id" />
             @endif
+
+            <livewire:attachments-panel :type="$tk->slug" :id="$task->id" :key="'att-'.$tk->slug.'-'.$task->id" />
         </div>
     </div>
 </x-app-layout>

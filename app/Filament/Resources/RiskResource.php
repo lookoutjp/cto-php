@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\RiskResource\Pages;
 use App\Filament\Resources\RiskResource\RelationManagers;
 use App\Models\Risk;
@@ -178,7 +179,7 @@ class RiskResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

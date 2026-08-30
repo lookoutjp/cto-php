@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\ChangeRequestResource\Pages;
 use App\Filament\Resources\ChangeRequestResource\RelationManagers;
 use App\Models\ChangeRequest;
@@ -178,7 +179,7 @@ class ChangeRequestResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

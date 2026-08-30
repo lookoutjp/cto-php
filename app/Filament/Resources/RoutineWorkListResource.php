@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\RoutineWorkListResource\Pages;
 use App\Filament\Resources\RoutineWorkListResource\RelationManagers;
 use App\Models\RoutineWorkList;
@@ -155,7 +156,7 @@ class RoutineWorkListResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\ContentResource\Pages;
 use App\Filament\Resources\ContentResource\RelationManagers;
 use App\Models\Content;
@@ -167,7 +168,7 @@ class ContentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

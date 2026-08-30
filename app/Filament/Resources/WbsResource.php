@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\WbsResource\Pages;
 use App\Filament\Resources\WbsResource\RelationManagers;
 use App\Models\Wbs;
@@ -161,7 +162,7 @@ class WbsResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

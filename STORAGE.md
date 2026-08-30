@@ -49,11 +49,13 @@
 | 要素 | 役割 |
 |---|---|
 | `App\Models\Attachment`（`attachments`） | `attachable_type`/`attachable_id` の morphTo、`storage_key`/`original_name`/`ext`/`size_bytes`/`mime`/`member_id`。`BelongsToSite` |
-| `App\Models\Concerns\HasAttachments` | `attachments()` morphMany。モデルが**物理削除**されたら添付レコード＋R2オブジェクトも消す（`deleting` フック）。※タスク/WBSは論理削除（`delete_to=1`）なのでフックは効かない — 孤児は残る |
+| `App\Models\Concerns\HasAttachments` | `attachments()` morphMany。**物理削除**（`deleting`）＋**論理削除**（`updated` で `delete_to` が 1 になったら）の両方で添付レコード＋R2オブジェクトを消す（`purgeAttachments()`） |
 | 適用モデル | Content / Wbs / Todo / Problem / Risk / Product / RoutineWorkList / ChangeRequest |
 | `App\Support\Attachables` | 短い type 文字列（`content`/`wbs`/`todo`…）→ モデルクラスの解決。Livewire にモデルを渡さない |
 | `App\Livewire\AttachmentsPanel` | `<livewire:attachments-panel type="wbs" :id="..." />`。task-show / wbs-show / contents-show に埋め込み。一覧（画像は `temporaryUrl` でサムネイル）＋アップロード＋削除 |
-| `App\Http\Controllers\AttachmentController@download` | `/attachments/{id}/download`。**認可**: コンテンツの添付は公開コンテンツならゲストも可 / 非公開・WBS・タスクはプロジェクト参加者のみ。R2 からアプリ経由でストリーム |
+| `App\Filament\RelationManagers\AttachmentsRelationManager` | 管理画面の「添付ファイル」タブ。Content / Wbs / Todo / Problem / Risk / Product / RoutineWorkList / ChangeRequest の各 Resource の `getRelations()` に登録。※ private disk では `ImageColumn`（`->url()` が例外）を使えないので拡張子バッジ + 🖼 表示。`$isLazy = false` |
+| `App\Http\Controllers\AttachmentController@download` | `/attachments/{id}/download`。**認可**: コンテンツの添付は公開コンテンツならゲストも可 / 非公開・WBS・タスクはプロジェクト参加者のみ。添付先が消えていたら 404。R2 からアプリ経由でストリーム |
+| `php artisan attachments:prune [--dry]` | 添付先が消えている / 論理削除（`delete_to=1`）された孤児 attachment を掃除（レコード + R2） |
 | キー | `sites/{site_id}/attachments/{uuid}.{ext}` |
 | 容量 | `Plans::storageUsageBytes()` は `files` ＋ `attachments` の合計 |
 
@@ -65,6 +67,6 @@ R2 が直接配信するのでアプリの帯域は使わない（DL 本体は�
 
 ## 未対応（次のステップ）
 
-- 添付の Filament 側 UI（現状は会員フロントの Livewire パネルのみ。ContentResource 等に RelationManager）
-- FileUpload でファイルを差し替えた際の旧 R2 オブジェクトの掃除（現状は孤児が残る）
-- タスク/WBS 論理削除時の添付クリーンアップ
+- R2 バケット側の CORS（会員フロントの画像サムネイルは `<img>` なので不要だが、
+  将来クライアント側で `fetch` するなら R2 の CORS 設定が要る）
+- 画像以外（PDF等）のプレビュー

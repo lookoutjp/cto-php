@@ -1,20 +1,43 @@
-# デプロイ手順
+# 本番デプロイ手順
 
-前提: PHP 8.2以上、PostgreSQL 14以上。DBは **Neon**（サーバーレスPostgres）を想定。
-アプリのホスティングは Laravel Cloud / Laravel Forge + VPS / Fly.io など。
-（旧: GreenGeeks共有ホスティング + MariaDB。有償SaaS化に伴い PostgreSQL へ移行）
+構成:
 
-## 1. 本番用データベースの作成（Neon）
+| 層 | サービス | 備考 |
+|---|---|---|
+| DB | **Neon**（サーバーレス PostgreSQL） | 無料枠でも可。SNI 判定のため libpq 14+ が必須 |
+| ファイル実体 | **Cloudflare R2**（S3 互換） | 会員ファイルライブラリ・添付の保存先（`STORAGE.md`） |
+| アプリ | **Laravel Cloud**（推奨）または Laravel Forge + VPS | PHP 8.3 / Node 20 |
+| 課金 | Stripe（本番キー） | `BILLING.md` |
+| メール | Postmark / SES / Resend など | 現状 `MAIL_MAILER=log` |
 
-1. https://neon.tech でプロジェクトを作成（リージョンは利用者に近い場所。無料枠でOK）
-2. ダッシュボードの「Connection string」から2つ控える:
-   - **Pooled**（`-pooler` 付きホスト）… アプリ実行時に使う
-   - **Direct**（`-pooler` なし）… `migrate` 実行時に使う（PgBouncer 経由だと稀に失敗するため）
-   形式: `postgresql://USER:PASSWORD@ep-xxxx[-pooler].REGION.aws.neon.tech/DBNAME?sslmode=require`
+> 前提: このリポジトリを **GitHub にプッシュ済み**であること（下記「0.」）。
 
-### 1a. ローカルから Neon への疎通確認（任意）
+---
 
-`.env` に direct のURLを入れて確認できる:
+## 0. GitHub リポジトリ
+
+ローカルの `cto-php` は `git init` 済み・リモート未設定。GitHub で private リポジトリを作り:
+
+```bash
+git remote add origin git@github.com:<you>/cto-php.git
+git push -u origin main
+```
+
+push 後、`.github/workflows/ci.yml`（PostgreSQL サービスでテスト + ビルド）が走る。
+
+---
+
+## 1. Neon（本番 DB）
+
+1. https://neon.tech でプロジェクト作成（リージョンは利用者に近い所）。
+2. **接続文字列を2つ**控える（ダッシュボードの Connection Details）:
+   - **Pooled**（ホストに `-pooler`）… アプリ実行時に使う
+   - **Direct**（`-pooler` なし）… `migrate` / データ投入時に使う
+   形式: `postgresql://USER:PASS@ep-xxxx[-pooler].REGION.aws.neon.tech/DBNAME?sslmode=require`
+
+### 1a. ローカルから Neon への初期セットアップ
+
+`.env` に **direct** を入れて実行:
 
 ```env
 NEON_DATABASE_URL=postgresql://USER:PASS@ep-xxxx.REGION.aws.neon.tech/DBNAME?sslmode=require
@@ -22,154 +45,156 @@ NEON_DATABASE_URL=postgresql://USER:PASS@ep-xxxx.REGION.aws.neon.tech/DBNAME?ssl
 
 ```bash
 php artisan db:neon-check              # 接続・バージョン確認
-php artisan db:neon-check --migrate    # neon 接続へ migrate
-php schema-gen/load_data.php <CSVルート> neon   # 旧データを Neon へ投入
+php artisan db:neon-check --migrate    # Neon へ migrate（direct 接続で）
+php schema-gen/load_data.php <CSVルート> neon   # 旧 www データを投入（初回のみ）
 ```
 
-ローカル開発は PostgreSQL 16 をローカルにインストールして使用（`cto_php` データベース）。
-本番との差分は `.env` のみ。
+> **libpq**: Neon は SNI でエンドポイントを判定するため、古い libpq（XAMPP 同梱の 11 系など）だと
+> `Endpoint ID is not specified` になる。PostgreSQL 14+ の `libpq.dll` とその依存 DLL を PHP フォルダに
+> 置いて対応する（ローカルは PostgreSQL 16 のものを使用）。Laravel Cloud / Forge の Linux 環境では問題なし。
 
-## 2. コードの転送
+### 1b. ファイル実体の投入（初回のみ）
 
-Gitリポジトリを使う場合（推奨）:
-
-```bash
-ssh your-account@your-server -p 2222   # GreenGeeksのSSHポート番号はcPanelの「SSH Access」に表示されている
-cd ~
-git clone <あなたのリポジトリURL> cto-php
-cd cto-php
-```
-
-Gitを使わない場合は、ローカルの `cto-php` フォルダ一式（`vendor/`と`node_modules/`は除く）をFTP/SFTPでアップロードする。
-
-## 3. 依存パッケージのインストール（本番用）
-
-```bash
-composer install --no-dev --optimize-autoloader
-```
-
-`node_modules`はアップロード不要。ローカルで`npm run build`した`public/build`フォルダだけをアップロードすればよい。
-
-## 4. `.env`の設定
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-`.env`を編集し、以下を本番用の値にする。
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://あなたのドメイン
-APP_DEFAULT_SITE=www
-
-DB_CONNECTION=pgsql
-DB_HOST=ep-xxxx-pooler.REGION.aws.neon.tech   # アプリ実行時は pooled ホスト
-DB_PORT=5432
-DB_DATABASE=（Neonのデータベース名）
-DB_USERNAME=（Neonのユーザー名）
-DB_PASSWORD=（Neonのパスワード）
-DB_SSLMODE=require
-DB_EMULATE_PREPARES=true   # Neon pooled(PgBouncer)経由では必須。無いと 25P02 で落ちる
-
-SESSION_DRIVER=database
-QUEUE_CONNECTION=database
-
-# ファイルライブラリの実体（Cloudflare R2 / S3）。詳細は STORAGE.md
-FILESYSTEM_DISK=s3
-AWS_ACCESS_KEY_ID=（R2/S3 のアクセスキー）
-AWS_SECRET_ACCESS_KEY=（R2/S3 のシークレット）
-AWS_DEFAULT_REGION=auto
-AWS_BUCKET=cto-php
-AWS_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
-AWS_USE_PATH_STYLE_ENDPOINT=true
-```
-
-`composer install` は `league/flysystem-aws-s3-v3` を含む（S3ドライバに必須）。
-
-または `DB_URL` に pooled 接続文字列をまるごと入れてもよい:
-```env
-DB_URL=postgresql://USER:PASS@ep-xxxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require
-DB_EMULATE_PREPARES=true
-```
-
-> **libpq のバージョン**: Neon は SNI でエンドポイントを判定するため、古い libpq
-> （XAMPP同梱の11系など）だと `Endpoint ID is not specified` エラーになる。
-> PostgreSQL 14以降の libpq が必要（ローカル開発機では PostgreSQL 16 の
-> `libpq.dll` とその依存DLLを PHP フォルダにコピーして対応した）。
-
-## 5. migrationの実行
-
-```bash
-php artisan migrate --force
-```
-
-Neon の場合、`migrate` は **direct ホスト**（`-pooler` なし）に対して実行する
-（一時的に `DB_HOST` を direct に切り替える／`NEON_DATABASE_URL` に direct を入れて
-`php artisan db:neon-check --migrate`）。migrate 完了後は pooled ホストに戻す。
-
-（`--force`は本番環境での確認プロンプトをスキップするフラグ）
-
-## 5b. 既存データの投入（初回のみ）
-
-旧Access(.mdb)からのデータ移行は Windows 上で行う（ACE OLEDB が必要なため）:
-
-```powershell
-# 1. Access → CSV（Windows PowerShell）
-powershell -ExecutionPolicy Bypass -File schema-gen\export_access.ps1 -OutDir <出力先>
-# 2. CSV → PostgreSQL
-php schema-gen\load_data.php <出力先>
-```
-
-`load_data.php` は業務テーブルに `site_id='www'` を自動付与し、bigserialのシーケンスを
-投入済み最大IDに合わせる。テナントを増やすときはこのスクリプトを拡張する。
-
-ファイルの実体（旧サーバの `files/{siteid}/WebUp/`）は S3/R2 設定後に:
+R2 を `.env` に設定した状態で（Windows、旧サーバの `files/` にアクセスできる環境）:
 
 ```powershell
 php schema-gen\migrate_legacy_files.php www --dry   # プレビュー
 php schema-gen\migrate_legacy_files.php www          # R2 へアップロード
 ```
 
-## 6. ドキュメントルートを`public/`に向ける
+---
 
-cPanelの「Domains」でこのドメイン（サブドメイン）のドキュメントルートを
+## 2. Cloudflare R2
 
-```
-cto-php/public
-```
+`STORAGE.md` の手順でバケット `cto-php` と API トークンを作成。`.env`（本番）に:
 
-に変更する。変更できない場合は、`public/`の中身を`public_html`直下にコピーし、`public_html/index.php`内の2箇所のパス（`__DIR__.'/../vendor/autoload.php'`と`__DIR__.'/../bootstrap/app.php'`）を実際の設置場所に合わせて書き換える。
-
-## 7. Cronジョブの設定（スケジューラ）
-
-cPanelの「Cron Jobs」で以下を1分おきに登録する。
-
-```
-* * * * * cd /home/youraccount/cto-php && php artisan schedule:run >> /dev/null 2>&1
+```env
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=cto-php
+AWS_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 
-これでLaravelの`queue:work`常駐プロセスの代わりに、`QUEUE_CONNECTION=database`のジョブがバッチ的に処理される（`app/Console/Kernel.php`にスケジュール定義が必要になったら別途追加する）。
+---
 
-## 8. 最終確認
+## 3. Laravel Cloud（推奨）
 
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+1. https://cloud.laravel.com で GitHub リポジトリを接続。
+2. **Environment** を作成（例: `production`）。ビルド設定は Laravel を自動検出:
+   - Build: `composer install --no-dev --optimize-autoloader && npm ci && npm run build`
+   - Deploy: `php artisan migrate --force`（+ `optimize`）
+3. **Environment variables** に本番値を設定（下記「5. 本番 .env」）。
+   `DB_*` は **pooled** ホストを使う。
+4. **Scheduler** を有効化（`bootstrap/app.php` の `withSchedule` が動く）。
+5. **Worker** を1つ追加: `php artisan queue:work --tries=3`（`QUEUE_CONNECTION=database`）。
+6. **Domain** を設定し DNS を向ける。SSL は自動。
+7. Deploy 実行。
+
+初回のみ、Neon への `migrate` とデータ投入は「1a / 1b」でローカルから済ませておく
+（Laravel Cloud の deploy でも `migrate --force` は走るが、pooled 経由なので既に適用済みなら no-op）。
+
+---
+
+## 4. Laravel Forge + VPS（代替）
+
+1. Forge で サーバー作成（Hetzner / DigitalOcean 等、PHP 8.3）。
+2. Site 作成 → GitHub リポジトリを接続、ブランチ `main`。
+3. **Deploy Script**（`deploy.sh` 相当、Forge の「Deploy Script」欄）:
+
+   ```bash
+   cd $FORGE_SITE_PATH
+   git pull origin main
+   composer install --no-dev --optimize-autoloader --no-interaction
+   npm ci && npm run build
+   php artisan migrate --force
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   php artisan event:cache
+   ( flock -w 10 9 || exit 1
+     echo 'Restarting FPM...'; sudo -S service php8.3-fpm reload ) 9>/tmp/fpmlock
+   ```
+
+4. **Environment**（Forge の「Environment」欄）に本番 .env（下記5）。
+5. **Scheduler**: Forge の「Scheduler」で `php artisan schedule:run` を毎分。
+6. **Queue Worker**: Forge の「Daemons」で `php artisan queue:work --tries=3`。
+7. Site の SSL（Let's Encrypt）を発行、DNS を向ける。
+
+---
+
+## 5. 本番 .env
+
+```env
+APP_NAME="CtoS"
+APP_ENV=production
+APP_KEY=              # php artisan key:generate で生成（Laravel Cloud は自動）
+APP_DEBUG=false
+APP_URL=https://あなたのドメイン
+APP_LOCALE=ja
+APP_DEFAULT_SITE=www
+APP_SUPER_ADMIN_MEMBER_IDS=            # 全サイト管理できる運営者の member_id（カンマ区切り）
+
+# DB（アプリ実行時は pooled ホスト）
+DB_CONNECTION=pgsql
+DB_HOST=ep-xxxx-pooler.REGION.aws.neon.tech
+DB_PORT=5432
+DB_DATABASE=...
+DB_USERNAME=...
+DB_PASSWORD=...
+DB_SSLMODE=require
+DB_EMULATE_PREPARES=true              # Neon pooled(PgBouncer) では必須。無いと 25P02
+# ↑ または DB_URL に pooled 文字列をまるごと
+
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+
+# R2（上記 2）
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=cto-php
+AWS_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+AWS_USE_PATH_STYLE_ENDPOINT=true
+
+# Stripe（本番キー）— BILLING.md
+STRIPE_KEY=pk_live_...
+STRIPE_SECRET=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...       # 本番は `php artisan cashier:webhook` で登録後に取得
+CASHIER_CURRENCY=jpy
+CASHIER_CURRENCY_LOCALE=ja
+STRIPE_PRICE_STANDARD=price_...       # 本番ダッシュボードで作成
+STRIPE_PRICE_PRO=price_...
+
+# メール（例: Postmark）
+MAIL_MAILER=postmark
+POSTMARK_TOKEN=...
+MAIL_FROM_ADDRESS="no-reply@あなたのドメイン"
+MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-本番URLにアクセスし、トップページ・`/login`・`/admin`（Filament管理画面）が表示されることを確認する。
+---
 
-## デプロイのたびに繰り返す作業（更新時）
+## 6. デプロイ後の確認
 
-```bash
-git pull
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
+- `https://ドメイン/up` が 200
+- トップ `/`・`/login`・`/admin/login` が表示される
+- 管理員アカウントで `/admin` に入れる
+- `/admin/billing` でプランが表示される（Stripe キー設定済みなら契約ボタン）
+- ファイルのアップロード / ダウンロードが通る（R2 疎通）
+- `php artisan schedule:list` にスケジュールが出る
+
+## 7. 更新デプロイ
+
+Laravel Cloud / Forge どちらも **`main` に push すれば自動デプロイ**（Deploy Script / ビルド設定に沿って
+`composer install --no-dev` → `npm run build` → `migrate --force` → 各種 `*:cache`）。
+
+## メモ
+
+- `public/build` は `.gitignore` 対象。**必ずデプロイ時に `npm run build` すること**。
+- 論理削除された孤児添付の掃除はスケジューラの `attachments:prune`（週次）で自動。
+- テナントを増やすときは `schema-gen/load_tenant.php`（`MULTITENANCY.md`）。

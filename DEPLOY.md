@@ -126,6 +126,13 @@ php schema-gen\load_data.php <出力先>
 `load_data.php` は業務テーブルに `site_id='www'` を自動付与し、bigserialのシーケンスを
 投入済み最大IDに合わせる。テナントを増やすときはこのスクリプトを拡張する。
 
+ファイルの実体（旧サーバの `files/{siteid}/WebUp/`）は S3/R2 設定後に:
+
+```powershell
+php schema-gen\migrate_legacy_files.php www --dry   # プレビュー
+php schema-gen\migrate_legacy_files.php www          # R2 へアップロード
+```
+
 ## 6. ドキュメントルートを`public/`に向ける
 
 cPanelの「Domains」でこのドメイン（サブドメイン）のドキュメントルートを

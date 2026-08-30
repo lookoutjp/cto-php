@@ -25,19 +25,28 @@
 - `FileItem` は `BelongsToSite` で自動スコープ。`download()` は `findOrFail` が他サイトを弾く
 - キーにも `site_id` を含める（`sites/{site_id}/files/...`）ので、万一スコープ漏れがあってもテナント跨ぎは起きにくい
 
-## 旧データ
+## 旧データの移行
 
-- 旧Access `files` のメタデータ（50件、www のみ）は移行済みだが**実体バイトは未アップロード**（`storage_key` が null）。
-  一覧では「（実体未移行）」と表示、ダウンロードボタンは出さない。
-- 旧サーバの `files/{siteid}/WebUp/{foldername}/{id}_{filename}_{renban}.{ext}` から吸い出して
-  `Storage::disk('s3')->put(FileStorage::keyFor(...), ...)` → `storage_key`/`size_bytes`/`mime` を埋める
-  一括スクリプトを書けば移行できる（未着手）。
+- 旧Access `files` のメタデータ（www 50件、demo/miraipm は 0）は移行済み。
+- 実体バイトは `schema-gen/migrate_legacy_files.php` で旧サーバの `files/{siteid}/WebUp/...` から
+  S3/R2 に吸い上げる（`--dry` でプレビュー可）。旧ファイル名は `{id}.{ext}` / `{id}_{rand}.{ext}` /
+  `{folder}/{id}_{rand}_{renban}.{ext}` が混在するので「id 前置 + 拡張子一致」で探し、
+  foldername 一致 > `{id}_` 形式 > サイズ最大 の順で1件選ぶ。
+- **実行済み（www）**: 50行中 31件を R2 へ。残り 19件は旧サーバから既に消えていた（`storage_key` null のまま、
+  一覧で「実体未移行」表示・DLボタンなし）。
+
+## Filament（管理画面）
+
+`FileItemResource`（`/admin/file-items`）でも一覧・アップロード・DL・削除ができる。
+`FileUpload` を `storage_key` にバインドし `getUploadedFileNameForStorageUsing` で `uuid.ext` キー、
+`FileItemResource::fillFromUpload()` が保存前に `fileext`/`filename`/`size_bytes`/`mime`/`tag_id`/`member_id` を整える。
+削除アクションは R2 オブジェクトも消す。BelongsToSite で現在の管理サイトに自動スコープ。
 
 ## 未対応（次のステップ）
 
-- Filament `FileItemResource` でのアップロード（現状は会員フロント `/files` のみ）
-- コンテンツ / WBS / タスクへの**添付**（`files` は今は独立ライブラリ。polymorphic な添付は別設計）
-- 旧実ファイルの一括移行スクリプト
+- コンテンツ / WBS / タスクへの**添付**（`files` は今は独立ライブラリ。旧ASPにも無かった機能なので新規設計。
+  polymorphic な `attachments` テーブルを別途）
 - 画像のインラインプレビュー / サムネイル（`FileStorage::isImage()` は用意済み、UI 未使用）
+- FileUpload でファイルを差し替えた際の旧 R2 オブジェクトの掃除（現状は孤児が残る）
 - ダウンロードを `temporaryUrl()`（署名URLへリダイレクト）に切り替えると帯域がアプリを通らない。
   現状は `Storage::download()` でアプリがプロキシする（監査・アクセス制御がシンプル）

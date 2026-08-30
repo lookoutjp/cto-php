@@ -4,15 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Cashier\Billable;
 
 class Room extends Model
 {
+    use Billable;
+
     protected $table = 'rooms';
     protected $primaryKey = 'site_id';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;
     protected $guarded = [];
+
+    protected $casts = [
+        'trial_ends_at' => 'datetime',
+    ];
+
+    /**
+     * Cashier の顧客名（Stripe ダッシュボード表示用）。
+     */
+    public function stripeName(): ?string
+    {
+        return $this->sitename ?: $this->site_id;
+    }
+
+    public function stripeEmail(): ?string
+    {
+        return $this->site_mail ?: $this->comemail;
+    }
 
     /**
      * HTTP ホスト名からサイト(テナント)を引く。旧ASP conn.asp の
@@ -59,5 +79,47 @@ class Room extends Model
     {
         return $this->belongsToMany(Member::class, 'member_room', 'site_id', 'member_id')
             ->withPivot('ninshou');
+    }
+
+    // ---- 課金 ----
+
+    /** 現在のプランキー（free / standard / pro）。 */
+    public function planKey(): string
+    {
+        return \App\Support\Plans::keyForRoom($this);
+    }
+
+    /** 現在のプラン定義（config/plans.php、'key' 付き）。 */
+    public function plan(): array
+    {
+        return \App\Support\Plans::forRoom($this);
+    }
+
+    public function planLimit(string $key): ?int
+    {
+        return \App\Support\Plans::limit($this, $key);
+    }
+
+    public function memberCount(): int
+    {
+        return \App\Support\Plans::memberUsage($this);
+    }
+
+    /** あと $n 人追加してもプランの会員上限内か。 */
+    public function canAddMembers(int $n = 1): bool
+    {
+        return \App\Support\Plans::withinMemberLimit($this, $n);
+    }
+
+    /** 支払い滞納中（past_due / unpaid）か。 */
+    public function billingIsDelinquent(): bool
+    {
+        return \App\Support\Plans::isDelinquent($this);
+    }
+
+    /** 有料プラン契約中（トライアル・猶予期間を含む）か。 */
+    public function onPaidPlan(): bool
+    {
+        return $this->planKey() !== 'free';
     }
 }

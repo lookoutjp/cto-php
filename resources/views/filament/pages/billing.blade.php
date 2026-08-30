@@ -78,13 +78,18 @@
                     @endif
                 </div>
                 <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">ストレージ上限</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">ストレージ</div>
                     <div class="mt-1 text-lg font-semibold">
-                        {{ $storageLimit === null ? '無制限' : number_format($storageLimit) . ' MB' }}
+                        {{ \App\Support\FileStorage::humanSize($storageUsedBytes) }}
+                        <span class="text-sm font-normal text-gray-500">
+                            / {{ $storageLimit === null ? '無制限' : number_format($storageLimit) . ' MB' }}
+                        </span>
                     </div>
-                    <div class="mt-1 text-xs text-gray-400">
-                        ※ 添付ファイルの実容量計測は S3/R2 対応後に有効化
-                    </div>
+                    @if ($storageLimit !== null && $storageUsedBytes > $storageLimit * 1024 * 1024)
+                        <div class="mt-1 text-xs text-danger-600 dark:text-danger-400">
+                            上限を超えています。新しいファイルをアップロードできません。
+                        </div>
+                    @endif
                 </div>
             </div>
 

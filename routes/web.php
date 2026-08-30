@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Member\BoardController;
+use App\Http\Controllers\Member\FileController;
 use App\Http\Controllers\Member\MemberListController;
 use App\Http\Controllers\Member\MessageController;
 use App\Http\Controllers\Member\RoutineWorkController;
@@ -98,6 +99,12 @@ Route::middleware('auth')->group(function () {
         // メンバー一覧・個人ページ — 旧 memberlist.asp / memberpage.asp
         Route::get('/members', [MemberListController::class, 'index'])->name('members.index');
         Route::get('/members/{member}', [MemberListController::class, 'show'])->name('members.show');
+
+        // ファイルライブラリ — 旧 filelist.asp / fileadd.asp / download.asp
+        Route::get('/files', [FileController::class, 'index'])->name('files.index');
+        Route::post('/files', [FileController::class, 'store'])->name('files.store');
+        Route::get('/files/{id}/download', [FileController::class, 'download'])->whereNumber('id')->name('files.download');
+        Route::delete('/files/{id}', [FileController::class, 'destroy'])->whereNumber('id')->name('files.destroy');
 
         // 社内メッセージ（伝言） — 旧 Member_MessageSend.asp
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

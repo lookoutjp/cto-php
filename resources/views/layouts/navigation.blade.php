@@ -40,6 +40,9 @@
                         @if ($site->hasFunction('dengonfunction'))
                             <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">メッセージ</x-nav-link>
                         @endif
+                        @if ($site->hasFunction('filemanagefunction'))
+                            <x-nav-link :href="route('files.index')" :active="request()->routeIs('files.*')">ファイル</x-nav-link>
+                        @endif
                     @endif
                     <x-nav-link href="/" :active="false">
                         サイトを見る

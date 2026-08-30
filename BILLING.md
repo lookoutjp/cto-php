@@ -57,7 +57,7 @@ Stripe キー未設定でもアプリは通常どおり動作する（`Plans::pu
 |---|---|
 | トライアル | 現状なし。付けるなら `trial_ends_at` ベースで N 日 |
 | 管理画面側の会員数上限 | 自己登録のみチェック済み。Filament の `MemberRoomResource` 追加や `ninshou` 引き上げ時のチェックは未（`MemberRoom::creating` で `Room::canAddMembers()` を見るのが素直。ただし Filament で例外を投げると 500 になるのでフォームバリデーションで） |
-| ストレージ従量 | `files` の S3/R2 化が前提（`FRONTEND.md` 参照）。移行後 `Plans` に実使用量計算を追加 |
+| ストレージ従量 | **月額フラット内の上限として実装済み**（`Plans::storageUsageBytes()` = `files.size_bytes` 合計、アップロード時 `withinStorageLimit()` でブロック、`/admin/billing` に使用量表示）。使った分だけ課金する従量制にするかは別途 |
 | 未契約テナントのグレース | 現状フリープランがあるので「未契約 = free」。free の上限超過分（会員数）は自己登録ブロックのみ。既存データの読み取りは常に許可 |
 | 請求書 PDF | Cashier の `DompdfInvoiceRenderer` が既定。日本語フォント埋め込みは要確認 |
 

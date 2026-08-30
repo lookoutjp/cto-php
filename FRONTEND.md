@@ -67,6 +67,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/manager` | `Public\SitePageController@managerWords` | managerwords.asp | `rooms.managerwords`（HTML）をそのまま表示。見出しは `rooms.manager_shouko`（無ければ「管理員」）。`managerwordsfunction` 必須 |
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
 | `/members` | `Member\MemberListController@index` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。名前は個人ページへリンク。`memberlistfunction` 必須 |
+| `/files` `/files/{id}/download` | `Member\FileController` | filelist.asp / fileadd.asp / download.asp | 会員ファイルライブラリ。一覧（タグ絞り込み・20件/頁）／アップロード（許可拡張子・25MB上限・プラン容量チェック）／ダウンロード（アプリ経由でストリーム）／削除（本人 or 管理員）。実体は S3/R2（`STORAGE.md`）。旧Access由来の 50件は `storage_key` null で「実体未移行」表示。`filemanagefunction` 必須 |
 | `/members/{member}` | `Member\MemberListController@show` | memberpage.asp | 会員個人ページ。表示名・ふりがな・ニックネーム（`appeal`）・性別・ホームページ（`hp`、`Member::homepageUrl()` で正規化）・自己紹介（`introduce`、`strip_tags`+エスケープで安全化）・現在サイトでの役割（管理員/参加者）・メッセージ送信リンク（`?to=`）。現在サイトの参加者以外／`memberlistfunction` 無しは 404 |
 | `/profile` | `ProfileController`（Breeze拡張） | membermod.asp | Breeze 既定の name/email に加え、`nameread`（ふりがな）/`appeal`（ニックネーム）/`phone`/`hp`/`sex`（1=男性 0=女性 空=未回答）/`introduce`（自己紹介、公開）を編集可能に（`ProfileUpdateRequest`）。`introduce` は保存前に旧HTMLを `strip_tags` 表示に寄せる |
 | `/messages` `/messages/sent` `/messages/create` `/messages/{id}` | `Member\MessageController` | Member_MessageSend.asp | 社内メッセージ（伝言）。受信箱／送信箱／作成／詳細（受信者は開くと既読）／削除（送信者=`delete_from`、受信者=`delete_to` の論理削除）。宛先はサイト参加者のみ。`dengonfunction` 必須 |
@@ -109,6 +110,6 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   `TaskDashboard::enabledKinds()`（todo/problem/risk/wbs/routinework の各 `*function`）で
   パネル・行を出し分け**。全機能オフのサイトでは案内文のみ
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
-- 画像・添付（`files`）→ S3/R2 前提なので後回し
+- コンテンツ / WBS / タスクへの**添付**（`files` は今は独立ライブラリ `/files` のみ。詳細は `STORAGE.md`）
 - オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
   作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装

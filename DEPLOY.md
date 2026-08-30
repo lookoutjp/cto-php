@@ -76,7 +76,18 @@ DB_EMULATE_PREPARES=true   # Neon pooled(PgBouncer)経由では必須。無い�
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
+
+# ファイルライブラリの実体（Cloudflare R2 / S3）。詳細は STORAGE.md
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=（R2/S3 のアクセスキー）
+AWS_SECRET_ACCESS_KEY=（R2/S3 のシークレット）
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=cto-php
+AWS_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
+
+`composer install` は `league/flysystem-aws-s3-v3` を含む（S3ドライバに必須）。
 
 または `DB_URL` に pooled 接続文字列をまるごと入れてもよい:
 ```env

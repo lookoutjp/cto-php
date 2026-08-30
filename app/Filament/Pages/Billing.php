@@ -101,6 +101,7 @@ class Billing extends Page
             'stripeConfigured' => $this->stripeConfigured(),
             'memberUsage' => $room->memberCount(),
             'memberLimit' => $room->planLimit('members'),
+            'storageUsedBytes' => Plans::storageUsageBytes($room),
             'storageLimit' => $room->planLimit('storage_mb'),
             'subscription' => $subscription,
             'onGracePeriod' => $subscription?->onGracePeriod() ?? false,

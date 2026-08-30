@@ -60,7 +60,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/` | `Public\HomeController` + `public.home` | index.asp | サイト紹介（`rooms.siteintro`）+ 最新ニュース5件 ＋ おすすめコンテンツ（`contents.recommend=1`、`osusumecontentsfunction`）＋ 人気コンテンツ（`clicks` 降順、`ninkicontentsfunction`） |
 | `/news` | `Livewire\Public\NewsIndex` | news.asp | 一覧・タイトル検索・32件/ページ。`newsdate <= now` のみ、`istop` 優先 |
 | `/news/{id}` | `Public\NewsController@show` | newsdetail.asp | 本文HTML + 前後リンク。未公開/他サイトは404。clicks++ |
-| `/contents` | `Public\ContentController@index` | contents.asp | 公開カテゴリ（`ninshou` null/0）ごとに公開コンテンツ（`ok=1`） |
+| `/contents` | `Public\ContentController@index` | contents.asp / inc_kataroguson.asp | `ContentSort::publicTree()` でカテゴリを `father_id` 階層表示。publicVisible（`ninshou` null/0）のみ、各カテゴリに公開コンテンツ（`ok=1`）。自身にも子孫にも公開コンテンツが無い枝は除外。循環は per-path visited で打ち切り。深さで見出しサイズ＋左ボーダーのインデント（`public.partials.category-node` 再帰） |
 | `/contents/{id}` | `Public\ContentController@show` | ContentDetail.asp | 本文HTML。非公開/非公開カテゴリ/他サイトは404。clicks++ |
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
 | `/register` | `Auth\RegisteredUserController` | reguser_*.asp | 会員登録。お名前・ふりがな・メール・電話（任意）・パスワード。現在サイトに `member_room`（`ninshou = 0` = コンテンツ閲覧のみ）を作成し自動ログイン。プロジェクト機能の利用には管理員が `ninshou` を 1 以上に引き上げる（＝旧「本承認」）。`newmemberregfunction` が無いサイトは 404 |
@@ -109,9 +109,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   `TaskDashboard::enabledKinds()`（todo/problem/risk/wbs/routinework の各 `*function`）で
   パネル・行を出し分け**。全機能オフのサイトでは案内文のみ
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
-- カテゴリの階層表示（現状フラット。`content_sorts.father_id` の親子は未使用）
 - 画像・添付（`files`）→ S3/R2 前提なので後回し
 - オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
   作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装
-- コンテンツのカテゴリ階層表示（`content_sorts.father_id` の親子。現状フラット）
 - 記名アンケート（`surveys.specify_yn`）の集計での投票者名表示

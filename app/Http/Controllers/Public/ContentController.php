@@ -12,12 +12,7 @@ class ContentController extends Controller
 {
     public function index(): View
     {
-        $categories = ContentSort::query()
-            ->publicVisible()
-            ->listingOrder()
-            ->with(['contents' => fn ($q) => $q->published()->listingOrder()])
-            ->get()
-            ->filter(fn (ContentSort $c) => $c->contents->isNotEmpty());
+        $categories = ContentSort::publicTree();
 
         return view('public.contents-index', compact('categories'));
     }

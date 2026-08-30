@@ -56,6 +56,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 | URL | 実装 | 旧ASP | 内容 |
 |---|---|---|---|
+| `/admin/org-chart` | `App\Filament\Pages\OrgChart` | orgchart.asp | 現在サイトの組織図（体制図）。`levels`（旧 lebel）の `fatherlevel`→`level` 自己参照ツリーを `Level::tree()`（循環は visited で打ち切り）で組み立て、インデント表示。編集は `LevelResource`（`/admin/levels`）。管理員のみ。0 件時は作成導線 |
 | `/` | `Public\HomeController` + `public.home` | index.asp | サイト紹介（`rooms.siteintro`）+ 最新ニュース5件 ＋ おすすめコンテンツ（`contents.recommend=1`、`osusumecontentsfunction`）＋ 人気コンテンツ（`clicks` 降順、`ninkicontentsfunction`） |
 | `/news` | `Livewire\Public\NewsIndex` | news.asp | 一覧・タイトル検索・32件/ページ。`newsdate <= now` のみ、`istop` 優先 |
 | `/news/{id}` | `Public\NewsController@show` | newsdetail.asp | 本文HTML + 前後リンク。未公開/他サイトは404。clicks++ |
@@ -112,4 +113,5 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - 画像・添付（`files`）→ S3/R2 前提なので後回し
 - オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
   作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装
-- 会社組織図（旧 orgchart.asp、`levels` 階層）は未実装
+- コンテンツのカテゴリ階層表示（`content_sorts.father_id` の親子。現状フラット）
+- 記名アンケート（`surveys.specify_yn`）の集計での投票者名表示

@@ -51,15 +51,23 @@ class SurveyController extends Controller
         $this->ensureEnabled();
 
         $memberId = $request->user()->getKey();
-        $survey = Survey::query()->open()->with('choices')->findOrFail($id);
+
+        // 締切済み・受付終了のサーベイも集計結果は閲覧できる（回答は open() のときだけ）。
+        $survey = Survey::query()
+            ->where(fn ($q) => $q->where('delete_to', '!=', 1)->orWhereNull('delete_to'))
+            ->with('choices')
+            ->findOrFail($id);
 
         $canAnswer = $survey->acceptsAnswersFrom($memberId);
+
+        $resultsVisible = ! $canAnswer;
 
         return view('member.survey-show', [
             'survey' => $survey,
             'canAnswer' => $canAnswer,
             'hasReplied' => $survey->hasReplied($memberId),
-            'tally' => $canAnswer ? collect() : $survey->tally(),
+            'tally' => $resultsVisible ? $survey->tally() : collect(),
+            'voters' => $resultsVisible && $survey->specify_yn ? $survey->tallyWithVoters() : collect(),
         ]);
     }
 

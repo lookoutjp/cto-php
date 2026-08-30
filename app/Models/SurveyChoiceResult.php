@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\BelongsToSite;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SurveyChoiceResult extends Model
 {
@@ -12,4 +13,9 @@ class SurveyChoiceResult extends Model
     protected $table = 'survey_choice_results';
     public $timestamps = false;
     protected $guarded = [];
+
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'member_id', 'member_id');
+    }
 }

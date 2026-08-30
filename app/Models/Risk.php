@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToSite;
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\TaskModel;
 use Illuminate\Database\Eloquent\Model;
 
 class Risk extends Model
 {
     use BelongsToSite;
+    use HasAttachments;
     use TaskModel;
 
     public static string $taskKind = 'risk';

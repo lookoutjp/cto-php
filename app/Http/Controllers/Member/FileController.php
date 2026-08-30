@@ -41,6 +41,14 @@ class FileController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $files->getCollection()->transform(function (FileItem $f) {
+            $f->preview_url = $f->hasBytes() && FileStorage::isImage($f->fileext)
+                ? Storage::disk(FileStorage::DISK)->temporaryUrl($f->storage_key, now()->addMinutes(30))
+                : null;
+
+            return $f;
+        });
+
         $room = Room::find(app(CurrentSite::class)->id());
 
         return view('member.file-index', [

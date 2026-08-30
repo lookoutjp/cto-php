@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToSite;
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\TaskModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Wbs extends Model
 {
     use BelongsToSite;
+    use HasAttachments;
     use TaskModel;
 
     public static string $taskKind = 'wbs';

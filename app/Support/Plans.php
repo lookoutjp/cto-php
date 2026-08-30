@@ -94,12 +94,13 @@ class Plans
         return self::memberUsage($room) + $additional <= $limit;
     }
 
-    /** そのテナントのストレージ使用量（bytes）。files.size_bytes の合計。 */
+    /** そのテナントのストレージ使用量（bytes）。files ＋ attachments の size_bytes 合計。 */
     public static function storageUsageBytes(Room $room): int
     {
-        return (int) DB::table('files')
-            ->where('site_id', $room->getKey())
-            ->sum('size_bytes');
+        $siteId = $room->getKey();
+
+        return (int) DB::table('files')->where('site_id', $siteId)->sum('size_bytes')
+            + (int) DB::table('attachments')->where('site_id', $siteId)->sum('size_bytes');
     }
 
     /** あと $additionalBytes バイト追加してもプランのストレージ上限内か。 */

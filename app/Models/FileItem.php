@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToSite;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
@@ -25,6 +26,14 @@ class FileItem extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'member_id', 'member_id');
+    }
+
+    /** 旧Accessの fileext は固定長Charで空白詰めされていることがあるので正規化する。 */
+    protected function fileext(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value === null ? null : strtolower(trim((string) $value, " \t\n\r.")),
+        );
     }
 
     /** 実体がオブジェクトストレージにあるか（旧Access由来は未アップロード）。 */

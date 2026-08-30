@@ -47,6 +47,21 @@ class Billing extends Page
             && $user->managesSite($siteId);
     }
 
+    public function mount(): void
+    {
+        $checkout = request()->query('checkout');
+
+        if ($checkout === 'success') {
+            Notification::make()
+                ->success()
+                ->title('お支払いを受け付けました')
+                ->body('反映まで数秒かかることがあります。')
+                ->send();
+        } elseif ($checkout === 'cancel') {
+            Notification::make()->warning()->title('お支払いをキャンセルしました')->send();
+        }
+    }
+
     protected function room(): Room
     {
         return Room::findOrFail(app(CurrentSite::class)->id());
@@ -67,7 +82,11 @@ class Billing extends Page
         $renewsAt = null;
         if ($this->stripeConfigured() && $subscription && $subscription->active() && ! $subscription->onGracePeriod()) {
             try {
-                $ts = $subscription->asStripeSubscription()->current_period_end;
+                $stripeSub = $subscription->asStripeSubscription(['items']);
+                // 現行の Stripe API では current_period_end はサブスクリプションアイテム側にある
+                $ts = $stripeSub->current_period_end
+                    ?? $stripeSub->items->data[0]->current_period_end
+                    ?? null;
                 $renewsAt = $ts ? \Illuminate\Support\Carbon::createFromTimestamp($ts) : null;
             } catch (\Throwable $e) {
                 $renewsAt = null;
@@ -105,14 +124,14 @@ class Billing extends Page
             return null;
         }
 
-        $room = $this->room();
-
-        return $room
+        $checkout = $this->room()
             ->newSubscription(Plans::DEFAULT_SUBSCRIPTION, $plan['stripe_price_id'])
             ->checkout([
                 'success_url' => static::getUrl().'?checkout=success',
                 'cancel_url' => static::getUrl().'?checkout=cancel',
             ]);
+
+        return redirect($checkout->url);
     }
 
     public function swap(string $planKey): void

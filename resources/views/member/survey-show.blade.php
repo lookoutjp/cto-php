@@ -55,6 +55,9 @@
                             @else 受付は終了しました。集計結果です。
                             @endif
                             （回答者 {{ $survey->respondentCount() }} 名）
+                            @if ($survey->specify_yn)
+                                <span class="ml-1 rounded bg-brand-bg px-1.5 py-0.5 text-xs text-brand">記名式</span>
+                            @endif
                         </p>
                         @php($total = max(1, $tally->sum()))
                         <ul class="space-y-3">
@@ -68,6 +71,13 @@
                                     <div class="mt-1 h-2 overflow-hidden rounded bg-gray-100">
                                         <div class="h-full rounded bg-brand" style="width: {{ round($count / $total * 100) }}%"></div>
                                     </div>
+                                    @if ($survey->specify_yn && ($names = $voters[$choice->choice_number] ?? collect())->isNotEmpty())
+                                        <div class="mt-1.5 flex flex-wrap gap-1">
+                                            @foreach ($names as $name)
+                                                <span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{{ $name }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>

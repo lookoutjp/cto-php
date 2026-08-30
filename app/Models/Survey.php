@@ -71,6 +71,25 @@ class Survey extends Model
             ->pluck('c', 'choice_number');
     }
 
+    /**
+     * 記名式（specify_yn）用。choice_number => 投票した会員（表示名）の一覧。
+     *
+     * @return \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, string>>
+     */
+    public function tallyWithVoters(): \Illuminate\Support\Collection
+    {
+        return $this->results()
+            ->with('member:member_id,name')
+            ->orderBy('dt')
+            ->get(['id', 'choice_number', 'member_id'])
+            ->groupBy('choice_number')
+            ->map(fn ($rows) => $rows
+                ->map(fn ($r) => $r->member?->displayName() ?? $r->member_id)
+                ->unique()
+                ->values()
+            );
+    }
+
     public function respondentCount(): int
     {
         return $this->replies()->count();

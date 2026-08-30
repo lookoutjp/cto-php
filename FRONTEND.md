@@ -65,7 +65,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/register` | `Auth\RegisteredUserController` | reguser_*.asp | 会員登録。お名前・ふりがな・メール・電話（任意）・パスワード。現在サイトに `member_room`（`ninshou = 0` = コンテンツ閲覧のみ）を作成し自動ログイン。プロジェクト機能の利用には管理員が `ninshou` を 1 以上に引き上げる（＝旧「本承認」）。`newmemberregfunction` が無いサイトは 404 |
 | `/manager` | `Public\SitePageController@managerWords` | managerwords.asp | `rooms.managerwords`（HTML）をそのまま表示。見出しは `rooms.manager_shouko`（無ければ「管理員」）。`managerwordsfunction` 必須 |
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
-| `/members` | `Member\MemberListController` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。`memberlistfunction` 必須 |
+| `/members` | `Member\MemberListController@index` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。名前は個人ページへリンク。`memberlistfunction` 必須 |
+| `/members/{member}` | `Member\MemberListController@show` | memberpage.asp | 会員個人ページ。表示名・ふりがな・ニックネーム（`appeal`）・性別・ホームページ（`hp`、`Member::homepageUrl()` で正規化）・自己紹介（`introduce`、`strip_tags`+エスケープで安全化）・現在サイトでの役割（管理員/参加者）・メッセージ送信リンク（`?to=`）。現在サイトの参加者以外／`memberlistfunction` 無しは 404 |
+| `/profile` | `ProfileController`（Breeze拡張） | membermod.asp | Breeze 既定の name/email に加え、`nameread`（ふりがな）/`appeal`（ニックネーム）/`phone`/`hp`/`sex`（1=男性 0=女性 空=未回答）/`introduce`（自己紹介、公開）を編集可能に（`ProfileUpdateRequest`）。`introduce` は保存前に旧HTMLを `strip_tags` 表示に寄せる |
 | `/messages` `/messages/sent` `/messages/create` `/messages/{id}` | `Member\MessageController` | Member_MessageSend.asp | 社内メッセージ（伝言）。受信箱／送信箱／作成／詳細（受信者は開くと既読）／削除（送信者=`delete_from`、受信者=`delete_to` の論理削除）。宛先はサイト参加者のみ。`dengonfunction` 必須 |
 | `/mypage` | `MypageController`（route 名 `dashboard`） | Mypage.asp | ログイン後の入口。本日の計画作業 / 管理タスク対応状況（todo・課題・リスク・WBS × 新規/接近/遅延/期限未設定）/ 定例作業対応状況。集計は `App\Support\TaskDashboard` |
 | `/contact` `/contact/thanks` | `Public\InquiryController` | otoi.asp / otoi2 / otoi3 | お問い合わせフォーム。会員はプロフィールから自動入力。保存（`inquiries`、`site_id` 自動）＋ 受付確認メール（本人）＋ 新着通知メール（`rooms.site_mail`）。番号は `T{id}`。`rooms.function_list` に `otoiawasefunction` が無いサイトは 404（nav リンクも非表示） |
@@ -110,4 +112,4 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 - 画像・添付（`files`）→ S3/R2 前提なので後回し
 - オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
   作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装
-- 会員個人ページ（旧 memberpage.asp）は未実装（メンバー一覧から個別ページへのリンクなし）
+- 会社組織図（旧 orgchart.asp、`levels` 階層）は未実装

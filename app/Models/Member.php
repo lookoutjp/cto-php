@@ -32,6 +32,50 @@ class Member extends Authenticatable implements FilamentUser
     }
 
     /**
+     * 表示名（旧ASP: name があれば name、無ければ member_id）。
+     */
+    public function displayName(): string
+    {
+        return $this->name ?: $this->member_id;
+    }
+
+    /**
+     * hp カラムを開ける URL に正規化する。スキームが無ければ // を補う。空なら null。
+     */
+    public function homepageUrl(): ?string
+    {
+        $hp = trim((string) $this->hp);
+        if ($hp === '') {
+            return null;
+        }
+
+        return \Illuminate\Support\Str::startsWith($hp, ['http://', 'https://']) ? $hp : '//'.$hp;
+    }
+
+    /**
+     * 性別ラベル（旧ASP membermod.asp: 1=男 / 0=女 / 空=未回答）。
+     */
+    public function sexLabel(): ?string
+    {
+        return match ((string) $this->sex) {
+            '1' => '男性',
+            '0' => '女性',
+            default => null,
+        };
+    }
+
+    /**
+     * 指定サイトでの権限レベル（member_room.ninshou）。所属していなければ null。
+     */
+    public function ninshouOn(string $siteId): ?int
+    {
+        $room = $this->rooms->firstWhere('site_id', $siteId)
+            ?? $this->rooms()->where('rooms.site_id', $siteId)->first();
+
+        return $room?->pivot->ninshou;
+    }
+
+    /**
      * プラットフォーム運営者（全サイトを管理できる）か。
      * config/app.php の super_admin_member_ids で指定する。
      */

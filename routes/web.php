@@ -95,8 +95,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/routinework/generate', [RoutineWorkController::class, 'generateForm'])->name('routinework.generate');
         Route::post('/routinework/generate', [RoutineWorkController::class, 'generate'])->name('routinework.generate.run');
 
-        // メンバー一覧 — 旧 memberlist.asp
+        // メンバー一覧・個人ページ — 旧 memberlist.asp / memberpage.asp
         Route::get('/members', [MemberListController::class, 'index'])->name('members.index');
+        Route::get('/members/{member}', [MemberListController::class, 'show'])->name('members.show');
 
         // 社内メッセージ（伝言） — 旧 Member_MessageSend.asp
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

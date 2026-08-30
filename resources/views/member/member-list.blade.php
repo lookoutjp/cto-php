@@ -10,7 +10,7 @@
                     <div class="flex items-start gap-3 border-b border-gray-100 px-5 py-4 last:border-0">
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="font-medium text-gray-900">{{ $m->name ?: $m->member_id }}</span>
+                                <a href="{{ route('members.show', $m) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $m->name ?: $m->member_id }}</a>
                                 @if ($m->nameread)
                                     <span class="text-xs text-gray-400">{{ $m->nameread }}</span>
                                 @endif

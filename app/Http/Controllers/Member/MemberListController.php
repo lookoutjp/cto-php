@@ -36,4 +36,34 @@ class MemberListController extends Controller
 
         return view('member.member-list', compact('members'));
     }
+
+    /**
+     * 会員個人ページ。旧ASP: memberpage.asp（ninshou = ",1," 必須）。
+     * 現在サイトの参加者（ninshou 1 or -1）のみ表示する。
+     */
+    public function show(Member $member): View
+    {
+        $siteId = app(CurrentSite::class)->id();
+
+        if (! Room::find($siteId)?->hasFunction('memberlistfunction')) {
+            throw new NotFoundHttpException;
+        }
+
+        $isParticipant = MemberRoom::query()
+            ->where('site_id', $siteId)
+            ->where('member_id', $member->member_id)
+            ->whereIn('ninshou', [1, -1])
+            ->exists();
+
+        if (! $isParticipant) {
+            throw new NotFoundHttpException;
+        }
+
+        $ninshou = $member->ninshouOn($siteId);
+
+        return view('member.member-show', [
+            'member' => $member,
+            'roleLabel' => $ninshou === -1 ? '管理員' : '参加者',
+        ]);
+    }
 }

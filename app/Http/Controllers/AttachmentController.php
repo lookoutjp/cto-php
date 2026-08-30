@@ -36,6 +36,12 @@ class AttachmentController extends Controller
     private function authorizeView(Request $request, Attachment $attachment): void
     {
         $subject = $attachment->attachable;
+
+        // 添付先が消えている孤児は見せない
+        if ($subject === null) {
+            throw new NotFoundHttpException;
+        }
+
         $user = $request->user();
         $isProjectMember = $user instanceof Member && $user->isProjectMemberOf();
 

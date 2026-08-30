@@ -133,6 +133,11 @@ class FileItemResource extends Resource
 
         $key = $data['storage_key'] ?? $record?->storage_key;
 
+        // ファイルが差し替えられたら旧 R2 オブジェクトを消す（孤児防止）
+        if ($record?->storage_key && $key !== $record->storage_key) {
+            Storage::disk(FileStorage::DISK)->delete($record->storage_key);
+        }
+
         if ($key && Storage::disk(FileStorage::DISK)->exists($key)) {
             $data['fileext'] = strtolower(pathinfo($key, PATHINFO_EXTENSION));
             $data['size_bytes'] = Storage::disk(FileStorage::DISK)->size($key);

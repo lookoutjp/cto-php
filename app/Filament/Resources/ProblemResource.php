@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\ProblemResource\Pages;
 use App\Filament\Resources\ProblemResource\RelationManagers;
 use App\Models\Problem;
@@ -115,7 +116,7 @@ class ProblemResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttachmentsRelationManager::class,
         ];
     }
 

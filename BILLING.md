@@ -45,10 +45,18 @@ Stripe キー未設定でもアプリは通常どおり動作する（`Plans::pu
   Webhook（`customer.subscription.*` / `invoice.*` 等）はすべて 200 で処理。
 - 確認後、demo は `cancelNow()` で free 状態に戻してある。
 
+### 本番 Webhook（2026-09-02 設定・test mode）
+
+- `php artisan cashier:webhook --url=https://cto.jp/stripe/webhook` で登録。
+- エンドポイント: `we_1UAx6cKEB8gQTV6Hla7F0NLX` → `https://cto.jp/stripe/webhook`（9 events, enabled）。
+- 署名シークレット `whsec_gNeb1ubHvTcVfvxgekMnDYSEYX9rf9vZ` はローカル `.env` に設定済み。
+  **Laravel Cloud の Custom environment variables に `STRIPE_WEBHOOK_SECRET` として設定 → Deploy** が必要。
+- 署名シークレットは Stripe API では取得できない（作成時のみ返る）。再取得はダッシュボード or 作り直し。
+
 ### 本番移行時にやること
 
 1. 本番キー（`sk_live_` / `pk_live_`）に差し替え、本番ダッシュボードで JPY 月次 Price を作成
-2. 本番は `php artisan cashier:webhook` で Stripe 側にエンドポイント登録 → 署名シークレットを `.env` に
+2. live アカウントで再度 `php artisan cashier:webhook`（test の `whsec_` は live では無効）→ 新シークレットを差し替え
 3. `trial` を入れるなら `config/plans.php` に `trial_days`、`newSubscription()->trialDays()` を追加
 
 ## まだ手を付けていない設計判断

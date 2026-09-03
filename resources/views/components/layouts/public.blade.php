@@ -54,8 +54,13 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white">
-        <div class="mx-auto max-w-5xl px-4 py-6 text-center text-xs text-gray-500">
-            &copy; {{ now()->year }} {{ $site?->sitename ?? config('app.name') }}
+        <div class="mx-auto max-w-5xl space-y-2 px-4 py-6 text-center text-xs text-gray-500">
+            <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                <a href="{{ route('legal.terms') }}" class="hover:text-gray-900">利用規約</a>
+                <a href="{{ route('legal.privacy') }}" class="hover:text-gray-900">プライバシーポリシー</a>
+                <a href="{{ route('legal.tokushoho') }}" class="hover:text-gray-900">特定商取引法に基づく表記</a>
+            </nav>
+            <div>&copy; {{ now()->year }} {{ $site?->sitename ?? config('app.name') }}</div>
         </div>
     </footer>
 

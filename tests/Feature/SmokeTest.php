@@ -39,4 +39,18 @@ class SmokeTest extends TestCase
 
         $this->get('/')->assertOk();
     }
+
+    public function test_legal_pages_render(): void
+    {
+        Room::create([
+            'site_id' => 'www',
+            'sitename' => 'テストサイト',
+            'site_joutai' => 1,
+            'function_list' => '',
+        ]);
+
+        $this->get('/legal/tokushoho')->assertOk()->assertSee('特定商取引法に基づく表記');
+        $this->get('/legal/terms')->assertOk()->assertSee('利用規約');
+        $this->get('/legal/privacy')->assertOk()->assertSee('プライバシーポリシー');
+    }
 }

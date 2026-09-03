@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Member\BoardController;
 use App\Http\Controllers\Member\FileController;
 use App\Http\Controllers\Member\MemberListController;
@@ -48,6 +49,11 @@ Route::get('/attachments/{id}/preview', [AttachmentController::class, 'preview']
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
 Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
 Route::get('/contact/thanks', [InquiryController::class, 'thanks'])->name('contact.thanks');
+
+// サービス共通の法務ページ（テナント非依存）
+Route::get('/legal/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/legal/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/legal/tokushoho', [LegalController::class, 'tokushoho'])->name('legal.tokushoho');
 
 // ---- 会員（Breeze）----
 // Mypage（旧 Mypage.asp）: ログイン後の入口。route 名は Breeze 互換のため 'dashboard' のまま。

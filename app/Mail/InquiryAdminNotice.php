@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Inquiry;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,6 +24,9 @@ class InquiryAdminNotice extends Mailable
     {
         return new Envelope(
             subject: "{$this->siteName} - 新しいお問い合わせ（#{$this->inquiry->ticket_number}）",
+            replyTo: filled($this->inquiry->email)
+                ? [new Address($this->inquiry->email, $this->inquiry->customer_name ?: $this->inquiry->email)]
+                : [],
         );
     }
 

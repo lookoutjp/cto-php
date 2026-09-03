@@ -8,6 +8,8 @@ use App\Models\Risk;
 use App\Models\Todo;
 use App\Models\Wbs;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * relations テーブルの {kind, id} を、実際のレコード（Wbs/Todo/…）に解決する。
@@ -46,7 +48,7 @@ class TaskRef
     }
 
     /** その kind の未削除レコードを [id => title] で（セレクト用）。 */
-    public static function options(string $kind): \Illuminate\Support\Collection
+    public static function options(string $kind): Collection
     {
         $model = self::KINDS[strtolower($kind)] ?? null;
         if ($model === null) {
@@ -61,12 +63,12 @@ class TaskRef
     }
 
     /** レコードから「期限」相当の日付を取り出す（wbs は godate/duedate 両方あり得る）。 */
-    public static function endDate(?Model $m): ?\Illuminate\Support\Carbon
+    public static function endDate(?Model $m): ?Carbon
     {
         return $m?->duedate ?? $m?->complete_date ?? null;
     }
 
-    public static function startDate(?Model $m): ?\Illuminate\Support\Carbon
+    public static function startDate(?Model $m): ?Carbon
     {
         return $m?->godate ?? $m?->start_date ?? null;
     }

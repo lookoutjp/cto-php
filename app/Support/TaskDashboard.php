@@ -10,8 +10,8 @@ use App\Models\RoutineWorkList;
 use App\Models\StatusMaster;
 use App\Models\Todo;
 use App\Models\Wbs;
-use App\Support\CurrentSite;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -30,7 +30,7 @@ use Illuminate\Support\Collection;
  */
 class TaskDashboard
 {
-    /** @var array<string, class-string<\Illuminate\Database\Eloquent\Model>> */
+    /** @var array<string, class-string<Model>> */
     private const DATED_TYPES = [
         'todo' => Todo::class,
         'problem' => Problem::class,
@@ -61,9 +61,7 @@ class TaskDashboard
     /** @var list<string>|null */
     private ?array $enabledKindsCache = null;
 
-    public function __construct(private readonly string $memberId)
-    {
-    }
+    public function __construct(private readonly string $memberId) {}
 
     public static function for(string $memberId): self
     {

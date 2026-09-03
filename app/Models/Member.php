@@ -9,17 +9,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class Member extends Authenticatable implements FilamentUser
 {
     use Notifiable;
 
     protected $table = 'members';
+
     protected $primaryKey = 'member_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
+
     protected $guarded = [];
+
     protected $hidden = ['password'];
 
     /**
@@ -49,7 +56,7 @@ class Member extends Authenticatable implements FilamentUser
             return null;
         }
 
-        return \Illuminate\Support\Str::startsWith($hp, ['http://', 'https://']) ? $hp : '//'.$hp;
+        return Str::startsWith($hp, ['http://', 'https://']) ? $hp : '//'.$hp;
     }
 
     /**

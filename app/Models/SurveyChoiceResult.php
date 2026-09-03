@@ -11,7 +11,9 @@ class SurveyChoiceResult extends Model
     use BelongsToSite;
 
     protected $table = 'survey_choice_results';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     public function member(): BelongsTo

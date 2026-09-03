@@ -13,7 +13,9 @@ class Holiday extends Model
     use BelongsToSite;
 
     protected $table = 'holidays';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

@@ -4,15 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\TodoResource\Pages;
-use App\Filament\Resources\TodoResource\RelationManagers;
 use App\Models\Todo;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TodoResource extends Resource
 {

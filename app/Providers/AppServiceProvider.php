@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // 課金の単位はテナント。Cashier の顧客モデルを users から Room に変更する。
-        Cashier::useCustomerModel(\App\Models\Room::class);
+        Cashier::useCustomerModel(Room::class);
 
         // 旧ASP由来の非bcryptパスワードでもログインでき、成功時にbcryptへ移行する
         // UserProvider。config/auth.php の providers.users.driver で参照。

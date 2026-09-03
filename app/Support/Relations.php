@@ -110,6 +110,6 @@ class Relations
                 'dep_type' => $r->dep_type ?: 'FS',
                 'lag_days' => (int) $r->lag_days,
             ];
-        })->filter(fn ($x) => $x->kind !== '' );
+        })->filter(fn ($x) => $x->kind !== '');
     }
 }

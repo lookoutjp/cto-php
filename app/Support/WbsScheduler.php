@@ -36,8 +36,7 @@ class WbsScheduler
     public function __construct(
         private readonly Collection $allWbs,
         private readonly WorkCalendar $cal = new WorkCalendar('calendar'),
-    ) {
-    }
+    ) {}
 
     public static function forCurrentSite(string $calendarMode = 'working'): self
     {

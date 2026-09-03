@@ -11,7 +11,9 @@ class NewsItem extends Model
     use BelongsToSite;
 
     protected $table = 'news';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

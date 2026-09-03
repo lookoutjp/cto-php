@@ -16,7 +16,9 @@ class Problem extends Model
     public static string $taskKind = 'problem';
 
     protected $table = 'problems';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

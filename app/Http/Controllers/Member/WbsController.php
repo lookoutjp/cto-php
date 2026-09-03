@@ -13,9 +13,12 @@ use App\Models\Wbs;
 use App\Support\CurrentSite;
 use App\Support\WbsLoadAnalyzer;
 use App\Support\WbsScheduler;
+use App\Support\WorkCalendar;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -109,7 +112,7 @@ class WbsController extends Controller
         $calMode = $request->query('calendar') === 'calendar' ? 'calendar' : 'working';
 
         try {
-            $result = (new WbsScheduler($all, \App\Support\WorkCalendar::forCurrentSite($calMode)))->compute();
+            $result = (new WbsScheduler($all, WorkCalendar::forCurrentSite($calMode)))->compute();
             $error = null;
         } catch (\Throwable $e) {
             $result = null;
@@ -142,7 +145,7 @@ class WbsController extends Controller
         $calMode = $request->input('calendar') === 'calendar' ? 'calendar' : 'working';
 
         try {
-            $result = (new WbsScheduler($all, \App\Support\WorkCalendar::forCurrentSite($calMode)))->compute();
+            $result = (new WbsScheduler($all, WorkCalendar::forCurrentSite($calMode)))->compute();
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -236,7 +239,7 @@ class WbsController extends Controller
     }
 
     /** @return list<int> $rootId とその全子孫の id（自身を含む） */
-    private function subtreeIds(\Illuminate\Support\Collection $all, int $rootId): array
+    private function subtreeIds(Collection $all, int $rootId): array
     {
         $byFather = $all->groupBy(fn ($w) => (int) $w->father_id);
         $out = [$rootId];
@@ -331,7 +334,7 @@ class WbsController extends Controller
      * ドラッグ&ドロップ後のツリー全体を受け取り、father_id / junban / deep を更新する。
      * リクエスト: { nodes: [{ id, parent_id, junban }, ...] }
      */
-    public function reorder(Request $request): \Illuminate\Http\JsonResponse
+    public function reorder(Request $request): JsonResponse
     {
         $this->ensureEnabled();
 

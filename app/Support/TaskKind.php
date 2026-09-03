@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Risk;
 use App\Models\RoutineWorkList;
 use App\Models\Todo;
+use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -56,7 +57,7 @@ class TaskKind
     public function __construct(
         public readonly string $slug,
         public readonly string $label,
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> */
+        /** @var class-string<Model> */
         public readonly string $model,
         public readonly string $function,
         public readonly ?string $dateLabel,

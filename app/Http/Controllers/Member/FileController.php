@@ -115,6 +115,28 @@ class FileController extends Controller
 
     public function download(Request $request, int $id): StreamedResponse
     {
+        $file = $this->fileWithBytes($id);
+
+        return Storage::disk(FileStorage::DISK)->download($file->storage_key, $file->downloadName());
+    }
+
+    /** ブラウザで inline 表示（PDF・画像・テキスト）。それ以外はダウンロード。 */
+    public function preview(Request $request, int $id): StreamedResponse
+    {
+        $file = $this->fileWithBytes($id);
+
+        if (! FileStorage::canPreviewInline($file->fileext)) {
+            return Storage::disk(FileStorage::DISK)->download($file->storage_key, $file->downloadName());
+        }
+
+        return Storage::disk(FileStorage::DISK)->response($file->storage_key, $file->downloadName(), [
+            'Content-Type' => $file->mime ?: 'application/octet-stream',
+            'Content-Disposition' => 'inline; filename="'.addslashes($file->downloadName()).'"',
+        ]);
+    }
+
+    private function fileWithBytes(int $id): FileItem
+    {
         $this->ensureEnabled();
 
         $file = FileItem::query()->findOrFail($id); // BelongsToSite で他サイトは対象外
@@ -123,7 +145,7 @@ class FileController extends Controller
             throw new NotFoundHttpException('このファイルの実体は保存されていません。');
         }
 
-        return Storage::disk(FileStorage::DISK)->download($file->storage_key, $file->downloadName());
+        return $file;
     }
 
     public function destroy(Request $request, int $id): RedirectResponse

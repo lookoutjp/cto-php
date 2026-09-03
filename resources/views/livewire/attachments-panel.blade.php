@@ -15,6 +15,9 @@
                         <a href="{{ $a->preview_url }}" target="_blank" rel="noopener" class="shrink-0">
                             <img src="{{ $a->preview_url }}" alt="" class="h-12 w-12 rounded object-cover ring-1 ring-gray-200">
                         </a>
+                    @elseif ($a->isPdf())
+                        <a href="{{ route('attachments.preview', $a->id) }}" target="_blank" rel="noopener"
+                           class="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-red-50 text-[10px] font-bold uppercase text-red-600 ring-1 ring-red-100">PDF</a>
                     @else
                         <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-gray-100 text-[10px] font-medium uppercase text-gray-500">{{ $a->ext }}</span>
                     @endif
@@ -28,6 +31,9 @@
                             {{ $a->uploader?->name ?? $a->member_id ?? '—' }}
                             ・{{ optional($a->created_at)->isoFormat('YYYY/MM/DD') }}
                             ・{{ $a->humanSize() }}
+                            @if ($a->canPreviewInline() && ! $a->preview_url)
+                                ・<a href="{{ route('attachments.preview', $a->id) }}" target="_blank" rel="noopener" class="text-brand hover:underline">プレビュー</a>
+                            @endif
                         </p>
                     </div>
 

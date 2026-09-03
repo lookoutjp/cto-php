@@ -27,6 +27,9 @@ class FileStorage
     /** 画像プレビュー対象の拡張子。 */
     public const IMAGE_EXTENSIONS = ['gif', 'jpg', 'jpeg', 'jpe', 'bmp', 'png', 'webp'];
 
+    /** ブラウザで inline 表示できる拡張子（画像＋PDF＋テキスト）。 */
+    public const INLINE_EXTENSIONS = ['gif', 'jpg', 'jpeg', 'jpe', 'bmp', 'png', 'webp', 'svg', 'pdf', 'txt', 'csv'];
+
     public static function keyFor(string $siteId, string $ext): string
     {
         $ext = strtolower(ltrim($ext, '.'));
@@ -38,6 +41,17 @@ class FileStorage
     public static function isImage(?string $ext): bool
     {
         return in_array(strtolower((string) $ext), self::IMAGE_EXTENSIONS, true);
+    }
+
+    public static function isPdf(?string $ext): bool
+    {
+        return strtolower((string) $ext) === 'pdf';
+    }
+
+    /** ブラウザで別タブ表示できる（ダウンロードを強制しない）か。 */
+    public static function canPreviewInline(?string $ext): bool
+    {
+        return in_array(strtolower((string) $ext), self::INLINE_EXTENSIONS, true);
     }
 
     public static function humanSize(?int $bytes): string

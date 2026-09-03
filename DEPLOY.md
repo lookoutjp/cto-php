@@ -8,7 +8,7 @@
 | ファイル実体 | **Cloudflare R2**（S3 互換） | 会員ファイルライブラリ・添付の保存先（`STORAGE.md`） |
 | アプリ | **Laravel Cloud**（推奨）または Laravel Forge + VPS | PHP 8.3 / Node 20 |
 | 課金 | Stripe（本番キー） | `BILLING.md` |
-| メール | Postmark / SES / Resend など | 現状 `MAIL_MAILER=log` |
+| メール | Resend（Tokyo region、`cto.jp` Verified） | `MAIL_MAILER=resend` / `RESEND_API_KEY` / `noreply@cto.jp` |
 
 > 前提: このリポジトリを **GitHub にプッシュ済み**であること（下記「0.」）。
 
@@ -170,11 +170,11 @@ CASHIER_CURRENCY_LOCALE=ja
 STRIPE_PRICE_STANDARD=price_...       # 本番ダッシュボードで作成
 STRIPE_PRICE_PRO=price_...
 
-# メール（例: Postmark）
-MAIL_MAILER=postmark
-POSTMARK_TOKEN=...
-MAIL_FROM_ADDRESS="no-reply@あなたのドメイン"
-MAIL_FROM_NAME="${APP_NAME}"
+# メール（Resend / Tokyo region、cto.jp を Verified 済み）
+MAIL_MAILER=resend
+RESEND_API_KEY=re_...
+MAIL_FROM_ADDRESS="noreply@cto.jp"
+MAIL_FROM_NAME="CtoS"
 ```
 
 ---

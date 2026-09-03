@@ -172,6 +172,16 @@
                     </div>
                 @endforeach
             </div>
+
+            <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                有料プランのお申し込みは
+                <a href="{{ route('legal.terms') }}" target="_blank" class="underline hover:text-gray-700 dark:hover:text-gray-200">利用規約</a>
+                ・
+                <a href="{{ route('legal.tokushoho') }}" target="_blank" class="underline hover:text-gray-700 dark:hover:text-gray-200">特定商取引法に基づく表記</a>
+                ・
+                <a href="{{ route('legal.privacy') }}" target="_blank" class="underline hover:text-gray-700 dark:hover:text-gray-200">プライバシーポリシー</a>
+                に同意のうえお進みください。月額前払い・自動更新です。解約は本ページからいつでも可能です（日割り返金はありません）。
+            </p>
         </x-filament::section>
 
     </div>

@@ -53,11 +53,23 @@ Stripe キー未設定でもアプリは通常どおり動作する（`Plans::pu
   **Laravel Cloud の Custom environment variables に `STRIPE_WEBHOOK_SECRET` として設定 → Deploy** が必要。
 - 署名シークレットは Stripe API では取得できない（作成時のみ返る）。再取得はダッシュボード or 作り直し。
 
-### 本番移行時にやること
+### 本番（live）へ移行（2026-09-02）
 
-1. 本番キー（`sk_live_` / `pk_live_`）に差し替え、本番ダッシュボードで JPY 月次 Price を作成
-2. live アカウントで再度 `php artisan cashier:webhook`（test の `whsec_` は live では無効）→ 新シークレットを差し替え
-3. `trial` を入れるなら `config/plans.php` に `trial_days`、`newSubscription()->trialDays()` を追加
+live アカウント `acct_1UBdX2GVIRqbmeZe`（charges/payouts 有効・既定通貨 JPY）。
+
+| 用途 | 値 | 補足 |
+|---|---|---|
+| Price スタンダード | `price_1UBdtyGVIRqbmeZeFPaPXkEE` | JPY 3,000 / 月・recurring。最初に作られた one-time price は archive 済み |
+| Price プロ | `price_1UBduPGVIRqbmeZetI7n5ygB` | JPY 10,000 / 月・recurring |
+| Webhook | `we_1UBdufGVIRqbmeZenUSX0oYq` → `https://cto.jp/stripe/webhook` | 9 events, enabled |
+
+**Laravel Cloud の Custom environment variables に設定 → Deploy**:
+`STRIPE_KEY`(pk_live_) / `STRIPE_SECRET`(sk_live_) / `STRIPE_WEBHOOK_SECRET`(live whsec_) /
+`STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PRO` を上記 live の値に差し替え。
+（ローカル `.env` は test のまま。開発は test モードで行う）
+
+- `trial` を入れるなら `config/plans.php` に `trial_days`、`newSubscription()->trialDays()` を追加。
+- test モードの購読（demo）は live には引き継がれない（demo は `cancelNow()` 済み）。
 
 ## まだ手を付けていない設計判断
 

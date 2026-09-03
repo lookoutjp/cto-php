@@ -21,14 +21,12 @@ class TrackMemberPresence
 
         $id = $request->user()?->getAuthIdentifier();
 
-        if ($id !== null && ! $request->isMethod('OPTIONS')) {
-            $seen = Cache::add('presence:'.$id, true, now()->addSeconds(60));
-
-            if ($seen) {
-                DB::table('members')
-                    ->where('member_id', $id)
-                    ->update(['timerenew' => now(), 'online' => 1]);
-            }
+        // 会員ごと 60 秒に 1 回だけ DB を更新する（Cache::add はキー未存在時に true）。
+        if ($id !== null && ! $request->isMethod('OPTIONS')
+            && Cache::add('presence:'.$id, true, now()->addSeconds(60))) {
+            DB::table('members')
+                ->where('member_id', $id)
+                ->update(['timerenew' => now(), 'online' => 1]);
         }
 
         return $response;

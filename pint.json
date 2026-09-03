@@ -1,6 +1,7 @@
 {
     "preset": "laravel",
     "exclude": [
-        "schema-gen"
+        "schema-gen",
+        "bootstrap/cache"
     ]
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\CurrentSite;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -28,6 +29,28 @@ class Member extends Authenticatable implements FilamentUser
     protected $guarded = [];
 
     protected $hidden = ['password'];
+
+    protected $casts = [
+        'loginedtime' => 'datetime',
+        'timerenew' => 'datetime',
+        'pointmtime' => 'datetime',
+    ];
+
+    /** オンライン判定の有効時間（分）。旧ASP onlinechk.asp は 20 分。 */
+    public const PRESENCE_MINUTES = 15;
+
+    /** 最終アクセスが直近 PRESENCE_MINUTES 以内ならオンライン。 */
+    public function isOnline(): bool
+    {
+        return $this->timerenew !== null
+            && $this->timerenew->greaterThanOrEqualTo(now()->subMinutes(self::PRESENCE_MINUTES));
+    }
+
+    /** @param Builder $query */
+    public function scopeOnline($query)
+    {
+        return $query->where('timerenew', '>=', now()->subMinutes(self::PRESENCE_MINUTES));
+    }
 
     /**
      * この会員が所属するサイト(テナント)一覧。

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ResolveCurrentSite;
+use App\Http\Middleware\TrackMemberPresence;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Filament管理画面は AdminPanelProvider 側で別途登録している。
         $middleware->web(append: [
             ResolveCurrentSite::class,
+            TrackMemberPresence::class,
         ]);
 
         // Stripe Webhook は CSRF 検証から除外（Cashier のルートは path 'stripe'）。

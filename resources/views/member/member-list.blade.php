@@ -4,7 +4,12 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-4xl space-y-3 px-4 sm:px-6 lg:px-8">
+            @if ($site?->hasFunction('onlinemembersfunction'))
+                <div class="text-sm">
+                    <a href="{{ route('members.online') }}" class="text-brand hover:underline">オンラインメンバーを見る →</a>
+                </div>
+            @endif
             <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                 @forelse ($members as $m)
                     <div class="flex items-start gap-3 border-b border-gray-100 px-5 py-4 last:border-0">
@@ -14,7 +19,7 @@
                                 @if ($m->nameread)
                                     <span class="text-xs text-gray-400">{{ $m->nameread }}</span>
                                 @endif
-                                @if ($m->online)
+                                @if ($m->isOnline())
                                     <span class="rounded bg-green-100 px-1.5 py-0.5 text-[10px] text-green-700">オンライン</span>
                                 @endif
                             </div>

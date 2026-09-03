@@ -68,6 +68,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
 | `/members` | `Member\MemberListController@index` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。名前は個人ページへリンク。`memberlistfunction` 必須 |
 | `/files` `/files/{id}/download` | `Member\FileController` | filelist.asp / fileadd.asp / download.asp | 会員ファイルライブラリ。一覧（タグ絞り込み・20件/頁）／アップロード（許可拡張子・25MB上限・プラン容量チェック）／ダウンロード（アプリ経由でストリーム）／削除（本人 or 管理員）。実体は S3/R2（`STORAGE.md`）。旧Access www 50件のうち 31件は `migrate_legacy_files.php` で移行済み、残19件は旧サーバに実体無し（「実体未移行」表示）。管理画面は Filament `FileItemResource`（`/admin/file-items`）。`filemanagefunction` 必須 |
+| `/members/online` | `Member\MemberListController@online` | onlinelist.asp / onlinechk.asp | オンライン中の参加者一覧＋メッセージ送信リンク。`TrackMemberPresence` ミドルウェアが会員ごと 60 秒スロットルで `members.timerenew` を更新し、`Member::isOnline()`（直近 15 分）で判定。`onlinemembersfunction` 必須。`/members` 上部からリンク |
 | `/members/{member}` | `Member\MemberListController@show` | memberpage.asp | 会員個人ページ。表示名・ふりがな・ニックネーム（`appeal`）・性別・ホームページ（`hp`、`Member::homepageUrl()` で正規化）・自己紹介（`introduce`、`strip_tags`+エスケープで安全化）・現在サイトでの役割（管理員/参加者）・メッセージ送信リンク（`?to=`）。現在サイトの参加者以外／`memberlistfunction` 無しは 404 |
 | `/profile` | `ProfileController`（Breeze拡張） | membermod.asp | Breeze 既定の name/email に加え、`nameread`（ふりがな）/`appeal`（ニックネーム）/`phone`/`hp`/`sex`（1=男性 0=女性 空=未回答）/`introduce`（自己紹介、公開）を編集可能に（`ProfileUpdateRequest`）。`introduce` は保存前に旧HTMLを `strip_tags` 表示に寄せる |
 | `/messages` `/messages/sent` `/messages/create` `/messages/{id}` | `Member\MessageController` | Member_MessageSend.asp | 社内メッセージ（伝言）。受信箱／送信箱／作成／詳細（受信者は開くと既読）／削除（送信者=`delete_from`、受信者=`delete_to` の論理削除）。宛先はサイト参加者のみ。`dengonfunction` 必須 |
@@ -93,7 +94,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 
 ## 未実装（旧ASPの主要導線の残り）
 
-- change（変更管理）: `statuses` に `kind='change'`（起票→調査中→判定待ち→承認待ち→対応中→完了／却下／保留）をマイグレーションで投入し、`TaskKind` に `change` を追加（`features` に `changedetail` = 発生日・工数見積・判定結果・完了日・影響範囲・対応内容・却下理由）。ステージは既存の `categories.kind='stage'` を流用。一覧/CRUD は汎用の TaskList / TaskController。関連タスクパネルは未対応（`TaskRef::KINDS` に未登録）
+- change（変更管理）: **実装済み**。`change_requests` テーブル ＋ `2026_09_01 seed_change_statuses`（各サイトに `kind='change'` の 8 ステータス: 起票→調査中→判定待ち→承認待ち→対応中→完了／却下／保留）＋ `TaskKind` の `change`（`features` に `changedetail` = 発生日・工数見積・判定結果・影響範囲）。一覧/CRUD は汎用 TaskList / TaskController、nav は `changefunction` で自動表示、Filament は `ChangeRequestResource`。関連タスクパネル（`TaskRef::KINDS`）には未登録
 - routinework: `App\Support\RoutineWorkGenerator` が `routine_works`（繰り返しルール: circle = day/week/month/year、`circle_number`）から `routine_work_lists` を生成。会員は `/routinework/generate`（旧 RoutineWorkMake.asp）で期間指定、cron 用に `php artisan routinework:generate --days=N [--site=]`。同一マスター×同一 actiondate は重複作成しない
 - スケジューリング: FS/SS/FF/SF ＋ リード/ラグ ＋ 稼働日カレンダー（休日 `holidays`）対応済み。リソース平準化は `/wbs/load` の負荷分析（過負荷週の検出）まで。自動でのタスク再配置は未
 - `relations` の既存データはテスト混じりで重複・削除済み参照あり（パネルは「(削除済み #N)」と表示してグレースフルに処理）
@@ -111,5 +112,6 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   パネル・行を出し分け**。全機能オフのサイトでは案内文のみ
 - お問い合わせの「入力内容確認」ステップ（旧 otoi2.asp）は省略し1画面に。必要なら後で追加
 - **新機能: コンテンツ / WBS / タスクへの添付**（`<livewire:attachments-panel>` を contents-show / wbs-show / task-show に埋め込み。`attachments` テーブル + `HasAttachments` トレイト。画像はサムネイル表示。認可は公開コンテンツならゲスト可・それ以外は参加者。詳細は `STORAGE.md`）
-- オンラインメンバー（`onlinemembersfunction`）、セミナー（`seminarfunction`：テーブル無し）、
-  作品公開（`sakuhinkoukaifunction`：`homework_sorts` 空）、バージョン履歴（`sys_versions` 空）は未実装
+- オンラインメンバー（`onlinemembersfunction`）は **実装済み**（`/members/online`、上記表）
+- セミナー（`seminarfunction`：`seminars` テーブル無し）、作品公開（`sakuhinkoukaifunction`：`homeworks` テーブル無し・`homework_sorts` 空）、
+  バージョン履歴（`sys_versions` テーブル無し）は **スキーマ未エクスポート**のため未実装。必要になったら Access から該当テーブルを再エクスポートする

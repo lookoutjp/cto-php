@@ -8,6 +8,7 @@ use App\Models\Concerns\TaskModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Wbs extends Model
 {
@@ -16,10 +17,13 @@ class Wbs extends Model
     use TaskModel;
 
     public static string $taskKind = 'wbs';
+
     public static ?string $taskDateColumn = 'duedate';
 
     protected $table = 'wbs';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -65,7 +69,7 @@ class Wbs extends Model
      * サイトの WBS 全件から親子ツリーを組み立てて返す（ルート配列）。
      * father_id が null / 0 のものをルートとみなす。
      */
-    public static function tree(): \Illuminate\Support\Collection
+    public static function tree(): Collection
     {
         $all = static::query()->notDeleted()
             ->with(['statusMaster', 'assignee', 'team'])

@@ -25,8 +25,7 @@ class MemberTokenRepository implements TokenRepositoryInterface
     public function __construct(
         protected int $expireMinutes = 60,
         protected int $throttleSeconds = 60,
-    ) {
-    }
+    ) {}
 
     public function create(CanResetPassword $user): string
     {

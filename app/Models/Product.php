@@ -14,10 +14,13 @@ class Product extends Model
     use TaskModel;
 
     public static string $taskKind = 'product';
+
     public static ?string $taskDateColumn = null; // products に期限列は無い
 
     protected $table = 'products';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

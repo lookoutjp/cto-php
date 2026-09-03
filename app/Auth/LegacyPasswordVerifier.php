@@ -16,6 +16,7 @@ namespace App\Auth;
 class LegacyPasswordVerifier
 {
     private const ITERATIONS = 250;
+
     private const KEY_BYTES = 16;
 
     /**

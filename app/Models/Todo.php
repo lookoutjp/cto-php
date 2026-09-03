@@ -16,7 +16,9 @@ class Todo extends Model
     public static string $taskKind = 'todo';
 
     protected $table = 'todos';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

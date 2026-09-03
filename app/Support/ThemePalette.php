@@ -35,10 +35,15 @@ class ThemePalette
     private const FALLBACK = ['#374151', '#4b5563', '#9ca3af', '#f3f4f6'];
 
     public string $brand;
+
     public string $brandDark;
+
     public string $brandLight;
+
     public string $brandBg;
+
     public string $brandFg;
+
     public string $brandName;
 
     public function __construct(?string $sitecolor, ?string $sitenameColor = null)

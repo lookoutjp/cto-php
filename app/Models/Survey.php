@@ -6,13 +6,16 @@ use App\Models\Concerns\BelongsToSite;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Survey extends Model
 {
     use BelongsToSite;
 
     protected $table = 'surveys';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -63,7 +66,7 @@ class Survey extends Model
     }
 
     /** choice_number => 得票数 */
-    public function tally(): \Illuminate\Support\Collection
+    public function tally(): Collection
     {
         return $this->results()
             ->selectRaw('choice_number, count(*) as c')
@@ -74,9 +77,9 @@ class Survey extends Model
     /**
      * 記名式（specify_yn）用。choice_number => 投票した会員（表示名）の一覧。
      *
-     * @return \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, string>>
+     * @return Collection<int, Collection<int, string>>
      */
-    public function tallyWithVoters(): \Illuminate\Support\Collection
+    public function tallyWithVoters(): Collection
     {
         return $this->results()
             ->with('member:member_id,name')

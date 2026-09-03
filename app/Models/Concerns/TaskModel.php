@@ -9,6 +9,7 @@ use App\Models\StatusMaster;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * todo / problem / risk / product / change / routinework など、旧ASP で
@@ -107,7 +108,7 @@ trait TaskModel
         return $q;
     }
 
-    /** @return \Illuminate\Support\Collection<int, int> */
+    /** @return Collection<int, int> */
     protected static function statusIds(string $kind, callable $filter)
     {
         $q = StatusMaster::query()->whereRaw('lower(kind) = ?', [strtolower($kind)]);

@@ -15,7 +15,9 @@ class FileItem extends Model
     use BelongsToSite;
 
     protected $table = 'files';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

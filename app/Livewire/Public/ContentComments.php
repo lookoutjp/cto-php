@@ -5,8 +5,6 @@ namespace App\Livewire\Public;
 use App\Models\Content;
 use App\Models\ContentComment;
 use App\Models\Member;
-use App\Models\Room;
-use App\Support\CurrentSite;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -26,6 +24,7 @@ class ContentComments extends Component
     use WithPagination;
 
     public int $contentId;
+
     public string $contentName = '';
 
     public string $body = '';

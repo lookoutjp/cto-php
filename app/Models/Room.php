@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Plans;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Cashier\Billable;
@@ -11,10 +12,15 @@ class Room extends Model
     use Billable;
 
     protected $table = 'rooms';
+
     protected $primaryKey = 'site_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -86,35 +92,35 @@ class Room extends Model
     /** 現在のプランキー（free / standard / pro）。 */
     public function planKey(): string
     {
-        return \App\Support\Plans::keyForRoom($this);
+        return Plans::keyForRoom($this);
     }
 
     /** 現在のプラン定義（config/plans.php、'key' 付き）。 */
     public function plan(): array
     {
-        return \App\Support\Plans::forRoom($this);
+        return Plans::forRoom($this);
     }
 
     public function planLimit(string $key): ?int
     {
-        return \App\Support\Plans::limit($this, $key);
+        return Plans::limit($this, $key);
     }
 
     public function memberCount(): int
     {
-        return \App\Support\Plans::memberUsage($this);
+        return Plans::memberUsage($this);
     }
 
     /** あと $n 人追加してもプランの会員上限内か。 */
     public function canAddMembers(int $n = 1): bool
     {
-        return \App\Support\Plans::withinMemberLimit($this, $n);
+        return Plans::withinMemberLimit($this, $n);
     }
 
     /** 支払い滞納中（past_due / unpaid）か。 */
     public function billingIsDelinquent(): bool
     {
-        return \App\Support\Plans::isDelinquent($this);
+        return Plans::isDelinquent($this);
     }
 
     /** 有料プラン契約中（トライアル・猶予期間を含む）か。 */

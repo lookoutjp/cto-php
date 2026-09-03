@@ -9,6 +9,7 @@ use App\Support\Plans;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Carbon;
 
 /**
  * テナント（現在切替中のサイト）のプラン・お支払い画面。
@@ -87,7 +88,7 @@ class Billing extends Page
                 $ts = $stripeSub->current_period_end
                     ?? $stripeSub->items->data[0]->current_period_end
                     ?? null;
-                $renewsAt = $ts ? \Illuminate\Support\Carbon::createFromTimestamp($ts) : null;
+                $renewsAt = $ts ? Carbon::createFromTimestamp($ts) : null;
             } catch (\Throwable $e) {
                 $renewsAt = null;
             }

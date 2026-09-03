@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ResolveCurrentSite;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // web リクエストごとに現在のサイト(テナント)を確定させる。
         // Filament管理画面は AdminPanelProvider 側で別途登録している。
         $middleware->web(append: [
-            \App\Http\Middleware\ResolveCurrentSite::class,
+            ResolveCurrentSite::class,
         ]);
 
         // Stripe Webhook は CSRF 検証から除外（Cashier のルートは path 'stripe'）。

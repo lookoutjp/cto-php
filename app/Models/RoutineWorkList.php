@@ -15,10 +15,13 @@ class RoutineWorkList extends Model
     use TaskModel;
 
     public static string $taskKind = 'routinework';
+
     public static ?string $taskDateColumn = 'actiondate'; // 定例作業は実施日ベース
 
     protected $table = 'routine_work_lists';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

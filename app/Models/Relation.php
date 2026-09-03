@@ -25,7 +25,9 @@ class Relation extends Model
     ];
 
     protected $table = 'relations';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\SurveyChoiceResultResource\Pages;
 
 use App\Filament\Resources\SurveyChoiceResultResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateSurveyChoiceResult extends CreateRecord

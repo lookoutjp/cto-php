@@ -14,7 +14,9 @@ class ContentSort extends Model
     use BelongsToSite;
 
     protected $table = 'content_sorts';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     /**

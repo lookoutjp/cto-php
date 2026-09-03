@@ -14,7 +14,9 @@ class Content extends Model
     use HasAttachments;
 
     protected $table = 'contents';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

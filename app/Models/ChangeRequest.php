@@ -14,10 +14,13 @@ class ChangeRequest extends Model
     use TaskModel;
 
     public static string $taskKind = 'change';
+
     public static ?string $taskDateColumn = 'duedate';
 
     protected $table = 'change_requests';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

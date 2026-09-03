@@ -10,7 +10,9 @@ class Inquiry extends Model
     use BelongsToSite;
 
     protected $table = 'inquiries';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

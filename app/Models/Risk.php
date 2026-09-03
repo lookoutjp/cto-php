@@ -16,7 +16,9 @@ class Risk extends Model
     public static string $taskKind = 'risk';
 
     protected $table = 'risks';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     protected $casts = [

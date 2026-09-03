@@ -16,13 +16,18 @@ use Livewire\Component;
 class RelationsPanel extends Component
 {
     public string $kind;
+
     public int $id;
 
     // 追加フォーム
     public string $linkType = 'pred';      // pred | succ | rel
+
     public string $targetKind = 'wbs';
+
     public ?int $targetId = null;
+
     public string $depType = 'FS';
+
     public int $lagDays = 0;
 
     public function mount(string $kind, int $id): void
@@ -89,7 +94,7 @@ class RelationsPanel extends Component
             'conflicts' => $conflicts,
             'targetOptions' => TaskRef::options($this->targetKind),
             'kinds' => TaskRef::LABELS,
-            'depTypes' => \App\Models\Relation::DEP_TYPES,
+            'depTypes' => Relation::DEP_TYPES,
         ]);
     }
 }

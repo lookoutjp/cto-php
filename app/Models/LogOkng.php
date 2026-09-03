@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\BelongsToSite;
+use Illuminate\Database\Eloquent\Model;
 
 class LogOkng extends Model
 {
     use BelongsToSite;
 
     protected $table = 'log_okngs';
+
     public $timestamps = false;
+
     protected $guarded = [];
 }

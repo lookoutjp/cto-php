@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Member\BoardController;
 use App\Http\Controllers\Member\FileController;
 use App\Http\Controllers\Member\MemberListController;
@@ -10,16 +11,17 @@ use App\Http\Controllers\Member\TaskController;
 use App\Http\Controllers\Member\WbsController;
 use App\Http\Controllers\MypageController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Middleware\EnsureProjectMember;
-use App\Http\Middleware\EnsureTenantBillingActive;
-use App\Livewire\Member\TaskList;
 use App\Http\Controllers\Public\ContentController;
 use App\Http\Controllers\Public\FaqController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\InquiryController;
 use App\Http\Controllers\Public\NewsController;
 use App\Http\Controllers\Public\SitePageController;
+use App\Http\Middleware\EnsureProjectMember;
+use App\Http\Middleware\EnsureTenantBillingActive;
+use App\Livewire\Member\TaskList;
 use App\Livewire\Public\NewsIndex;
+use App\Support\TaskKind;
 use Illuminate\Support\Facades\Route;
 
 // ---- 公開フロント（旧ASP: index / news / contents / faq 相当）----
@@ -38,7 +40,7 @@ Route::get('/manager', [SitePageController::class, 'managerWords'])->name('manag
 Route::get('/links', [SitePageController::class, 'links'])->name('links.index');
 
 // 添付ファイル（コンテンツ/WBS/タスク）— 認可はコントローラ側。公開コンテンツの添付はゲストも可
-Route::get('/attachments/{id}/download', [\App\Http\Controllers\AttachmentController::class, 'download'])
+Route::get('/attachments/{id}/download', [AttachmentController::class, 'download'])
     ->whereNumber('id')->name('attachments.download');
 
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
@@ -57,7 +59,7 @@ Route::middleware('auth')->group(function () {
     // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ。
     // 支払い滞納中のテナントは書き込み系をブロック（閲覧は可）。
     Route::middleware([EnsureProjectMember::class, EnsureTenantBillingActive::class])->group(function () {
-        Route::whereIn('kind', \App\Support\TaskKind::slugs())->group(function () {
+        Route::whereIn('kind', TaskKind::slugs())->group(function () {
             Route::get('/tasks/{kind}', TaskList::class)->name('tasks.index');
             Route::get('/tasks/{kind}/create', [TaskController::class, 'create'])->name('tasks.create');
             Route::post('/tasks/{kind}', [TaskController::class, 'store'])->name('tasks.store');

@@ -53,9 +53,8 @@ jobs:
           npm ci
           npm run build
 
-      - name: Lint (Pint) — 非ブロック（既存コードの整形ドリフト報告のみ）
+      - name: Lint (Pint)
         run: vendor/bin/pint --test
-        continue-on-error: true
 
       - name: Run tests
         env:

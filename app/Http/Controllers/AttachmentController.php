@@ -22,6 +22,28 @@ class AttachmentController extends Controller
 {
     public function download(Request $request, int $id): StreamedResponse
     {
+        $attachment = $this->find($request, $id);
+
+        return Storage::disk(FileStorage::DISK)->download($attachment->storage_key, $attachment->downloadName());
+    }
+
+    /** ブラウザで inline 表示（PDF・画像・テキスト）。それ以外はダウンロードにフォールバック。 */
+    public function preview(Request $request, int $id): StreamedResponse
+    {
+        $attachment = $this->find($request, $id);
+
+        if (! $attachment->canPreviewInline()) {
+            return Storage::disk(FileStorage::DISK)->download($attachment->storage_key, $attachment->downloadName());
+        }
+
+        return Storage::disk(FileStorage::DISK)->response($attachment->storage_key, $attachment->downloadName(), [
+            'Content-Type' => $attachment->mime ?: 'application/octet-stream',
+            'Content-Disposition' => 'inline; filename="'.addslashes($attachment->downloadName()).'"',
+        ]);
+    }
+
+    private function find(Request $request, int $id): Attachment
+    {
         $attachment = Attachment::query()->with('attachable')->findOrFail($id); // BelongsToSite で他サイトは除外
 
         $this->authorizeView($request, $attachment);
@@ -30,7 +52,7 @@ class AttachmentController extends Controller
             throw new NotFoundHttpException('このファイルは見つかりませんでした。');
         }
 
-        return Storage::disk(FileStorage::DISK)->download($attachment->storage_key, $attachment->downloadName());
+        return $attachment;
     }
 
     private function authorizeView(Request $request, Attachment $attachment): void

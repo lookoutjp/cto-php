@@ -103,6 +103,10 @@
                             </p>
                         </div>
                         <div class="flex shrink-0 items-center gap-2">
+                            @if ($file->hasBytes() && ! ($file->preview_url ?? null) && FileStorage::canPreviewInline($file->fileext))
+                                <a href="{{ route('files.preview', $file->id) }}" target="_blank" rel="noopener"
+                                   class="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50">プレビュー</a>
+                            @endif
                             @if ($file->hasBytes())
                                 <a href="{{ route('files.download', $file->id) }}"
                                    class="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50">ダウンロード</a>

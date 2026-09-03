@@ -59,14 +59,23 @@
 | キー | `sites/{site_id}/attachments/{uuid}.{ext}` |
 | 容量 | `Plans::storageUsageBytes()` は `files` ＋ `attachments` の合計 |
 
-## 画像プレビュー
+## プレビュー
 
-会員ファイルライブラリ `/files` と添付パネルで、画像（`FileStorage::isImage()`）は
-`Storage::disk('s3')->temporaryUrl($key, +30min)` の署名URLを `<img>` に出してサムネイル表示。
-R2 が直接配信するのでアプリの帯域は使わない（DL 本体は従来どおりアプリ経由ストリーム）。
+- **画像**（`FileStorage::isImage()`）: `Storage::disk('s3')->temporaryUrl($key, +30min)` の
+  署名URLを `<img>` に出してサムネイル表示。R2 が直接配信するのでアプリ帯域を使わない。
+- **PDF・テキスト**（`FileStorage::canPreviewInline()` = 画像 + `pdf` `txt` `csv`）:
+  `*/preview` ルート（`attachments.preview` / `files.preview`）がアプリ経由で
+  `Content-Disposition: inline` ストリーム。認可は download と同じ。
+  inline 不可の拡張子は download にフォールバックする。
+  添付パネルでは PDF に赤い「PDF」アイコン＋「プレビュー」リンク、
+  `/files` 一覧では「プレビュー」ボタンを表示。
+- DL 本体（`*/download`）は従来どおり `Content-Disposition: attachment` のアプリ経由ストリーム。
 
 ## 未対応（次のステップ）
 
-- R2 バケット側の CORS（会員フロントの画像サムネイルは `<img>` なので不要だが、
-  将来クライアント側で `fetch` するなら R2 の CORS 設定が要る）
-- 画像以外（PDF等）のプレビュー
+- R2 バケット側の CORS は **現状不要**（サムネイルは `<img>`、プレビュー/DL はアプリ経由ストリームで
+  クライアント `fetch` を使っていない）。将来ブラウザから直接 R2 を `fetch` する機能を足すなら、
+  Cloudflare Dashboard → R2 → バケット → Settings → CORS Policy に例えば:
+  ```json
+  [{ "AllowedOrigins": ["https://cto.jp"], "AllowedMethods": ["GET"], "AllowedHeaders": ["*"], "MaxAgeSeconds": 3600 }]
+  ```

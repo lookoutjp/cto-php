@@ -42,6 +42,8 @@ Route::get('/links', [SitePageController::class, 'links'])->name('links.index');
 // 添付ファイル（コンテンツ/WBS/タスク）— 認可はコントローラ側。公開コンテンツの添付はゲストも可
 Route::get('/attachments/{id}/download', [AttachmentController::class, 'download'])
     ->whereNumber('id')->name('attachments.download');
+Route::get('/attachments/{id}/preview', [AttachmentController::class, 'preview'])
+    ->whereNumber('id')->name('attachments.preview');
 
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
 Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
@@ -110,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/files', [FileController::class, 'index'])->name('files.index');
         Route::post('/files', [FileController::class, 'store'])->name('files.store');
         Route::get('/files/{id}/download', [FileController::class, 'download'])->whereNumber('id')->name('files.download');
+        Route::get('/files/{id}/preview', [FileController::class, 'preview'])->whereNumber('id')->name('files.preview');
         Route::delete('/files/{id}', [FileController::class, 'destroy'])->whereNumber('id')->name('files.destroy');
 
         // 社内メッセージ（伝言） — 旧 Member_MessageSend.asp

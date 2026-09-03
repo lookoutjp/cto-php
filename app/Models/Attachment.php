@@ -38,6 +38,16 @@ class Attachment extends Model
         return FileStorage::isImage($this->ext);
     }
 
+    public function isPdf(): bool
+    {
+        return FileStorage::isPdf($this->ext);
+    }
+
+    public function canPreviewInline(): bool
+    {
+        return FileStorage::canPreviewInline($this->ext);
+    }
+
     public function downloadName(): string
     {
         return $this->original_name ?: ('attachment-'.$this->id.($this->ext ? '.'.$this->ext : ''));

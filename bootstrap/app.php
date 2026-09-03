@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 添付先が消えた孤児ファイルの掃除
         $schedule->command('attachments:prune')->weeklyOn(1, '03:00');
+
+        // オンライン状態の掃除（旧 onlinechk.asp 相当）
+        $schedule->command('members:sweep-online')->everyFifteenMinutes();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         // web リクエストごとに現在のサイト(テナント)を確定させる。

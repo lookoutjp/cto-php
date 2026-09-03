@@ -32,9 +32,35 @@ class MemberListController extends Controller
         $members = Member::query()
             ->whereIn('member_id', $memberIds)
             ->orderBy('name')
-            ->get(['member_id', 'name', 'nameread', 'introduce', 'appeal', 'online', 'hp']);
+            ->get(['member_id', 'id', 'name', 'nameread', 'introduce', 'appeal', 'timerenew', 'hp']);
 
         return view('member.member-list', compact('members'));
+    }
+
+    /**
+     * オンライン中の参加者一覧。旧ASP: onlinelist.asp（member.online = 1）。
+     * onlinemembersfunction が有効なサイトのみ。
+     */
+    public function online(): View
+    {
+        $siteId = app(CurrentSite::class)->id();
+
+        if (! Room::find($siteId)?->hasFunction('onlinemembersfunction')) {
+            throw new NotFoundHttpException;
+        }
+
+        $memberIds = MemberRoom::query()
+            ->where('site_id', $siteId)
+            ->whereIn('ninshou', [1, -1])
+            ->pluck('member_id');
+
+        $members = Member::query()
+            ->whereIn('member_id', $memberIds)
+            ->online()
+            ->orderBy('name')
+            ->get(['member_id', 'id', 'name', 'nameread', 'timerenew']);
+
+        return view('member.online-list', compact('members'));
     }
 
     /**

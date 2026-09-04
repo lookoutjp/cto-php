@@ -11,51 +11,39 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
+                {{-- 機能一覧は MyMenu（右サイドバー）へ移動。ここは最小限のナビのみ --}}
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        マイページ
+                    <x-nav-link href="{{ route('home') }}" :active="false">
+                        ホーム
                     </x-nav-link>
-                    @if ($site && auth()->user()?->isProjectMemberOf($site->site_id))
-                        @foreach (\App\Support\TaskKind::all() as $tk)
-                            @if ($site->hasFunction($tk->function))
-                                <x-nav-link :href="route('tasks.index', $tk->slug)"
-                                            :active="request()->routeIs('tasks.*') && request()->route('kind') === $tk->slug">
-                                    {{ $tk->label }}
-                                </x-nav-link>
-                            @endif
-                        @endforeach
-                        @if ($site->hasFunction('wbsfunction'))
-                            <x-nav-link :href="route('wbs.index')" :active="request()->routeIs('wbs.*')">WBS</x-nav-link>
-                        @endif
-                        @if ($site->hasFunction('surveyfunction'))
-                            <x-nav-link :href="route('surveys.index')" :active="request()->routeIs('surveys.*')">サーベイ</x-nav-link>
-                        @endif
-                        @if ($site->hasFunction('freeguestbookfunction'))
-                            <x-nav-link :href="route('board.index')" :active="request()->routeIs('board.*')">掲示板</x-nav-link>
-                        @endif
-                        @if ($site->hasFunction('memberlistfunction'))
-                            <x-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">メンバー</x-nav-link>
-                        @endif
-                        @if ($site->hasFunction('dengonfunction'))
-                            <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">メッセージ</x-nav-link>
-                        @endif
-                        @if ($site->hasFunction('filemanagefunction'))
-                            <x-nav-link :href="route('files.index')" :active="request()->routeIs('files.*')">ファイル</x-nav-link>
-                        @endif
+                    <x-nav-link :href="route('news.index')" :active="request()->routeIs('news.*')">
+                        ニュース
+                    </x-nav-link>
+                    @if ($site?->hasFunction('freeguestbookfunction'))
+                        <x-nav-link :href="route('board.index')" :active="request()->routeIs('board.*')">掲示板</x-nav-link>
                     @endif
-                    <x-nav-link href="/" :active="false">
-                        サイトを見る
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        MyPage
                     </x-nav-link>
+                    @if ($site?->hasFunction('filemanagefunction'))
+                        <x-nav-link :href="route('files.index')" :active="request()->routeIs('files.*')">アップロード</x-nav-link>
+                    @endif
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:gap-3 sm:ms-6">
+                @if ($site?->hasFunction('dengonfunction'))
+                    <a href="{{ route('messages.index') }}" class="text-gray-400 hover:text-brand" title="メッセージ">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </a>
+                @endif
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div>{{ Auth::user()->name }}({{ Auth::user()->getKey() }})</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -99,18 +87,30 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link href="{{ route('home') }}" :active="false">
+                ホーム
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('news.index')" :active="request()->routeIs('news.*')">
+                ニュース
+            </x-responsive-nav-link>
+            @if ($site?->hasFunction('freeguestbookfunction'))
+                <x-responsive-nav-link :href="route('board.index')" :active="request()->routeIs('board.*')">掲示板</x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                マイページ
+                MyPage
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="/">
-                サイトを見る
-            </x-responsive-nav-link>
+            @if ($site?->hasFunction('filemanagefunction'))
+                <x-responsive-nav-link :href="route('files.index')" :active="request()->routeIs('files.*')">アップロード</x-responsive-nav-link>
+            @endif
+            @if ($site?->hasFunction('dengonfunction'))
+                <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">メッセージ</x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}({{ Auth::user()->getKey() }})</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 

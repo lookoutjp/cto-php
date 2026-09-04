@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MemberResource\Pages;
 use App\Models\Member;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,80 +17,86 @@ class MemberResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = '会員';
+
+    protected static ?string $modelLabel = '会員';
+
+    protected static ?string $pluralModelLabel = '会員';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('address')
+                Forms\Components\TextInput::make('address')->label(FieldLabels::ja('address'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('addressread')
+                Forms\Components\TextInput::make('addressread')->label(FieldLabels::ja('addressread'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('answer')
+                Forms\Components\TextInput::make('answer')->label(FieldLabels::ja('answer'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('appeal')
+                Forms\Components\TextInput::make('appeal')->label(FieldLabels::ja('appeal'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('code')
+                Forms\Components\TextInput::make('code')->label(FieldLabels::ja('code'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('dayphone')
+                Forms\Components\TextInput::make('dayphone')->label(FieldLabels::ja('dayphone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('email')
+                Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('hp')
+                Forms\Components\TextInput::make('hp')->label(FieldLabels::ja('hp'))
                     ->maxLength(50)
                     ->default(null),
                 Forms\Components\TextInput::make('id')
                     ->label('ID')
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('introduce')
+                Forms\Components\Textarea::make('introduce')->label(FieldLabels::ja('introduce'))
                     ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('loginedtime'),
-                Forms\Components\TextInput::make('login_error_times')
+                Forms\Components\DateTimePicker::make('loginedtime')->label(FieldLabels::ja('loginedtime')),
+                Forms\Components\TextInput::make('login_error_times')->label(FieldLabels::ja('login_error_times'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('magazine')
+                Forms\Components\TextInput::make('magazine')->label(FieldLabels::ja('magazine'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('name')
+                Forms\Components\TextInput::make('name')->label(FieldLabels::ja('name'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('nameread')
+                Forms\Components\TextInput::make('nameread')->label(FieldLabels::ja('nameread'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('online')
+                Forms\Components\TextInput::make('online')->label(FieldLabels::ja('online'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('password')
+                Forms\Components\TextInput::make('password')->label(FieldLabels::ja('password'))
                     ->password()
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('phone')
+                Forms\Components\TextInput::make('phone')->label(FieldLabels::ja('phone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('pointm')
+                Forms\Components\TextInput::make('pointm')->label(FieldLabels::ja('pointm'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\DateTimePicker::make('pointmtime'),
-                Forms\Components\TextInput::make('question')
+                Forms\Components\DateTimePicker::make('pointmtime')->label(FieldLabels::ja('pointmtime')),
+                Forms\Components\TextInput::make('question')->label(FieldLabels::ja('question'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('regtime')
+                Forms\Components\TextInput::make('regtime')->label(FieldLabels::ja('regtime'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('sex')
+                Forms\Components\TextInput::make('sex')->label(FieldLabels::ja('sex'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\DateTimePicker::make('timerenew'),
+                Forms\Components\DateTimePicker::make('timerenew')->label(FieldLabels::ja('timerenew')),
             ]);
     }
 
@@ -97,58 +104,58 @@ class MemberResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('address')
+                Tables\Columns\TextColumn::make('address')->label(FieldLabels::ja('address'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('addressread')
+                Tables\Columns\TextColumn::make('addressread')->label(FieldLabels::ja('addressread'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('answer')
+                Tables\Columns\TextColumn::make('answer')->label(FieldLabels::ja('answer'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('appeal')
+                Tables\Columns\TextColumn::make('appeal')->label(FieldLabels::ja('appeal'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('code')
+                Tables\Columns\TextColumn::make('code')->label(FieldLabels::ja('code'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('dayphone')
+                Tables\Columns\TextColumn::make('dayphone')->label(FieldLabels::ja('dayphone'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                Tables\Columns\TextColumn::make('email')->label(FieldLabels::ja('email'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('hp')
+                Tables\Columns\TextColumn::make('hp')->label(FieldLabels::ja('hp'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('loginedtime')
+                Tables\Columns\TextColumn::make('loginedtime')->label(FieldLabels::ja('loginedtime'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('login_error_times')
+                Tables\Columns\TextColumn::make('login_error_times')->label(FieldLabels::ja('login_error_times'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('magazine')
+                Tables\Columns\TextColumn::make('magazine')->label(FieldLabels::ja('magazine'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')->label(FieldLabels::ja('name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('nameread')
+                Tables\Columns\TextColumn::make('nameread')->label(FieldLabels::ja('nameread'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('online')
+                Tables\Columns\TextColumn::make('online')->label(FieldLabels::ja('online'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('phone')
+                Tables\Columns\TextColumn::make('phone')->label(FieldLabels::ja('phone'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('pointm')
+                Tables\Columns\TextColumn::make('pointm')->label(FieldLabels::ja('pointm'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('pointmtime')
+                Tables\Columns\TextColumn::make('pointmtime')->label(FieldLabels::ja('pointmtime'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('question')
+                Tables\Columns\TextColumn::make('question')->label(FieldLabels::ja('question'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('regtime')
+                Tables\Columns\TextColumn::make('regtime')->label(FieldLabels::ja('regtime'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sex')
+                Tables\Columns\TextColumn::make('sex')->label(FieldLabels::ja('sex'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('timerenew')
+                Tables\Columns\TextColumn::make('timerenew')->label(FieldLabels::ja('timerenew'))
                     ->dateTime()
                     ->sortable(),
             ])

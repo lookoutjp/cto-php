@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\RoutineWorkListResource\Pages;
 use App\Models\RoutineWorkList;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -17,62 +18,68 @@ class RoutineWorkListResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = '定例作業実績';
+
+    protected static ?string $modelLabel = '定例作業実績';
+
+    protected static ?string $pluralModelLabel = '定例作業実績';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\DateTimePicker::make('acteddate'),
-                Forms\Components\DateTimePicker::make('actiondate'),
-                Forms\Components\DateTimePicker::make('add_date_time'),
-                Forms\Components\TextInput::make('approver')
+                Forms\Components\DateTimePicker::make('acteddate')->label(FieldLabels::ja('acteddate')),
+                Forms\Components\DateTimePicker::make('actiondate')->label(FieldLabels::ja('actiondate')),
+                Forms\Components\DateTimePicker::make('add_date_time')->label(FieldLabels::ja('add_date_time')),
+                Forms\Components\TextInput::make('approver')->label(FieldLabels::ja('approver'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('category')
+                Forms\Components\TextInput::make('category')->label(FieldLabels::ja('category'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('circle')
+                Forms\Components\TextInput::make('circle')->label(FieldLabels::ja('circle'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('circle_number')
+                Forms\Components\TextInput::make('circle_number')->label(FieldLabels::ja('circle_number'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\Textarea::make('completioncriteria')
+                Forms\Components\Textarea::make('completioncriteria')->label(FieldLabels::ja('completioncriteria'))
                     ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('completion_date'),
-                Forms\Components\Textarea::make('content')
+                Forms\Components\DateTimePicker::make('completion_date')->label(FieldLabels::ja('completion_date')),
+                Forms\Components\Textarea::make('content')->label(FieldLabels::ja('content'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('delete_to')
+                Forms\Components\TextInput::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\DateTimePicker::make('dotoday'),
-                Forms\Components\TextInput::make('hours_et')
+                Forms\Components\DateTimePicker::make('dotoday')->label(FieldLabels::ja('dotoday')),
+                Forms\Components\TextInput::make('hours_et')->label(FieldLabels::ja('hours_et'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('hours_et_actual')
+                Forms\Components\TextInput::make('hours_et_actual')->label(FieldLabels::ja('hours_et_actual'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('junban')
+                Forms\Components\TextInput::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('maker')
+                Forms\Components\TextInput::make('maker')->label(FieldLabels::ja('maker'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('person_do')
+                Forms\Components\TextInput::make('person_do')->label(FieldLabels::ja('person_do'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\DateTimePicker::make('renewdate'),
-                Forms\Components\TextInput::make('routine_work_id')
+                Forms\Components\DateTimePicker::make('renewdate')->label(FieldLabels::ja('renewdate')),
+                Forms\Components\TextInput::make('routine_work_id')->label(FieldLabels::ja('routine_work_id'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('situation')
+                Forms\Components\Textarea::make('situation')->label(FieldLabels::ja('situation'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('status')
+                Forms\Components\TextInput::make('status')->label(FieldLabels::ja('status'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('team_id')
+                Forms\Components\TextInput::make('team_id')->label(FieldLabels::ja('team_id'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('title')
+                Forms\Components\TextInput::make('title')->label(FieldLabels::ja('title'))
                     ->required()
                     ->maxLength(255),
             ]);
@@ -82,59 +89,59 @@ class RoutineWorkListResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('acteddate')
+                Tables\Columns\TextColumn::make('acteddate')->label(FieldLabels::ja('acteddate'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('actiondate')
+                Tables\Columns\TextColumn::make('actiondate')->label(FieldLabels::ja('actiondate'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('add_date_time')
+                Tables\Columns\TextColumn::make('add_date_time')->label(FieldLabels::ja('add_date_time'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('approver')
+                Tables\Columns\TextColumn::make('approver')->label(FieldLabels::ja('approver'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('category')
+                Tables\Columns\TextColumn::make('category')->label(FieldLabels::ja('category'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('circle')
+                Tables\Columns\TextColumn::make('circle')->label(FieldLabels::ja('circle'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('circle_number')
+                Tables\Columns\TextColumn::make('circle_number')->label(FieldLabels::ja('circle_number'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('completion_date')
+                Tables\Columns\TextColumn::make('completion_date')->label(FieldLabels::ja('completion_date'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('delete_to')
+                Tables\Columns\TextColumn::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('dotoday')
+                Tables\Columns\TextColumn::make('dotoday')->label(FieldLabels::ja('dotoday'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('hours_et')
+                Tables\Columns\TextColumn::make('hours_et')->label(FieldLabels::ja('hours_et'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('hours_et_actual')
+                Tables\Columns\TextColumn::make('hours_et_actual')->label(FieldLabels::ja('hours_et_actual'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('junban')
+                Tables\Columns\TextColumn::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('maker')
+                Tables\Columns\TextColumn::make('maker')->label(FieldLabels::ja('maker'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('person_do')
+                Tables\Columns\TextColumn::make('person_do')->label(FieldLabels::ja('person_do'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('renewdate')
+                Tables\Columns\TextColumn::make('renewdate')->label(FieldLabels::ja('renewdate'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('routine_work_id')
+                Tables\Columns\TextColumn::make('routine_work_id')->label(FieldLabels::ja('routine_work_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('status')->label(FieldLabels::ja('status'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('team_id')
+                Tables\Columns\TextColumn::make('team_id')->label(FieldLabels::ja('team_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('title')
+                Tables\Columns\TextColumn::make('title')->label(FieldLabels::ja('title'))
                     ->searchable(),
             ])
             ->filters([

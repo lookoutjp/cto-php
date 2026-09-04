@@ -6,6 +6,7 @@ use App\Filament\Resources\MemberRoomResource\Pages;
 use App\Models\Member;
 use App\Models\MemberRoom;
 use App\Support\CurrentSite;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -27,6 +28,12 @@ class MemberRoomResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = '会員権限';
+
+    protected static ?string $modelLabel = '会員権限';
+
+    protected static ?string $pluralModelLabel = '会員権限';
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
@@ -45,18 +52,18 @@ class MemberRoomResource extends Resource
 
         return $form
             ->schema([
-                Forms\Components\TextInput::make('legacy_id')
+                Forms\Components\TextInput::make('legacy_id')->label(FieldLabels::ja('legacy_id'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->required()
                     ->maxLength(50),
-                Forms\Components\TextInput::make('ninshou')
+                Forms\Components\TextInput::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->required()
                     ->numeric()
                     ->rules(['in:-1,0,1'])
                     ->helperText('-1: 管理員 / 1: 参加者 / 0: 閲覧のみ'),
-                Forms\Components\TextInput::make('site_id')
+                Forms\Components\TextInput::make('site_id')->label(FieldLabels::ja('site_id'))
                     ->required()
                     ->maxLength(50)
                     ->default(fn () => app(CurrentSite::class)->id())
@@ -70,15 +77,15 @@ class MemberRoomResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('legacy_id')
+                Tables\Columns\TextColumn::make('legacy_id')->label(FieldLabels::ja('legacy_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('ninshou')
+                Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('site_id')
+                Tables\Columns\TextColumn::make('site_id')->label(FieldLabels::ja('site_id'))
                     ->searchable(),
             ])
             ->filters([

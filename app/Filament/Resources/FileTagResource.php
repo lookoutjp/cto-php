@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FileTagResource\Pages;
 use App\Models\FileTag;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,21 +17,27 @@ class FileTagResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'ファイルタグ';
+
+    protected static ?string $modelLabel = 'ファイルタグ';
+
+    protected static ?string $pluralModelLabel = 'ファイルタグ';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\DateTimePicker::make('adddt'),
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\DateTimePicker::make('adddt')->label(FieldLabels::ja('adddt')),
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('tag_id')
+                Forms\Components\TextInput::make('tag_id')->label(FieldLabels::ja('tag_id'))
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('tag_id_father')
+                Forms\Components\TextInput::make('tag_id_father')->label(FieldLabels::ja('tag_id_father'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('tagname')
+                Forms\Components\TextInput::make('tagname')->label(FieldLabels::ja('tagname'))
                     ->maxLength(255)
                     ->default(null),
             ]);
@@ -40,18 +47,18 @@ class FileTagResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('adddt')
+                Tables\Columns\TextColumn::make('adddt')->label(FieldLabels::ja('adddt'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('tag_id')
+                Tables\Columns\TextColumn::make('tag_id')->label(FieldLabels::ja('tag_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tag_id_father')
+                Tables\Columns\TextColumn::make('tag_id_father')->label(FieldLabels::ja('tag_id_father'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tagname')
+                Tables\Columns\TextColumn::make('tagname')->label(FieldLabels::ja('tagname'))
                     ->searchable(),
             ])
             ->filters([

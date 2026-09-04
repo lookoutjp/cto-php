@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MessageItemResource\Pages;
 use App\Models\MessageItem;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,26 +17,32 @@ class MessageItemResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'メッセージ';
+
+    protected static ?string $modelLabel = 'メッセージ';
+
+    protected static ?string $pluralModelLabel = 'メッセージ';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('content')
+                Forms\Components\Textarea::make('content')->label(FieldLabels::ja('content'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('delete_from')
+                Forms\Components\TextInput::make('delete_from')->label(FieldLabels::ja('delete_from'))
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('delete_to')
+                Forms\Components\TextInput::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('from')
+                Forms\Components\TextInput::make('from')->label(FieldLabels::ja('from'))
                     ->maxLength(225)
                     ->default(null),
-                Forms\Components\TextInput::make('readed')
+                Forms\Components\TextInput::make('readed')->label(FieldLabels::ja('readed'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\DateTimePicker::make('time'),
-                Forms\Components\TextInput::make('to')
+                Forms\Components\DateTimePicker::make('time')->label(FieldLabels::ja('time')),
+                Forms\Components\TextInput::make('to')->label(FieldLabels::ja('to'))
                     ->maxLength(225)
                     ->default(null),
             ]);
@@ -45,21 +52,21 @@ class MessageItemResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('delete_from')
+                Tables\Columns\TextColumn::make('delete_from')->label(FieldLabels::ja('delete_from'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('delete_to')
+                Tables\Columns\TextColumn::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('from')
+                Tables\Columns\TextColumn::make('from')->label(FieldLabels::ja('from'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('readed')
+                Tables\Columns\TextColumn::make('readed')->label(FieldLabels::ja('readed'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('time')
+                Tables\Columns\TextColumn::make('time')->label(FieldLabels::ja('time'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('to')
+                Tables\Columns\TextColumn::make('to')->label(FieldLabels::ja('to'))
                     ->searchable(),
             ])
             ->filters([

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TopMenuResource\Pages;
 use App\Models\TopMenu;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,17 +17,23 @@ class TopMenuResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'トップメニュー';
+
+    protected static ?string $modelLabel = 'トップメニュー';
+
+    protected static ?string $pluralModelLabel = 'トップメニュー';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('junban')
+                Forms\Components\TextInput::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('linkaddress')
+                Forms\Components\TextInput::make('linkaddress')->label(FieldLabels::ja('linkaddress'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('menuname')
+                Forms\Components\TextInput::make('menuname')->label(FieldLabels::ja('menuname'))
                     ->maxLength(255)
                     ->default(null),
             ]);
@@ -36,12 +43,12 @@ class TopMenuResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('junban')
+                Tables\Columns\TextColumn::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('linkaddress')
+                Tables\Columns\TextColumn::make('linkaddress')->label(FieldLabels::ja('linkaddress'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('menuname')
+                Tables\Columns\TextColumn::make('menuname')->label(FieldLabels::ja('menuname'))
                     ->searchable(),
             ])
             ->filters([

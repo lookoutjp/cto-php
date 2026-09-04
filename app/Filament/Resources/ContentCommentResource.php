@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContentCommentResource\Pages;
 use App\Models\ContentComment;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,24 +17,30 @@ class ContentCommentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'コンテンツコメント';
+
+    protected static ?string $modelLabel = 'コンテンツコメント';
+
+    protected static ?string $pluralModelLabel = 'コンテンツコメント';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('comment')
+                Forms\Components\Textarea::make('comment')->label(FieldLabels::ja('comment'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_id')
+                Forms\Components\TextInput::make('content_id')->label(FieldLabels::ja('content_id'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('name')
+                Forms\Components\Textarea::make('name')->label(FieldLabels::ja('name'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('ninshou')
+                Forms\Components\TextInput::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('time')
+                Forms\Components\TextInput::make('time')->label(FieldLabels::ja('time'))
                     ->maxLength(50)
                     ->default(null),
             ]);
@@ -43,14 +50,14 @@ class ContentCommentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('content_id')
+                Tables\Columns\TextColumn::make('content_id')->label(FieldLabels::ja('content_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('ninshou')
+                Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('time')
+                Tables\Columns\TextColumn::make('time')->label(FieldLabels::ja('time'))
                     ->searchable(),
             ])
             ->filters([

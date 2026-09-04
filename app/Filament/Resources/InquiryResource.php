@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InquiryResource\Pages;
 use App\Models\Inquiry;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,48 +17,54 @@ class InquiryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'お問い合わせ';
+
+    protected static ?string $modelLabel = 'お問い合わせ';
+
+    protected static ?string $pluralModelLabel = 'お問い合わせ';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('address')
+                Forms\Components\TextInput::make('address')->label(FieldLabels::ja('address'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('code')
+                Forms\Components\TextInput::make('code')->label(FieldLabels::ja('code'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\DateTimePicker::make('create_date'),
-                Forms\Components\TextInput::make('customer_name')
+                Forms\Components\DateTimePicker::make('create_date')->label(FieldLabels::ja('create_date')),
+                Forms\Components\TextInput::make('customer_name')->label(FieldLabels::ja('customer_name'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('customer_nameread')
+                Forms\Components\TextInput::make('customer_nameread')->label(FieldLabels::ja('customer_nameread'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('dayphone')
+                Forms\Components\TextInput::make('dayphone')->label(FieldLabels::ja('dayphone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('email')
+                Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('phone')
+                Forms\Components\TextInput::make('phone')->label(FieldLabels::ja('phone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('remark')
+                Forms\Components\Textarea::make('remark')->label(FieldLabels::ja('remark'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('state')
+                Forms\Components\TextInput::make('state')->label(FieldLabels::ja('state'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('title')
+                Forms\Components\TextInput::make('title')->label(FieldLabels::ja('title'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\DateTimePicker::make('treated_date'),
-                Forms\Components\Textarea::make('treated_remark')
+                Forms\Components\DateTimePicker::make('treated_date')->label(FieldLabels::ja('treated_date')),
+                Forms\Components\Textarea::make('treated_remark')->label(FieldLabels::ja('treated_remark'))
                     ->columnSpanFull(),
             ]);
     }
@@ -66,31 +73,31 @@ class InquiryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('address')
+                Tables\Columns\TextColumn::make('address')->label(FieldLabels::ja('address'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('code')
+                Tables\Columns\TextColumn::make('code')->label(FieldLabels::ja('code'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('create_date')
+                Tables\Columns\TextColumn::make('create_date')->label(FieldLabels::ja('create_date'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('customer_name')
+                Tables\Columns\TextColumn::make('customer_name')->label(FieldLabels::ja('customer_name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('customer_nameread')
+                Tables\Columns\TextColumn::make('customer_nameread')->label(FieldLabels::ja('customer_nameread'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('dayphone')
+                Tables\Columns\TextColumn::make('dayphone')->label(FieldLabels::ja('dayphone'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                Tables\Columns\TextColumn::make('email')->label(FieldLabels::ja('email'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('phone')
+                Tables\Columns\TextColumn::make('phone')->label(FieldLabels::ja('phone'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('state')
+                Tables\Columns\TextColumn::make('state')->label(FieldLabels::ja('state'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('title')
+                Tables\Columns\TextColumn::make('title')->label(FieldLabels::ja('title'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('treated_date')
+                Tables\Columns\TextColumn::make('treated_date')->label(FieldLabels::ja('treated_date'))
                     ->dateTime()
                     ->sortable(),
             ])

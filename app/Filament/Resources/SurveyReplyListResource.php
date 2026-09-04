@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SurveyReplyListResource\Pages;
 use App\Models\SurveyReplyList;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,14 +17,20 @@ class SurveyReplyListResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'サーベイ回答者一覧';
+
+    protected static ?string $modelLabel = 'サーベイ回答者一覧';
+
+    protected static ?string $pluralModelLabel = 'サーベイ回答者一覧';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('survey_id')
+                Forms\Components\TextInput::make('survey_id')->label(FieldLabels::ja('survey_id'))
                     ->numeric()
                     ->default(null),
             ]);
@@ -33,9 +40,9 @@ class SurveyReplyListResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('survey_id')
+                Tables\Columns\TextColumn::make('survey_id')->label(FieldLabels::ja('survey_id'))
                     ->numeric()
                     ->sortable(),
             ])

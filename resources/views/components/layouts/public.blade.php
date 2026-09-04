@@ -55,7 +55,7 @@
                 @endforeach
 
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">マイページ</a>
+                    <a href="{{ route('dashboard') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">マイページ</a>
                 @else
                     <a href="{{ route('login') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">ログイン</a>
                 @endauth
@@ -81,7 +81,7 @@
                 @endforeach
 
                 @auth
-                    <x-responsive-nav-link href="{{ url('/dashboard') }}">マイページ</x-responsive-nav-link>
+                    <x-responsive-nav-link href="{{ route('dashboard') }}">マイページ</x-responsive-nav-link>
                 @else
                     <x-responsive-nav-link :href="route('login')">ログイン</x-responsive-nav-link>
                 @endauth

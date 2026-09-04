@@ -61,6 +61,9 @@
                 @endforeach
 
                 @auth
+                    @if ($site && auth()->user()?->managesSite($site->site_id))
+                        <a href="/admin" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">管理画面</a>
+                    @endif
                     <a href="{{ route('dashboard') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">マイページ</a>
                 @else
                     <a href="{{ route('login') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">ログイン</a>
@@ -87,6 +90,9 @@
                 @endforeach
 
                 @auth
+                    @if ($site && auth()->user()?->managesSite($site->site_id))
+                        <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>
+                    @endif
                     <x-responsive-nav-link href="{{ route('dashboard') }}">マイページ</x-responsive-nav-link>
                 @else
                     <x-responsive-nav-link :href="route('login')">ログイン</x-responsive-nav-link>

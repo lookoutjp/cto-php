@@ -35,6 +35,9 @@
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:gap-3 sm:ms-6">
+                @if ($site && auth()->user()?->managesSite($site->site_id))
+                    <a href="/admin" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">管理画面</a>
+                @endif
                 @if ($site?->hasFunction('dengonfunction'))
                     <a href="{{ route('messages.index') }}" class="text-gray-400 hover:text-brand" title="メッセージ">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,6 +109,9 @@
             @endif
             @if ($site?->hasFunction('dengonfunction'))
                 <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">メッセージ</x-responsive-nav-link>
+            @endif
+            @if ($site && auth()->user()?->managesSite($site->site_id))
+                <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>
             @endif
         </div>
 

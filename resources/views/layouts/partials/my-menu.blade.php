@@ -22,6 +22,12 @@
     <h2 class="bg-brand px-4 py-2 text-sm font-semibold text-brand-fg">✿ MyMenu</h2>
 
     <div class="divide-y divide-gray-100">
+        @if ($site && auth()->user()?->managesSite($site->site_id))
+            <a href="/admin" class="block bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
+                ⚙ 管理画面（メニュー・カテゴリ等の編集）
+            </a>
+        @endif
+
         <a href="{{ route('profile.edit') }}" class="block bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
             ユーザ情報
         </a>

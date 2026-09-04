@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\TenantSignupController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,14 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
+
+    // セルフサーブのテナント作成（新規会社のワークスペース作成）— 新機能
+    Route::get('signup', [TenantSignupController::class, 'create'])
+        ->name('tenant-signup.create');
+
+    Route::post('signup', [TenantSignupController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('tenant-signup.store');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

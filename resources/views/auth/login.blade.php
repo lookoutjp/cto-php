@@ -44,4 +44,9 @@
             </x-primary-button>
         </div>
     </form>
+
+    <p class="mt-6 text-center text-sm text-gray-500">
+        まだアカウントをお持ちでない会社様は
+        <a href="{{ route('tenant-signup.create') }}" class="text-brand underline hover:text-brand-dark">新しいワークスペースを作成</a>
+    </p>
 </x-guest-layout>

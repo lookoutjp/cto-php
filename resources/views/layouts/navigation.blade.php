@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
+                    <a href="{{ route('home') }}" class="flex items-center gap-2">
                         <x-application-logo class="block h-9 w-auto fill-current text-brand" />
                         <span class="hidden font-bold tracking-tight sm:inline" style="color: var(--brand-name)">{{ $site?->sitename }}</span>
                     </a>

@@ -34,6 +34,11 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
 
 - `ninshou = 0` = コンテンツ閲覧のみの会員。PM機能は不可。旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
+- 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）は移植していない。
+  管理は Filament（`/admin`）に一本化: `top_menus`→`TopMenuResource`、`content_sorts`（並び順=`junban`、
+  公開可否=`ninshou`、外部リンク=`link`）→`ContentSortResource`、ニュース→`NewsItemResource`、
+  サイト設定（ロゴ・トップ画像・サイト名等）→`RoomResource`。フロント側の導線として、
+  サイト管理員（`managesSite()`）には公開ヘッダー・会員ヘッダー・MyMenu に「管理画面」リンクを表示する
 - **レコード単位のアクセス制御は無し**（旧ASP同様、参加者なら他人のタスクも編集・削除できる協働ツール）。
 - nav は `isProjectMemberOf()` で業務系リンクを出し分け。
 

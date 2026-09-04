@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\LegacyAwareUserProvider;
 use App\Auth\Passwords\CustomPasswordBrokerManager;
+use App\Models\ContentSort;
 use App\Models\Room;
 use App\Models\TopMenu;
 use App\Support\CurrentSite;
@@ -55,9 +56,11 @@ class AppServiceProvider extends ServiceProvider
             $view->with('site', once(fn () => Room::find(app(CurrentSite::class)->id())));
         });
 
-        // 公開フロントの共通ヘッダー用トップメニュー（旧 inc_top.asp のボタン列、top_menus）。
+        // 公開フロントの共通ヘッダー用トップメニュー（旧 inc_top.asp のボタン列、top_menus）と
+        // 全ページ共通の左サイドバー「カテゴリ」（旧 inc_left.asp、content_sorts のトップレベル）。
         View::composer('components.layouts.public', function ($view) {
             $view->with('topMenus', once(fn () => TopMenu::query()->orderBy('junban')->orderBy('id')->get()));
+            $view->with('sidebarCategories', once(fn () => ContentSort::query()->publicVisible()->topLevel()->listingOrder()->get()));
         });
     }
 }

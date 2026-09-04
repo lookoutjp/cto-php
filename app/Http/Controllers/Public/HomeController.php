@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Content;
+use App\Models\ContentSort;
 use App\Models\NewsItem;
 use App\Models\Room;
 use App\Support\CurrentSite;
@@ -25,6 +26,9 @@ class HomeController extends Controller
             ? Content::query()->publiclyVisible()->orderByDesc('clicks')->limit(5)->get()
             : collect();
 
-        return view('public.home', compact('latestNews', 'recommended', 'popular'));
+        // 左サイドバーのカテゴリ一覧（旧トップページの「カテゴリ」欄、inc_left.asp 相当）
+        $categories = ContentSort::query()->publicVisible()->topLevel()->listingOrder()->get();
+
+        return view('public.home', compact('latestNews', 'recommended', 'popular', 'categories'));
     }
 }

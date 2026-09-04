@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\LegacyAwareUserProvider;
 use App\Auth\Passwords\CustomPasswordBrokerManager;
 use App\Models\Room;
+use App\Models\TopMenu;
 use App\Support\CurrentSite;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
@@ -52,6 +53,11 @@ class AppServiceProvider extends ServiceProvider
             'member.*', 'livewire.member.*', 'mypage',
         ], function ($view) {
             $view->with('site', once(fn () => Room::find(app(CurrentSite::class)->id())));
+        });
+
+        // 公開フロントの共通ヘッダー用トップメニュー（旧 inc_top.asp のボタン列、top_menus）。
+        View::composer('components.layouts.public', function ($view) {
+            $view->with('topMenus', once(fn () => TopMenu::query()->orderBy('junban')->orderBy('id')->get()));
         });
     }
 }

@@ -57,7 +57,8 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | URL | 実装 | 旧ASP | 内容 |
 |---|---|---|---|
 | `/admin/org-chart` | `App\Filament\Pages\OrgChart` | orgchart.asp | 現在サイトの組織図（体制図）。`levels`（旧 lebel）の `fatherlevel`→`level` 自己参照ツリーを `Level::tree()`（循環は visited で打ち切り）で組み立て、インデント表示。編集は `LevelResource`（`/admin/levels`）。管理員のみ。0 件時は作成導線 |
-| `/` | `Public\HomeController` + `public.home` | index.asp | サイト紹介（`rooms.siteintro`）+ 最新ニュース5件 ＋ おすすめコンテンツ（`contents.recommend=1`、`osusumecontentsfunction`）＋ 人気コンテンツ（`clicks` 降順、`ninkicontentsfunction`） |
+| `/` | `Public\HomeController` + `public.home` | index.asp | 旧トップページの3カラム構成を再現。ヒーロー（サイト名＋`siteintro`先頭文の一言＋`homepagemainimage`）／左: カテゴリサイドバー（`content_sorts` のトップレベル・`publicVisible`、`link` があれば `LegacyLinkResolver` 経由でリンク、無ければ `/contents`）／中央: サイト紹介本文＋おすすめコンテンツ（`osusumecontentsfunction`）＋人気コンテンツ（`ninkicontentsfunction`）＋最新ニュース5件／右: `rooms.logo` ＋ `manager_shouko`（ラベル）+`webmanager`（名前）。カテゴリ・ロゴ等のデータが無いテナントではその区画ごと非表示になり単純な1カラムに戻る |
+| 全ページ共通ヘッダー | `components.layouts.public` | inc_top.asp | `top_menus`（`menuname`/`linkaddress`/`junban`）をブランド色のボタン列として表示。`TopMenu` が1件も無いテナントでは非表示。リンクは `LegacyLinkResolver::resolve()` で解決（下記） |
 | `/news` | `Livewire\Public\NewsIndex` | news.asp | 一覧・タイトル検索・32件/ページ。`newsdate <= now` のみ、`istop` 優先 |
 | `/news/{id}` | `Public\NewsController@show` | newsdetail.asp | 本文HTML + 前後リンク。未公開/他サイトは404。clicks++ |
 | `/contents` | `Public\ContentController@index` | contents.asp / inc_kataroguson.asp | `ContentSort::publicTree()` でカテゴリを `father_id` 階層表示。publicVisible（`ninshou` null/0）のみ、各カテゴリに公開コンテンツ（`ok=1`）。自身にも子孫にも公開コンテンツが無い枝は除外。循環は per-path visited で打ち切り。深さで見出しサイズ＋左ボーダーのインデント（`public.partials.category-node` 再帰） |
@@ -87,6 +88,22 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/surveys/manage` `/surveys/create` `/surveys/{id}/edit` ほか | `Member\SurveyController@manage/create/store/edit/update/destroy/toggleOpen` | SurveyList_Mytask.asp / Survey_new.asp / Surveyedit_son.asp | サーベイの作成・編集・締切／再開（`open_yn`）・論理削除（`delete_to=1`）。一覧は「自分が作成したもの」＋管理員は全件。選択肢は Alpine の可変行（タイトル＋説明）。**回答が付いた後は選択肢を編集不可**（メタ情報は可）。回答期限は `endOfDay` で保存 |
 | `/board` `/board/categories/{id}` `/board/threads/{id}` ほか | `Member\BoardController` | meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp | 掲示板。`/board`=コミュニティ一覧（`guestbook_categories`。id=1 は「サイト掲示板」既定カテゴリで一覧では別枠表示）／`categories/{id}`=スレッド一覧（`guestbooks` の `parent='0'`、返信数・管理員返信バッジ、10件/頁）／`threads/{id}`=スレッド詳細（本文＋`revert` 管理員返信＋`parent`/`top`/`space_num` の自己参照ツリーで返信をインデント表示、各ノードに Alpine 開閉式の返信フォーム）／`categories/{id}/new` 新規スレッド。返信は `top`=スレッド先頭ID・`space_num`=親+1 を自動セット。`create_date` に投稿時刻。旧Access由来の空行は `Guestbook::scopeReal()` で除外。管理員返信の編集は Filament（`GuestbookResource`）。`freeguestbookfunction` 必須 |
 | コンテンツのコメント（`<livewire:public.content-comments>`） | 公開コンテンツ詳細に埋め込み | ContentCommentSon.asp / ContentComment_Write.asp / ContentCommentList.asp | `commentfunction` かつ `contents.commentok=1` のとき表示。`content_comments` を新しい順・10件/頁。閲覧は誰でも、投稿はプロジェクト参加者のみ（未ログインは「ログインすると…」、`ninshou=0` は不可の旨）。`time` は旧データにあわせ `Y/m/d H:i:s` 文字列で保存 |
+
+## 旧ASPページ名のリンク解決（`App\Support\LegacyLinkResolver`）
+
+`top_menus.linkaddress` や `content_sorts.link` には旧ASPの相対パス（`index.asp`・
+`otoi.asp`・`contents.asp?Contentsort=30` 等）や外部URLがそのまま残っている。
+`LegacyLinkResolver::resolve($raw, $site, $fallback)` が:
+
+- `http(s)://` 始まりはそのまま外部リンクとして返す
+- `index.asp`→ホーム、`otoi*.asp`→お問い合わせ、`faq.asp`→FAQ、`news.asp`→ニュース、
+  `contents.asp`→コンテンツ一覧、`meetlist.asp`/`meet.asp`→掲示板（`freeguestbookfunction` 必須）、
+  `managerwords.asp`→オーナーの言葉（`managerwordsfunction` 必須）、`friendlink.asp`→リンク集
+  （`friendlinkfunction` 必須）に対応付ける
+- 対応表に無い相対パスは `$fallback`（省略時 null）を返す。呼び出し側で
+  `/contents` や `/`（サイトトップ）を渡している。旧データは残したまま、
+  Filament（`TopMenuResource`・`ContentSortResource`）側で `linkaddress`/`link` を
+  新サイトのパスに更新していけば、順次リンクが直っていく設計
 
 ## モデルのスコープ
 

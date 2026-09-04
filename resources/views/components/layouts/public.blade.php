@@ -12,21 +12,23 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
     <div class="h-1 bg-brand"></div>
-    <header class="border-b border-gray-200 bg-white">
+    @php($nav = array_filter([
+        ['home', 'ホーム'],
+        ['news.index', 'ニュース'],
+        ['contents.index', 'コンテンツ'],
+        ['faq.index', 'FAQ'],
+        $site?->hasFunction('managerwordsfunction') ? ['manager-words', $site->manager_shouko ? $site->manager_shouko.'の言葉' : '管理員の言葉'] : null,
+        $site?->hasFunction('friendlinkfunction') ? ['links.index', 'リンク集'] : null,
+        $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
+    ]))
+    <header class="border-b border-gray-200 bg-white" x-data="{ open: false }">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
             <a href="{{ route('home') }}" class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
                 {{ $site?->sitename ?? config('app.name') }}
             </a>
-            <nav class="flex items-center gap-1 text-sm">
-                @php($nav = array_filter([
-                    ['home', 'ホーム'],
-                    ['news.index', 'ニュース'],
-                    ['contents.index', 'コンテンツ'],
-                    ['faq.index', 'FAQ'],
-                    $site?->hasFunction('managerwordsfunction') ? ['manager-words', $site->manager_shouko ? $site->manager_shouko.'の言葉' : '管理員の言葉'] : null,
-                    $site?->hasFunction('friendlinkfunction') ? ['links.index', 'リンク集'] : null,
-                    $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
-                ]))
+
+            {{-- デスクトップ: 横並びナビ --}}
+            <nav class="hidden items-center gap-1 text-sm sm:flex">
                 @foreach ($nav as [$routeName, $label])
                     <a href="{{ route($routeName) }}"
                        @class([
@@ -42,7 +44,33 @@
                     <a href="{{ route('login') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">ログイン</a>
                 @endauth
             </nav>
+
+            {{-- モバイル: ハンバーガーボタン --}}
+            <button type="button" @click="open = ! open" aria-label="メニュー"
+                    class="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none sm:hidden">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path :class="{ 'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path :class="{ 'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
+
+        {{-- モバイル: 展開メニュー --}}
+        <nav x-show="open" x-cloak class="border-t border-gray-200 sm:hidden">
+            <div class="space-y-1 py-2">
+                @foreach ($nav as [$routeName, $label])
+                    <x-responsive-nav-link :href="route($routeName)" :active="request()->routeIs($routeName)">
+                        {{ $label }}
+                    </x-responsive-nav-link>
+                @endforeach
+
+                @auth
+                    <x-responsive-nav-link href="{{ url('/dashboard') }}">マイページ</x-responsive-nav-link>
+                @else
+                    <x-responsive-nav-link :href="route('login')">ログイン</x-responsive-nav-link>
+                @endauth
+            </div>
+        </nav>
     </header>
 
     <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">

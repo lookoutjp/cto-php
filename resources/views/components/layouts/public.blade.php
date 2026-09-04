@@ -9,6 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     @include('partials.theme-style')
+    @include('partials.favicon')
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
     <div class="h-1 bg-brand"></div>
@@ -38,9 +39,14 @@
         $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
     ]))
     <header class="border-b border-gray-200 bg-white" x-data="{ open: false }">
-        <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
-            <a href="{{ route('home') }}" class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
-                {{ $site?->sitename ?? config('app.name') }}
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+            <a href="{{ route('home') }}" class="flex items-center gap-2">
+                <x-site-logo :site="$site" class="h-9 w-auto" />
+                @unless (trim((string) $site?->logo))
+                    <span class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
+                        {{ $site?->sitename ?? config('app.name') }}
+                    </span>
+                @endunless
             </a>
 
             {{-- デスクトップ: 横並びナビ --}}
@@ -138,7 +144,7 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white">
-        <div class="mx-auto max-w-5xl space-y-2 px-4 py-6 text-center text-xs text-gray-500">
+        <div class="mx-auto max-w-6xl space-y-2 px-4 py-6 text-center text-xs text-gray-500">
             <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
                 <a href="{{ route('legal.terms') }}" class="hover:text-gray-900">利用規約</a>
                 <a href="{{ route('legal.privacy') }}" class="hover:text-gray-900">プライバシーポリシー</a>

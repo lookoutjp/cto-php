@@ -1,4 +1,4 @@
-@props(['title' => null, 'wide' => false])
+@props(['title' => null])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -89,12 +89,52 @@
         </nav>
     </header>
 
-    <main @class(['mx-auto w-full flex-1 px-4 py-8', 'max-w-6xl' => $wide, 'max-w-5xl' => ! $wide])>
-        @isset($title)
-            <h1 class="mb-6 text-2xl font-bold tracking-tight text-gray-900">{{ $title }}</h1>
-        @endisset
+    @php($sidebarCategories = $sidebarCategories ?? collect())
+    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+        <div @class([
+            'grid grid-cols-1 gap-6',
+            'lg:grid-cols-[190px_minmax(0,1fr)_220px]' => isset($aside) && $sidebarCategories->isNotEmpty(),
+            'lg:grid-cols-[190px_minmax(0,1fr)]' => ! isset($aside) && $sidebarCategories->isNotEmpty(),
+            'lg:grid-cols-[minmax(0,1fr)_220px]' => isset($aside) && $sidebarCategories->isEmpty(),
+        ])>
+            {{-- 旧 inc_left.asp 相当の左サイドバー「カテゴリ」（content_sorts のトップレベル）。全ページ共通 --}}
+            @if ($sidebarCategories->isNotEmpty())
+                @php($activeCategoryId = request()->routeIs('contents.index') ? request()->integer('category') : null)
+                <aside class="order-2 lg:order-1">
+                    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                        <h2 class="bg-brand-bg px-4 py-2 text-sm font-semibold text-brand">カテゴリ</h2>
+                        <ul class="divide-y divide-gray-100 text-sm">
+                            @foreach ($sidebarCategories as $cat)
+                                <li>
+                                    <a href="{{ \App\Support\LegacyLinkResolver::resolve($cat->link, $site, route('contents.index', ['category' => $cat->id])) }}"
+                                       @class([
+                                           'block px-4 py-2 hover:bg-gray-50 hover:text-brand',
+                                           'bg-brand-bg font-medium text-brand' => $activeCategoryId === $cat->id,
+                                           'text-gray-700' => $activeCategoryId !== $cat->id,
+                                       ])>
+                                        {{ $cat->name }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </aside>
+            @endif
 
-        {{ $slot }}
+            <div class="order-1 min-w-0 lg:order-2">
+                @isset($title)
+                    <h1 class="mb-6 text-2xl font-bold tracking-tight text-gray-900">{{ $title }}</h1>
+                @endisset
+
+                {{ $slot }}
+            </div>
+
+            @isset($aside)
+                <aside class="order-3">
+                    {{ $aside }}
+                </aside>
+            @endisset
+        </div>
     </main>
 
     <footer class="border-t border-gray-200 bg-white">

@@ -6,7 +6,9 @@
         'text-base mt-4 mb-2' => $depth === 1,
         'text-sm mt-3 mb-2 text-gray-700' => $depth >= 2,
     ])>
-        {{ $category->name }}
+        <a href="{{ route('contents.index', ['category' => $category->id]) }}" class="hover:text-brand hover:underline">
+            {{ $category->name }}
+        </a>
         @if ($category->contents->isNotEmpty())
             <span class="ml-1 text-xs font-normal text-gray-400">{{ $category->contents->count() }}</span>
         @endif

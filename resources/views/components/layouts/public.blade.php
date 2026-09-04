@@ -1,4 +1,4 @@
-@props(['title' => null])
+@props(['title' => null, 'wide' => false])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -12,6 +12,22 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
     <div class="h-1 bg-brand"></div>
+
+    {{-- 旧 inc_top.asp 相当のトップメニュー（top_menus）。運営者が Filament で登録した場合のみ表示 --}}
+    @if (($topMenus ?? collect())->isNotEmpty())
+        <div class="bg-brand-bg">
+            <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-end gap-2 px-4 py-2">
+                @foreach ($topMenus as $tm)
+                    <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
+                       @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
+                       class="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-brand-fg transition hover:bg-brand-dark">
+                        {{ $tm->label() }}
+                    </a>
+                @endforeach
+            </nav>
+        </div>
+    @endif
+
     @php($nav = array_filter([
         ['home', 'ホーム'],
         ['news.index', 'ニュース'],
@@ -73,7 +89,7 @@
         </nav>
     </header>
 
-    <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+    <main @class(['mx-auto w-full flex-1 px-4 py-8', 'max-w-6xl' => $wide, 'max-w-5xl' => ! $wide])>
         @isset($title)
             <h1 class="mb-6 text-2xl font-bold tracking-tight text-gray-900">{{ $title }}</h1>
         @endisset

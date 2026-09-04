@@ -32,6 +32,14 @@ class ContentSort extends Model
         return $query->orderBy('junban')->orderBy('id');
     }
 
+    /**
+     * トップレベル（father_id が 0 または null）のカテゴリ。
+     */
+    public function scopeTopLevel(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->whereNull('father_id')->orWhere('father_id', 0));
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'father_id');

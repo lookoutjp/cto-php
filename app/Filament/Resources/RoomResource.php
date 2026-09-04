@@ -3,18 +3,44 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoomResource\Pages;
+use App\Models\Member;
 use App\Models\Room;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * rooms（テナント本体）。Room 自身は BelongsToSite を持てない（テナントの主体そのものなので）。
+ * 素の Eloquent クエリは全テナントを返してしまうため、ここで「自分が管理するサイトのみ」に絞る。
+ * これを怠ると、あるサイトの管理員が他サイト（本番 www 含む）の設定
+ * （function_list・site_joutai・SMTP認証情報等）を編集できてしまう。
+ */
 class RoomResource extends Resource
 {
     protected static ?string $model = Room::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user instanceof Member && ! $user->isSuperAdmin()) {
+            $query->whereIn('site_id', $user->manageableSiteIds());
+        }
+
+        return $query;
+    }
+
+    /** 新規テナント作成はスーパー管理者のみ（現状セルフサーブのテナント作成は未提供）。 */
+    public static function canCreate(): bool
+    {
+        return auth()->user() instanceof Member && auth()->user()->isSuperAdmin();
+    }
 
     public static function form(Form $form): Form
     {

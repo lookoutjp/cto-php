@@ -29,9 +29,6 @@ class LevelResource extends Resource
                 Forms\Components\TextInput::make('levelname')
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('site_id')
-                    ->required()
-                    ->maxLength(50),
             ]);
     }
 

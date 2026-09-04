@@ -6,7 +6,10 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <p class="mb-4 text-sm text-gray-500">{{ $site?->sitename ?? config('app.name') }} &gt; マイページ</p>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+        <div class="order-1 space-y-6">
 
             <div class="rounded-lg bg-white p-5 shadow-sm">
                 <p class="text-sm text-gray-500">こんにちは</p>
@@ -117,6 +120,13 @@
             </section>
             @endif
 
+        </div>
+
+        <div class="order-2">
+            @include('layouts.partials.my-menu')
+        </div>
+
+        </div>
         </div>
     </div>
 </x-app-layout>

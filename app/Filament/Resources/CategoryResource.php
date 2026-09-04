@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,17 +17,23 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'ステージ／カテゴリ';
+
+    protected static ?string $modelLabel = 'ステージ／カテゴリ';
+
+    protected static ?string $pluralModelLabel = 'ステージ／カテゴリ';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('categoryname')
+                Forms\Components\TextInput::make('categoryname')->label(FieldLabels::ja('categoryname'))
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('junban')
+                Forms\Components\TextInput::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('kind')
+                Forms\Components\TextInput::make('kind')->label(FieldLabels::ja('kind'))
                     ->maxLength(255)
                     ->default(null),
             ]);
@@ -36,12 +43,12 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('categoryname')
+                Tables\Columns\TextColumn::make('categoryname')->label(FieldLabels::ja('categoryname'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('junban')
+                Tables\Columns\TextColumn::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('kind')
+                Tables\Columns\TextColumn::make('kind')->label(FieldLabels::ja('kind'))
                     ->searchable(),
             ])
             ->filters([

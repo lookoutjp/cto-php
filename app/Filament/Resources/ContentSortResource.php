@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContentSortResource\Pages;
 use App\Models\ContentSort;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,38 +17,44 @@ class ContentSortResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'コンテンツカテゴリ';
+
+    protected static ?string $modelLabel = 'コンテンツカテゴリ';
+
+    protected static ?string $pluralModelLabel = 'コンテンツカテゴリ';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('categoryimage')
+                Forms\Components\TextInput::make('categoryimage')->label(FieldLabels::ja('categoryimage'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('father_id')
+                Forms\Components\TextInput::make('father_id')->label(FieldLabels::ja('father_id'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('introduce')
+                Forms\Components\Textarea::make('introduce')->label(FieldLabels::ja('introduce'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('junban')
+                Forms\Components\TextInput::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('koukaiflag')
+                Forms\Components\TextInput::make('koukaiflag')->label(FieldLabels::ja('koukaiflag'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('link')
+                Forms\Components\Textarea::make('link')->label(FieldLabels::ja('link'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('manager')
+                Forms\Components\TextInput::make('manager')->label(FieldLabels::ja('manager'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('name')
+                Forms\Components\TextInput::make('name')->label(FieldLabels::ja('name'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('ninshou')
+                Forms\Components\TextInput::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('ninshouspecial')
+                Forms\Components\Textarea::make('ninshouspecial')->label(FieldLabels::ja('ninshouspecial'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('tobbs')
+                Forms\Components\TextInput::make('tobbs')->label(FieldLabels::ja('tobbs'))
                     ->maxLength(50)
                     ->default(null),
             ]);
@@ -57,25 +64,25 @@ class ContentSortResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('categoryimage')
+                Tables\Columns\TextColumn::make('categoryimage')->label(FieldLabels::ja('categoryimage'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('father_id')
+                Tables\Columns\TextColumn::make('father_id')->label(FieldLabels::ja('father_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('junban')
+                Tables\Columns\TextColumn::make('junban')->label(FieldLabels::ja('junban'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('koukaiflag')
+                Tables\Columns\TextColumn::make('koukaiflag')->label(FieldLabels::ja('koukaiflag'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('manager')
+                Tables\Columns\TextColumn::make('manager')->label(FieldLabels::ja('manager'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')->label(FieldLabels::ja('name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('ninshou')
+                Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tobbs')
+                Tables\Columns\TextColumn::make('tobbs')->label(FieldLabels::ja('tobbs'))
                     ->searchable(),
             ])
             ->filters([

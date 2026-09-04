@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SurveyChoiceResultResource\Pages;
 use App\Models\SurveyChoiceResult;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,18 +17,24 @@ class SurveyChoiceResultResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'サーベイ回答結果';
+
+    protected static ?string $modelLabel = 'サーベイ回答結果';
+
+    protected static ?string $pluralModelLabel = 'サーベイ回答結果';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('choice_number')
+                Forms\Components\TextInput::make('choice_number')->label(FieldLabels::ja('choice_number'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\DateTimePicker::make('dt'),
-                Forms\Components\TextInput::make('member_id')
+                Forms\Components\DateTimePicker::make('dt')->label(FieldLabels::ja('dt')),
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('survey_id')
+                Forms\Components\TextInput::make('survey_id')->label(FieldLabels::ja('survey_id'))
                     ->numeric()
                     ->default(null),
             ]);
@@ -37,15 +44,15 @@ class SurveyChoiceResultResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('choice_number')
+                Tables\Columns\TextColumn::make('choice_number')->label(FieldLabels::ja('choice_number'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('dt')
+                Tables\Columns\TextColumn::make('dt')->label(FieldLabels::ja('dt'))
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('member_id')
+                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('survey_id')
+                Tables\Columns\TextColumn::make('survey_id')->label(FieldLabels::ja('survey_id'))
                     ->numeric()
                     ->sortable(),
             ])

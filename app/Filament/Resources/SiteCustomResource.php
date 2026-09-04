@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SiteCustomResource\Pages;
 use App\Models\SiteCustom;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,13 +17,19 @@ class SiteCustomResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'カスタム項目';
+
+    protected static ?string $modelLabel = 'カスタム項目';
+
+    protected static ?string $pluralModelLabel = 'カスタム項目';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('custcont')
+                Forms\Components\Textarea::make('custcont')->label(FieldLabels::ja('custcont'))
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('f1')
+                Forms\Components\Textarea::make('f1')->label(FieldLabels::ja('f1'))
                     ->columnSpanFull(),
             ]);
     }
@@ -31,7 +38,7 @@ class SiteCustomResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('custname')
+                Tables\Columns\TextColumn::make('custname')->label(FieldLabels::ja('custname'))
                     ->searchable(),
             ])
             ->filters([

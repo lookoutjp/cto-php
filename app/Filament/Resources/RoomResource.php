@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RoomResource\Pages;
 use App\Models\Member;
 use App\Models\Room;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -23,6 +24,12 @@ class RoomResource extends Resource
     protected static ?string $model = Room::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationLabel = 'サイト設定';
+
+    protected static ?string $modelLabel = 'サイト設定';
+
+    protected static ?string $pluralModelLabel = 'サイト設定';
 
     public static function getEloquentQuery(): Builder
     {
@@ -46,111 +53,111 @@ class RoomResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('comaddress')
+                Forms\Components\TextInput::make('comaddress')->label(FieldLabels::ja('comaddress'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('comemail')
+                Forms\Components\TextInput::make('comemail')->label(FieldLabels::ja('comemail'))
                     ->email()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('comfax')
+                Forms\Components\TextInput::make('comfax')->label(FieldLabels::ja('comfax'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('comname')
+                Forms\Components\TextInput::make('comname')->label(FieldLabels::ja('comname'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('comomanager')
+                Forms\Components\TextInput::make('comomanager')->label(FieldLabels::ja('comomanager'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('comphone')
+                Forms\Components\TextInput::make('comphone')->label(FieldLabels::ja('comphone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('compostcode')
+                Forms\Components\TextInput::make('compostcode')->label(FieldLabels::ja('compostcode'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('copyright')
+                Forms\Components\Textarea::make('copyright')->label(FieldLabels::ja('copyright'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('favicon')
+                Forms\Components\TextInput::make('favicon')->label(FieldLabels::ja('favicon'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\Textarea::make('function_list')
+                Forms\Components\Textarea::make('function_list')->label(FieldLabels::ja('function_list'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('homepagemainimage')
+                Forms\Components\TextInput::make('homepagemainimage')->label(FieldLabels::ja('homepagemainimage'))
                     ->maxLength(250)
                     ->default(null),
                 Forms\Components\TextInput::make('id')
                     ->label('ID')
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('komon')
+                Forms\Components\TextInput::make('komon')->label(FieldLabels::ja('komon'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('logo')
+                Forms\Components\TextInput::make('logo')->label(FieldLabels::ja('logo'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('logoheight')
+                Forms\Components\TextInput::make('logoheight')->label(FieldLabels::ja('logoheight'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('logowidth')
+                Forms\Components\TextInput::make('logowidth')->label(FieldLabels::ja('logowidth'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('manager_shouko')
+                Forms\Components\TextInput::make('manager_shouko')->label(FieldLabels::ja('manager_shouko'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('managerwords')
+                Forms\Components\Textarea::make('managerwords')->label(FieldLabels::ja('managerwords'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('online')
+                Forms\Components\TextInput::make('online')->label(FieldLabels::ja('online'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('pagebackimage')
+                Forms\Components\TextInput::make('pagebackimage')->label(FieldLabels::ja('pagebackimage'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('pagebackimagerepeat')
+                Forms\Components\TextInput::make('pagebackimagerepeat')->label(FieldLabels::ja('pagebackimagerepeat'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('pagetopimage')
+                Forms\Components\TextInput::make('pagetopimage')->label(FieldLabels::ja('pagetopimage'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('pagewidth')
+                Forms\Components\TextInput::make('pagewidth')->label(FieldLabels::ja('pagewidth'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('sitebgcolor')
+                Forms\Components\TextInput::make('sitebgcolor')->label(FieldLabels::ja('sitebgcolor'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('sitecolor')
+                Forms\Components\TextInput::make('sitecolor')->label(FieldLabels::ja('sitecolor'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('sitedomain')
+                Forms\Components\TextInput::make('sitedomain')->label(FieldLabels::ja('sitedomain'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('siteintro')
+                Forms\Components\Textarea::make('siteintro')->label(FieldLabels::ja('siteintro'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('site_joutai')
+                Forms\Components\TextInput::make('site_joutai')->label(FieldLabels::ja('site_joutai'))
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('site_mail')
+                Forms\Components\TextInput::make('site_mail')->label(FieldLabels::ja('site_mail'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('sitename')
+                Forms\Components\TextInput::make('sitename')->label(FieldLabels::ja('sitename'))
                     ->maxLength(250)
                     ->default(null),
-                Forms\Components\TextInput::make('sitename_color')
+                Forms\Components\TextInput::make('sitename_color')->label(FieldLabels::ja('sitename_color'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('smtpid')
+                Forms\Components\TextInput::make('smtpid')->label(FieldLabels::ja('smtpid'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('smtppass')
+                Forms\Components\TextInput::make('smtppass')->label(FieldLabels::ja('smtppass'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('smtpserver')
+                Forms\Components\TextInput::make('smtpserver')->label(FieldLabels::ja('smtpserver'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('sw_koukoku')
+                Forms\Components\TextInput::make('sw_koukoku')->label(FieldLabels::ja('sw_koukoku'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('webmanager')
+                Forms\Components\TextInput::make('webmanager')->label(FieldLabels::ja('webmanager'))
                     ->maxLength(50)
                     ->default(null),
             ]);
@@ -160,77 +167,77 @@ class RoomResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('comaddress')
+                Tables\Columns\TextColumn::make('comaddress')->label(FieldLabels::ja('comaddress'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('comemail')
+                Tables\Columns\TextColumn::make('comemail')->label(FieldLabels::ja('comemail'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('comfax')
+                Tables\Columns\TextColumn::make('comfax')->label(FieldLabels::ja('comfax'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('comname')
+                Tables\Columns\TextColumn::make('comname')->label(FieldLabels::ja('comname'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('comomanager')
+                Tables\Columns\TextColumn::make('comomanager')->label(FieldLabels::ja('comomanager'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('comphone')
+                Tables\Columns\TextColumn::make('comphone')->label(FieldLabels::ja('comphone'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('compostcode')
+                Tables\Columns\TextColumn::make('compostcode')->label(FieldLabels::ja('compostcode'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('favicon')
+                Tables\Columns\TextColumn::make('favicon')->label(FieldLabels::ja('favicon'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('homepagemainimage')
+                Tables\Columns\TextColumn::make('homepagemainimage')->label(FieldLabels::ja('homepagemainimage'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('komon')
+                Tables\Columns\TextColumn::make('komon')->label(FieldLabels::ja('komon'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('logo')
+                Tables\Columns\TextColumn::make('logo')->label(FieldLabels::ja('logo'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('logoheight')
+                Tables\Columns\TextColumn::make('logoheight')->label(FieldLabels::ja('logoheight'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('logowidth')
+                Tables\Columns\TextColumn::make('logowidth')->label(FieldLabels::ja('logowidth'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('manager_shouko')
+                Tables\Columns\TextColumn::make('manager_shouko')->label(FieldLabels::ja('manager_shouko'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('online')
+                Tables\Columns\TextColumn::make('online')->label(FieldLabels::ja('online'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('pagebackimage')
+                Tables\Columns\TextColumn::make('pagebackimage')->label(FieldLabels::ja('pagebackimage'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('pagebackimagerepeat')
+                Tables\Columns\TextColumn::make('pagebackimagerepeat')->label(FieldLabels::ja('pagebackimagerepeat'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('pagetopimage')
+                Tables\Columns\TextColumn::make('pagetopimage')->label(FieldLabels::ja('pagetopimage'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('pagewidth')
+                Tables\Columns\TextColumn::make('pagewidth')->label(FieldLabels::ja('pagewidth'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sitebgcolor')
+                Tables\Columns\TextColumn::make('sitebgcolor')->label(FieldLabels::ja('sitebgcolor'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sitecolor')
+                Tables\Columns\TextColumn::make('sitecolor')->label(FieldLabels::ja('sitecolor'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sitedomain')
+                Tables\Columns\TextColumn::make('sitedomain')->label(FieldLabels::ja('sitedomain'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('site_id')
+                Tables\Columns\TextColumn::make('site_id')->label(FieldLabels::ja('site_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('site_joutai')
+                Tables\Columns\TextColumn::make('site_joutai')->label(FieldLabels::ja('site_joutai'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('site_mail')
+                Tables\Columns\TextColumn::make('site_mail')->label(FieldLabels::ja('site_mail'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sitename')
+                Tables\Columns\TextColumn::make('sitename')->label(FieldLabels::ja('sitename'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sitename_color')
+                Tables\Columns\TextColumn::make('sitename_color')->label(FieldLabels::ja('sitename_color'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('smtpid')
+                Tables\Columns\TextColumn::make('smtpid')->label(FieldLabels::ja('smtpid'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('smtppass')
+                Tables\Columns\TextColumn::make('smtppass')->label(FieldLabels::ja('smtppass'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('smtpserver')
+                Tables\Columns\TextColumn::make('smtpserver')->label(FieldLabels::ja('smtpserver'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sw_koukoku')
+                Tables\Columns\TextColumn::make('sw_koukoku')->label(FieldLabels::ja('sw_koukoku'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('webmanager')
+                Tables\Columns\TextColumn::make('webmanager')->label(FieldLabels::ja('webmanager'))
                     ->searchable(),
             ])
             ->filters([

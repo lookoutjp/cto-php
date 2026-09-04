@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RelationResource\Pages;
 use App\Models\Relation;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,26 +17,32 @@ class RelationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'タスク関連';
+
+    protected static ?string $modelLabel = 'タスク関連';
+
+    protected static ?string $pluralModelLabel = 'タスク関連';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('delete_to')
+                Forms\Components\TextInput::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('id_from')
+                Forms\Components\TextInput::make('id_from')->label(FieldLabels::ja('id_from'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('id_from_kind')
+                Forms\Components\TextInput::make('id_from_kind')->label(FieldLabels::ja('id_from_kind'))
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('id_to')
+                Forms\Components\TextInput::make('id_to')->label(FieldLabels::ja('id_to'))
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('id_to_kind')
+                Forms\Components\TextInput::make('id_to_kind')->label(FieldLabels::ja('id_to_kind'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('rtype')
+                Forms\Components\TextInput::make('rtype')->label(FieldLabels::ja('rtype'))
                     ->required()
                     ->maxLength(255),
             ]);
@@ -45,20 +52,20 @@ class RelationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('delete_to')
+                Tables\Columns\TextColumn::make('delete_to')->label(FieldLabels::ja('delete_to'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('id_from')
+                Tables\Columns\TextColumn::make('id_from')->label(FieldLabels::ja('id_from'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('id_from_kind')
+                Tables\Columns\TextColumn::make('id_from_kind')->label(FieldLabels::ja('id_from_kind'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('id_to')
+                Tables\Columns\TextColumn::make('id_to')->label(FieldLabels::ja('id_to'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('id_to_kind')
+                Tables\Columns\TextColumn::make('id_to_kind')->label(FieldLabels::ja('id_to_kind'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('rtype')
+                Tables\Columns\TextColumn::make('rtype')->label(FieldLabels::ja('rtype'))
                     ->searchable(),
             ])
             ->filters([

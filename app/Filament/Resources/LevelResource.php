@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\LevelResource\Pages;
 use App\Models\Level;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,17 +17,23 @@ class LevelResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = '組織階層';
+
+    protected static ?string $modelLabel = '組織階層';
+
+    protected static ?string $pluralModelLabel = '組織階層';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('fatherlevel')
+                Forms\Components\TextInput::make('fatherlevel')->label(FieldLabels::ja('fatherlevel'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\TextInput::make('level')
+                Forms\Components\TextInput::make('level')->label(FieldLabels::ja('level'))
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('levelname')
+                Forms\Components\TextInput::make('levelname')->label(FieldLabels::ja('levelname'))
                     ->maxLength(50)
                     ->default(null),
             ]);
@@ -36,15 +43,15 @@ class LevelResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('fatherlevel')
+                Tables\Columns\TextColumn::make('fatherlevel')->label(FieldLabels::ja('fatherlevel'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('level')
+                Tables\Columns\TextColumn::make('level')->label(FieldLabels::ja('level'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('levelname')
+                Tables\Columns\TextColumn::make('levelname')->label(FieldLabels::ja('levelname'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('site_id')
+                Tables\Columns\TextColumn::make('site_id')->label(FieldLabels::ja('site_id'))
                     ->searchable(),
             ])
             ->filters([

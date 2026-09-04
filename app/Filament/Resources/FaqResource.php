@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FaqResource\Pages;
 use App\Models\Faq;
+use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,16 +17,22 @@ class FaqResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'よくある質問';
+
+    protected static ?string $modelLabel = 'よくある質問';
+
+    protected static ?string $pluralModelLabel = 'よくある質問';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('answer')
+                Forms\Components\Textarea::make('answer')->label(FieldLabels::ja('answer'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('clicks')
+                Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('question')
+                Forms\Components\Textarea::make('question')->label(FieldLabels::ja('question'))
                     ->columnSpanFull(),
             ]);
     }
@@ -34,7 +41,7 @@ class FaqResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clicks')
+                Tables\Columns\TextColumn::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->sortable(),
             ])

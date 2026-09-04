@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireStyles
         @include('partials.theme-style')
         @include('partials.favicon')
     </head>
@@ -34,5 +35,7 @@
                 {{ $slot }}
             </div>
         </div>
+
+        @livewireScripts
     </body>
 </html>

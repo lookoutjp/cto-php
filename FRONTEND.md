@@ -90,6 +90,17 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/board` `/board/categories/{id}` `/board/threads/{id}` ほか | `Member\BoardController` | meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp | 掲示板。`/board`=コミュニティ一覧（`guestbook_categories`。id=1 は「サイト掲示板」既定カテゴリで一覧では別枠表示）／`categories/{id}`=スレッド一覧（`guestbooks` の `parent='0'`、返信数・管理員返信バッジ、10件/頁）／`threads/{id}`=スレッド詳細（本文＋`revert` 管理員返信＋`parent`/`top`/`space_num` の自己参照ツリーで返信をインデント表示、各ノードに Alpine 開閉式の返信フォーム）／`categories/{id}/new` 新規スレッド。返信は `top`=スレッド先頭ID・`space_num`=親+1 を自動セット。`create_date` に投稿時刻。旧Access由来の空行は `Guestbook::scopeReal()` で除外。管理員返信の編集は Filament（`GuestbookResource`）。`freeguestbookfunction` 必須 |
 | コンテンツのコメント（`<livewire:public.content-comments>`） | 公開コンテンツ詳細に埋め込み | ContentCommentSon.asp / ContentComment_Write.asp / ContentCommentList.asp | `commentfunction` かつ `contents.commentok=1` のとき表示。`content_comments` を新しい順・10件/頁。閲覧は誰でも、投稿はプロジェクト参加者のみ（未ログインは「ログインすると…」、`ninshou=0` は不可の旨）。`time` は旧データにあわせ `Y/m/d H:i:s` 文字列で保存 |
 
+## サイトロゴ・favicon（`x-site-logo` / `partials.favicon`）
+
+`rooms.logo`（例 `img/logoCTO.png`。旧ASPの実ファイルを `public/img/` にそのまま配置済み）を
+ヘッダー（公開フロント・会員画面）とログイン/登録画面で共通コンポーネント `<x-site-logo :site="$site" />`
+経由で表示する。`logo` 未設定のテナントは既定の SVG マークにフォールバック。
+ロゴ画像がある場合、隣に重複してサイト名テキストは出さない（ロゴ自体に文字が入っているため）。
+favicon も同様に `rooms.favicon` があれば優先、無ければ `public/img/favicon.png`（`partials/favicon.blade.php`）。
+
+Blade の匿名コンポーネントは呼び出し元のスコープを自動継承しない（`@include` と違う）ため、
+`$site` は明示的に `:site="$site"` で渡す必要がある点に注意。
+
 ## 旧ASPページ名のリンク解決（`App\Support\LegacyLinkResolver`）
 
 `top_menus.linkaddress` や `content_sorts.link` には旧ASPの相対パス（`index.asp`・

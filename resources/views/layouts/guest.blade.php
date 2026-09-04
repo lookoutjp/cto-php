@@ -14,16 +14,19 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @include('partials.theme-style')
+        @include('partials.favicon')
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="h-1 bg-brand"></div>
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
             <div>
                 <a href="/" class="flex flex-col items-center gap-2">
-                    <x-application-logo class="w-16 h-16 fill-current text-brand" />
-                    <span class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
-                        {{ $site?->sitename ?? config('app.name') }}
-                    </span>
+                    <x-site-logo :site="$site" class="h-16 w-auto max-w-[200px]" />
+                    @unless (trim((string) $site?->logo))
+                        <span class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
+                            {{ $site?->sitename ?? config('app.name') }}
+                        </span>
+                    @endunless
                 </a>
             </div>
 

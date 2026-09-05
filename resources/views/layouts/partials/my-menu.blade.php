@@ -22,12 +22,6 @@
     <h2 class="bg-brand px-4 py-2 text-sm font-semibold text-brand-fg">✿ MyMenu</h2>
 
     <div class="divide-y divide-gray-100">
-        @if ($site && auth()->user()?->managesSite($site->site_id))
-            <a href="/admin" class="block bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
-                ⚙ 管理画面（メニュー・カテゴリ等の編集）
-            </a>
-        @endif
-
         <a href="{{ route('profile.edit') }}" class="block bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
             ユーザ情報
         </a>
@@ -128,4 +122,22 @@
             </a>
         @endif
     </div>
+
+    {{-- 管理員専用の入口。ninshou=-1（サイト管理員）のみ表示。権限のないメンバーには一切見えない。 --}}
+    @if ($site && auth()->user()?->managesSite($site->site_id))
+        <div class="border-t border-gray-200">
+            <h2 class="bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-500">管理者メニュー</h2>
+            <div class="divide-y divide-gray-100">
+                <a href="{{ route('filament.admin.resources.top-menus.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand">
+                    トップメニュー管理
+                </a>
+                <a href="{{ route('filament.admin.resources.content-sorts.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand">
+                    カテゴリ管理
+                </a>
+                <a href="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand">
+                    管理画面をすべて見る
+                </a>
+            </div>
+        </div>
+    @endif
 </div>

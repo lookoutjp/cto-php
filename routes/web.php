@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Member\BoardController;
@@ -63,6 +64,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // 旧ASPの「管理員モード」トグル。公開ページにインライン管理コントロールを出す/消す。
+    Route::post('/admin-mode/toggle', [AdminModeController::class, 'toggle'])->name('admin-mode.toggle');
 
     // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ。
     // 支払い滞納中のテナントは書き込み系をブロック（閲覧は可）。

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContentSortResource\Pages;
 use App\Models\ContentSort;
+use App\Support\CategoryOptions;
 use App\Support\CurrentSite;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -37,7 +38,7 @@ class ContentSortResource extends Resource
                 // 自分自身と自分の子孫は循環になるため候補から除外する。
                 Forms\Components\Select::make('father_id')
                     ->label('親カテゴリ')
-                    ->options(fn (?ContentSort $record) => self::parentOptions($record))
+                    ->options(fn (?ContentSort $record) => CategoryOptions::indented(withRoot: true, excludeId: $record?->id))
                     ->default(0)
                     ->selectablePlaceholder(false)
                     ->native(false)
@@ -125,49 +126,6 @@ class ContentSortResource extends Resource
                     ->maxLength(50)
                     ->columnSpanFull(),
             ]);
-    }
-
-    /**
-     * 親カテゴリ選択肢。ルート + 全カテゴリ（自分と子孫を除く）を階層インデントで返す。
-     *
-     * @return array<int, string>
-     */
-    private static function parentOptions(?ContentSort $record): array
-    {
-        $all = ContentSort::query()->orderBy('junban')->orderBy('id')->get();
-
-        // 除外対象: 自分自身と、その子孫すべて（循環防止）
-        $excluded = [];
-        if ($record) {
-            $excluded[$record->id] = true;
-            $stack = [$record->id];
-            while ($stack) {
-                $parentId = array_pop($stack);
-                foreach ($all->where('father_id', $parentId) as $child) {
-                    if (! isset($excluded[$child->id])) {
-                        $excluded[$child->id] = true;
-                        $stack[] = $child->id;
-                    }
-                }
-            }
-        }
-
-        $byFather = $all->groupBy(fn (ContentSort $c) => (int) $c->father_id);
-
-        $options = [0 => 'ルート'];
-
-        $walk = function (int $fatherId, int $depth) use (&$walk, $byFather, $excluded, &$options) {
-            foreach ($byFather->get($fatherId, collect()) as $node) {
-                if (isset($excluded[$node->id])) {
-                    continue;
-                }
-                $options[$node->id] = str_repeat('　', $depth).($depth > 0 ? '└ ' : '').$node->name;
-                $walk((int) $node->id, $depth + 1);
-            }
-        };
-        $walk(0, 0);
-
-        return $options;
     }
 
     public static function table(Table $table): Table

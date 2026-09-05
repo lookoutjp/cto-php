@@ -5,12 +5,17 @@ namespace App\Filament\Resources;
 use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\ContentResource\Pages;
 use App\Models\Content;
-use App\Support\FieldLabels;
+use App\Models\ContentSort;
+use App\Models\Member;
+use App\Models\MemberRoom;
+use App\Support\CategoryOptions;
+use App\Support\CurrentSite;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class ContentResource extends Resource
 {
@@ -30,134 +35,153 @@ class ContentResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DateTimePicker::make('adddatetime')->label(FieldLabels::ja('adddatetime')),
-                Forms\Components\TextInput::make('addtime')->label(FieldLabels::ja('addtime'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('commentok')->label(FieldLabels::ja('commentok'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('content_sort')->label(FieldLabels::ja('content_sort'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('createdt')->label(FieldLabels::ja('createdt')),
-                Forms\Components\TextInput::make('delitiji')->label(FieldLabels::ja('delitiji'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('edittime')->label(FieldLabels::ja('edittime')),
-                Forms\Components\Textarea::make('explain')->label(FieldLabels::ja('explain'))
+                Forms\Components\Select::make('content_sort')
+                    ->label('カテゴリ')
+                    ->options(fn () => CategoryOptions::indented())
+                    ->required()
+                    ->native(false)
+                    ->searchable()
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('hlsyosailink')->label(FieldLabels::ja('hlsyosailink'))
+
+                Forms\Components\TextInput::make('name')
+                    ->label('タイトル')
+                    ->required()
+                    ->maxLength(200)
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('introduce')->label(FieldLabels::ja('introduce'))
+
+                Forms\Components\TextInput::make('title2')
+                    ->label('副タイトル')
+                    ->maxLength(200)
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('junban')->label(FieldLabels::ja('junban'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\Textarea::make('keyword')->label(FieldLabels::ja('keyword'))
+
+                Forms\Components\Select::make('owner')
+                    ->label('投稿者')
+                    ->options(fn () => self::memberOptions())
+                    ->default(fn () => auth()->user()?->getAuthIdentifier())
+                    ->native(false)
+                    ->searchable()
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
-                    ->maxLength(225)
-                    ->default(null),
-                Forms\Components\Textarea::make('name')->label(FieldLabels::ja('name'))
+
+                Forms\Components\TextInput::make('keyword')
+                    ->label('キーワード')
+                    ->helperText('キーワードを「,」で区切ってください。')
+                    ->maxLength(255)
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('nameintro')->label(FieldLabels::ja('nameintro'))
+
+                // 本文（旧 explain）。旧CKEditor相当のリッチテキスト（無料のTipTap）。
+                TiptapEditor::make('explain')
+                    ->label('本文')
+                    ->profile('default')
+                    ->disk('s3')
+                    ->directory(fn () => 'sites/'.app(CurrentSite::class)->id().'/content')
+                    ->visibility('public')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('ninshou')->label(FieldLabels::ja('ninshou'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('ok')->label(FieldLabels::ja('ok'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('okngflag')->label(FieldLabels::ja('okngflag'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('oktime')->label(FieldLabels::ja('oktime'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\TextInput::make('owner')->label(FieldLabels::ja('owner'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\TextInput::make('recommend')->label(FieldLabels::ja('recommend'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('recommend_date')->label(FieldLabels::ja('recommend_date')),
-                Forms\Components\TextInput::make('survey_id')->label(FieldLabels::ja('survey_id'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('syokai')->label(FieldLabels::ja('syokai'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\TextInput::make('syosai')->label(FieldLabels::ja('syosai'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\Textarea::make('title2')->label(FieldLabels::ja('title2'))
+
+                Forms\Components\DateTimePicker::make('adddatetime')
+                    ->label('追加日時')
+                    ->seconds(true)
+                    ->default(now())
+                    ->columnSpanFull(),
+
+                Forms\Components\Radio::make('commentok')
+                    ->label('コメント設定')
+                    ->options([
+                        1 => 'コメントを受ける',
+                        0 => 'コメントを受けない',
+                    ])
+                    ->default(0)
+                    ->formatStateUsing(fn ($state) => (int) $state === 1 ? 1 : 0)
+                    ->dehydrateStateUsing(fn ($state) => (int) $state === 1 ? 1 : 0)
+                    ->columnSpanFull(),
+
+                // 公開設定（旧 ok）。下書き=0 / 審査待ち=2 / 公開済み=1。
+                // published() スコープ（ok=1）はそのまま。既存データ(0/1)は
+                // 下書き / 公開済み に自然対応する。
+                Forms\Components\Radio::make('ok')
+                    ->label('公開設定')
+                    ->options([
+                        '0' => '下書き',
+                        '2' => '審査待ち',
+                        '1' => '公開済み',
+                    ])
+                    ->default('0')
+                    ->formatStateUsing(fn ($state) => (string) ((int) $state))
+                    ->dehydrateStateUsing(fn ($state) => (int) $state)
+                    ->columnSpanFull(),
+
+                Forms\Components\Fieldset::make('その他')
+                    ->schema([
+                        Forms\Components\Toggle::make('recommend')
+                            ->label('おすすめに表示')
+                            ->formatStateUsing(fn ($state) => (int) $state === 1)
+                            ->dehydrateStateUsing(fn ($state) => $state ? 1 : 0),
+                        Forms\Components\TextInput::make('junban')
+                            ->label('表示順')
+                            ->numeric()
+                            ->helperText('小さいほど上に表示されます。'),
+                    ])
+                    ->columns(2)
                     ->columnSpanFull(),
             ]);
+    }
+
+    /**
+     * 投稿者(owner)候補: 現在サイトの会員。
+     *
+     * @return array<string, string>
+     */
+    private static function memberOptions(): array
+    {
+        $siteId = app(CurrentSite::class)->id();
+
+        $memberIds = MemberRoom::query()->where('site_id', $siteId)->pluck('member_id');
+
+        return Member::query()
+            ->whereIn('member_id', $memberIds)
+            ->orderBy('name')
+            ->get(['member_id', 'name'])
+            ->mapWithKeys(fn (Member $m) => [
+                $m->member_id => trim((string) $m->name) !== ''
+                    ? trim($m->name).'（'.$m->member_id.'）'
+                    : $m->member_id,
+            ])
+            ->all();
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('adddatetime')->label(FieldLabels::ja('adddatetime'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('name')->label('タイトル')
+                    ->searchable()
+                    ->limit(50),
+                Tables\Columns\TextColumn::make('content_sort')->label('カテゴリ')
+                    ->formatStateUsing(fn ($state) => ContentSort::find($state)?->name ?? $state)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('addtime')->label(FieldLabels::ja('addtime'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('clicks')->label(FieldLabels::ja('clicks'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('commentok')->label(FieldLabels::ja('commentok'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('content_sort')->label(FieldLabels::ja('content_sort'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('createdt')->label(FieldLabels::ja('createdt'))
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('delitiji')->label(FieldLabels::ja('delitiji'))
+                Tables\Columns\TextColumn::make('owner')->label('投稿者')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('edittime')->label(FieldLabels::ja('edittime'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('ok')->label('公開設定')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ((int) $state) {
+                        1 => '公開済み',
+                        2 => '審査待ち',
+                        default => '下書き',
+                    })
+                    ->color(fn ($state) => match ((int) $state) {
+                        1 => 'success',
+                        2 => 'warning',
+                        default => 'gray',
+                    }),
+                Tables\Columns\IconColumn::make('recommend')->label('おすすめ')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('adddatetime')->label('追加日時')
+                    ->dateTime('Y/m/d H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('junban')->label(FieldLabels::ja('junban'))
+                Tables\Columns\TextColumn::make('clicks')->label('閲覧数')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('ok')->label(FieldLabels::ja('ok'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('okngflag')->label(FieldLabels::ja('okngflag'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('oktime')->label(FieldLabels::ja('oktime'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('owner')->label(FieldLabels::ja('owner'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('recommend')->label(FieldLabels::ja('recommend'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('recommend_date')->label(FieldLabels::ja('recommend_date'))
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('survey_id')->label(FieldLabels::ja('survey_id'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('syokai')->label(FieldLabels::ja('syokai'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('syosai')->label(FieldLabels::ja('syosai'))
-                    ->searchable(),
             ])
+            ->defaultSort('adddatetime', 'desc')
             ->filters([
                 //
             ])

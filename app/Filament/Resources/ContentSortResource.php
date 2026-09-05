@@ -109,16 +109,6 @@ class ContentSortResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => $state === '' || $state === null ? null : (int) $state)
                     ->columnSpanFull(),
 
-                // 個別公開設定（旧 ninshouspecial）。チェック＝みんなに見える／
-                // 未チェック＝管理員だけに見える。既存データ(NULL や ',,')は「公開」扱い、
-                // 明示的に外したものだけ '0' として非公開にする（scopePublicVisible 参照）。
-                Forms\Components\Checkbox::make('ninshouspecial')
-                    ->label('個別公開設定（チェック：みんなに見える／未チェック：管理員だけに見える）')
-                    ->default(true)
-                    ->formatStateUsing(fn ($state) => $state !== '0')
-                    ->dehydrateStateUsing(fn ($state) => $state ? '1' : '0')
-                    ->columnSpanFull(),
-
                 Forms\Components\Checkbox::make('koukaiflag')
                     ->label('公開フラグ')
                     ->helperText('チェックした場合、メニューに表示され、該当権限を持つ訪問者がアクセスできます。')
@@ -127,11 +117,8 @@ class ContentSortResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => $state ? 1 : 0)
                     ->columnSpanFull(),
 
-                Forms\Components\TextInput::make('junban')
-                    ->label('表示順')
-                    ->numeric()
-                    ->helperText('小さいほど上に表示されます。公開ページ左サイドバーではドラッグでも並び替えできます。')
-                    ->columnSpanFull(),
+                // 表示順(junban)は公開ページ左サイドバーのドラッグ&ドロップで
+                // 並び替えるため、この画面では編集しない（フォームに出さない）。
 
                 Forms\Components\TextInput::make('manager')
                     ->label('担当者')

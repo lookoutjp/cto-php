@@ -31,7 +31,7 @@ class ContentSortResourceFormTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
     }
 
-    public function test_create_maps_radio_and_checkboxes_to_legacy_values(): void
+    public function test_create_maps_radio_and_checkbox_to_legacy_values(): void
     {
         $this->actingAsManager();
 
@@ -39,8 +39,7 @@ class ContentSortResourceFormTest extends TestCase
             ->fillForm([
                 'name' => '新カテゴリ',
                 'father_id' => 0,
-                'ninshou' => '1',          // ユーザ
-                'ninshouspecial' => false, // 管理員だけに見える
+                'ninshou' => '1', // ユーザ
                 'koukaiflag' => true,
             ])
             ->call('create')
@@ -48,7 +47,6 @@ class ContentSortResourceFormTest extends TestCase
 
         $cat = ContentSort::query()->where('name', '新カテゴリ')->firstOrFail();
         $this->assertSame(1, (int) $cat->ninshou);
-        $this->assertSame('0', (string) $cat->ninshouspecial);
         $this->assertSame(1, (int) $cat->koukaiflag);
     }
 
@@ -57,7 +55,7 @@ class ContentSortResourceFormTest extends TestCase
         $this->actingAsManager();
 
         Livewire::test(CreateContentSort::class)
-            ->fillForm(['name' => 'ゲスト向け', 'father_id' => 0, 'ninshou' => '', 'ninshouspecial' => true, 'koukaiflag' => true])
+            ->fillForm(['name' => 'ゲスト向け', 'father_id' => 0, 'ninshou' => '', 'koukaiflag' => true])
             ->call('create')
             ->assertHasNoFormErrors();
 
@@ -69,13 +67,12 @@ class ContentSortResourceFormTest extends TestCase
         $this->actingAsManager();
         $cat = ContentSort::create([
             'site_id' => 'www', 'name' => '既存', 'father_id' => 0,
-            'ninshou' => -1, 'ninshouspecial' => ',,', 'koukaiflag' => 0,
+            'ninshou' => -1, 'koukaiflag' => 0,
         ]);
 
         Livewire::test(EditContentSort::class, ['record' => $cat->getKey()])
             ->assertFormSet([
                 'ninshou' => '-1',
-                'ninshouspecial' => true, // 旧データ ',,' は「公開(チェック)」扱い
                 'koukaiflag' => false,
             ]);
     }

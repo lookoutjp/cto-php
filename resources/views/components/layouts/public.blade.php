@@ -14,17 +14,45 @@
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
     <div class="h-1 bg-brand"></div>
 
+    @php($adminMode = $adminMode ?? false)
+    @if ($adminMode)
+        <div class="bg-amber-500 px-4 py-1.5 text-center text-sm font-semibold text-white sm:px-6 lg:px-8">
+            🛠 管理者モードで表示中です。トップメニューとカテゴリを直接追加・編集できます。
+            <form method="POST" action="{{ route('admin-mode.toggle') }}" class="inline">
+                @csrf
+                <button type="submit" class="ml-2 underline hover:no-underline">終了する</button>
+            </form>
+        </div>
+    @endif
+
     {{-- 旧 inc_top.asp 相当のトップメニュー（top_menus）。運営者が Filament で登録した場合のみ表示 --}}
-    @if (($topMenus ?? collect())->isNotEmpty())
+    @if (($topMenus ?? collect())->isNotEmpty() || $adminMode)
         <div class="bg-brand-bg">
             <nav class="flex flex-wrap items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
                 @foreach ($topMenus as $tm)
-                    <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
-                       @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
-                       class="rounded-md bg-brand px-3 py-1.5 text-base font-medium text-brand-fg transition hover:bg-brand-dark">
-                        {{ $tm->label() }}
-                    </a>
+                    <span class="inline-flex items-center gap-1">
+                        <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
+                           @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
+                           class="rounded-md bg-brand px-3 py-1.5 text-base font-medium text-brand-fg transition hover:bg-brand-dark">
+                            {{ $tm->label() }}
+                        </a>
+                        @if ($adminMode)
+                            <a href="{{ route('filament.admin.resources.top-menus.edit', $tm) }}"
+                               class="rounded-md bg-white/90 p-1.5 text-brand hover:bg-white" title="「{{ $tm->label() }}」を編集">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                        @endif
+                    </span>
                 @endforeach
+
+                @if ($adminMode)
+                    <a href="{{ route('filament.admin.resources.top-menus.create') }}"
+                       class="rounded-md border border-dashed border-amber-600 px-3 py-1.5 text-base font-medium text-amber-700 hover:bg-amber-50">
+                        ＋ メニューを追加
+                    </a>
+                @endif
             </nav>
         </div>
     @endif
@@ -63,6 +91,17 @@
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <a href="/admin" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">管理画面</a>
+                        <form method="POST" action="{{ route('admin-mode.toggle') }}" class="ml-2">
+                            @csrf
+                            <button type="submit"
+                                    @class([
+                                        'rounded-md border px-3 py-2 transition',
+                                        'border-amber-600 bg-amber-500 text-white hover:bg-amber-600' => $adminMode,
+                                        'border-gray-300 text-gray-700 hover:bg-gray-100' => ! $adminMode,
+                                    ])>
+                                {{ $adminMode ? '管理者モード終了' : '管理者モード開始' }}
+                            </button>
+                        </form>
                     @endif
                     <a href="{{ route('dashboard') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">マイページ</a>
                 @else
@@ -92,6 +131,12 @@
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>
+                        <form method="POST" action="{{ route('admin-mode.toggle') }}">
+                            @csrf
+                            <button type="submit" class="block w-full ps-3 pe-4 py-2 text-start text-base font-medium text-amber-700 hover:bg-amber-50">
+                                {{ $adminMode ? '🛠 管理者モード終了' : '🛠 管理者モード開始' }}
+                            </button>
+                        </form>
                     @endif
                     <x-responsive-nav-link href="{{ route('dashboard') }}">マイページ</x-responsive-nav-link>
                 @else
@@ -102,33 +147,49 @@
     </header>
 
     @php($sidebarCategories = $sidebarCategories ?? collect())
+    @php($showSidebar = $sidebarCategories->isNotEmpty() || $adminMode)
     <main class="w-full flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <div @class([
             'grid grid-cols-1 gap-6',
-            'lg:grid-cols-[190px_minmax(0,1fr)_220px]' => isset($aside) && $sidebarCategories->isNotEmpty(),
-            'lg:grid-cols-[190px_minmax(0,1fr)]' => ! isset($aside) && $sidebarCategories->isNotEmpty(),
-            'lg:grid-cols-[minmax(0,1fr)_220px]' => isset($aside) && $sidebarCategories->isEmpty(),
+            'lg:grid-cols-[190px_minmax(0,1fr)_220px]' => isset($aside) && $showSidebar,
+            'lg:grid-cols-[190px_minmax(0,1fr)]' => ! isset($aside) && $showSidebar,
+            'lg:grid-cols-[minmax(0,1fr)_220px]' => isset($aside) && ! $showSidebar,
         ])>
             {{-- 旧 inc_left.asp 相当の左サイドバー「カテゴリ」（content_sorts のトップレベル）。全ページ共通 --}}
-            @if ($sidebarCategories->isNotEmpty())
+            @if ($showSidebar)
                 @php($activeCategoryId = request()->routeIs('contents.index') ? request()->integer('category') : null)
                 <aside class="order-2 lg:order-1">
                     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                         <h2 class="bg-brand-bg px-4 py-2 text-base font-semibold text-brand">カテゴリ</h2>
                         <ul class="divide-y divide-gray-100 text-base">
                             @foreach ($sidebarCategories as $cat)
-                                <li>
+                                <li @class(['flex items-center justify-between' => $adminMode])>
                                     <a href="{{ \App\Support\LegacyLinkResolver::resolve($cat->link, $site, route('contents.index', ['category' => $cat->id])) }}"
                                        @class([
                                            'block px-4 py-2 hover:bg-gray-50 hover:text-brand',
+                                           'flex-1' => $adminMode,
                                            'bg-brand-bg font-medium text-brand' => $activeCategoryId === $cat->id,
                                            'text-gray-700' => $activeCategoryId !== $cat->id,
                                        ])>
                                         {{ $cat->name }}
                                     </a>
+                                    @if ($adminMode)
+                                        <a href="{{ route('filament.admin.resources.content-sorts.edit', $cat) }}"
+                                           class="mr-2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-brand" title="「{{ $cat->name }}」を編集">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
+                        @if ($adminMode)
+                            <a href="{{ route('filament.admin.resources.content-sorts.create') }}"
+                               class="block border-t border-dashed border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50">
+                                ＋ カテゴリを追加
+                            </a>
+                        @endif
                     </div>
                 </aside>
             @endif

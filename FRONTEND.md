@@ -34,11 +34,22 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
 
 - `ninshou = 0` = コンテンツ閲覧のみの会員。PM機能は不可。旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
-- 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）は移植していない。
-  管理は Filament（`/admin`）に一本化: `top_menus`→`TopMenuResource`、`content_sorts`（並び順=`junban`、
+- 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）相当を、
+  「管理者モード」として一部復活させている（フェーズ1: トップメニュー・カテゴリのみ）。
+  - `App\Support\AdminMode`: サイトごとのON/OFF（session）。判定のみ、権限チェックは呼び出し側。
+  - `AdminModeController@toggle`（`POST /admin-mode/toggle`）: サイト管理員のみ切替可（他は403）。
+  - ONの間、公開ヘッダーのトップメニュー・カテゴリサイドバー（`components.layouts.public`）に
+    編集アイコン（→ Filament の該当編集ページへ直リンク。削除は編集ページのヘッダーアクションから）と
+    「＋追加」ボタン（→ Filament の作成ページへ直リンク）が出る。一覧・削除UIそのものはFilament任せで、
+    独自のインライン編集フォームは持たない（工数を抑えるための意図的な設計判断）。
+  - 対象を増やす場合はこのパターン（`$adminMode` フラグ + Filamentの index/create/edit route への
+    直リンク）を他のリソースにも横展開する。
+  管理そのものは引き続き Filament（`/admin`）に一本化: `top_menus`→`TopMenuResource`、`content_sorts`（並び順=`junban`、
   公開可否=`ninshou`、外部リンク=`link`）→`ContentSortResource`、ニュース→`NewsItemResource`、
   サイト設定（ロゴ・トップ画像・サイト名等）→`RoomResource`。フロント側の導線として、
-  サイト管理員（`managesSite()`）には公開ヘッダー・会員ヘッダー・MyMenu に「管理画面」リンクを表示する
+  サイト管理員（`managesSite()`）には公開ヘッダー・会員ヘッダー・MyMenu に「管理画面」リンクを表示する。
+  MyMenu 最下部の「管理者メニュー」ブロック（管理員のみ表示）にも、トップメニュー管理・カテゴリ管理への
+  ショートカットを置いている
 - **レコード単位のアクセス制御は無し**（旧ASP同様、参加者なら他人のタスクも編集・削除できる協働ツール）。
 - nav は `isProjectMemberOf()` で業務系リンクを出し分け。
 

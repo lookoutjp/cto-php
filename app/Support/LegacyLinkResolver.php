@@ -33,6 +33,7 @@ class LegacyLinkResolver
 
         return match (true) {
             $page === 'index.asp' => route('home'),
+            $page === 'aboutsite.asp' => route('about'),
             in_array($page, ['otoi.asp', 'otoi2.asp', 'otoi3.asp'], true) => route('contact.create'),
             $page === 'faq.asp' => route('faq.index'),
             $page === 'news.asp' => route('news.index'),

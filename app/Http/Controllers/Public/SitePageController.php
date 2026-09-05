@@ -10,11 +10,20 @@ use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * 旧ASP: managerwords.asp（管理員の言葉）/ friendlink 系（リンク集）。
- * どちらも公開ページで、rooms.function_list のフラグで出し分ける。
+ * 旧ASP: aboutsite.asp（サイト概要）/ managerwords.asp（管理員の言葉）/
+ * friendlink 系（リンク集）。後者2つは rooms.function_list のフラグで出し分ける。
  */
 class SitePageController extends Controller
 {
+    /**
+     * サイト概要（旧 aboutsite.asp）。機能フラグに関係なく常時公開。
+     * $site はレイアウト共通の View::composer（AppServiceProvider）が渡す。
+     */
+    public function about(): View
+    {
+        return view('public.about');
+    }
+
     public function managerWords(): View
     {
         $site = $this->siteWithFunction('managerwordsfunction');

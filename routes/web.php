@@ -37,6 +37,9 @@ Route::get('/contents/{content}', [ContentController::class, 'show'])->name('con
 
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
+// サイト概要（旧 aboutsite.asp）
+Route::get('/about', [SitePageController::class, 'about'])->name('about');
+
 // 管理員の言葉 / リンク集（旧 managerwords.asp / friendlink）
 Route::get('/manager', [SitePageController::class, 'managerWords'])->name('manager-words');
 Route::get('/links', [SitePageController::class, 'links'])->name('links.index');

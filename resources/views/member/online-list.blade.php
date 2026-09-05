@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="px-4 sm:px-6 lg:px-8">
             <p class="mb-3 text-sm text-gray-500">
                 直近 {{ \App\Models\Member::PRESENCE_MINUTES }} 分以内にアクセスした参加者（{{ $members->count() }} 名）
             </p>

@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+        <div class="px-4 sm:px-6 lg:px-8">
             <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
 
                 <div class="flex flex-wrap items-center gap-2">

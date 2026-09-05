@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-4xl space-y-3 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-3 px-4 sm:px-6 lg:px-8">
             @if ($site?->hasFunction('onlinemembersfunction'))
                 <div class="text-sm">
                     <a href="{{ route('members.online') }}" class="text-brand hover:underline">オンラインメンバーを見る →</a>

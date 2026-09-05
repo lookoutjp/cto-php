@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-3xl space-y-4 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-4 px-4 sm:px-6 lg:px-8">
 
             @if ($siteBoard)
                 <a href="{{ route('board.category', $siteBoard->id) }}"

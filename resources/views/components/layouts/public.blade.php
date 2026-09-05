@@ -17,7 +17,7 @@
     {{-- 旧 inc_top.asp 相当のトップメニュー（top_menus）。運営者が Filament で登録した場合のみ表示 --}}
     @if (($topMenus ?? collect())->isNotEmpty())
         <div class="bg-brand-bg">
-            <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-end gap-2 px-4 py-2">
+            <nav class="flex flex-wrap items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
                 @foreach ($topMenus as $tm)
                     <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
                        @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
@@ -39,7 +39,7 @@
         $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
     ]))
     <header class="border-b border-gray-200 bg-white" x-data="{ open: false }">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+        <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-2">
                 <x-site-logo :site="$site" class="h-12 w-auto" />
                 @unless (trim((string) $site?->logo))
@@ -102,7 +102,7 @@
     </header>
 
     @php($sidebarCategories = $sidebarCategories ?? collect())
-    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    <main class="w-full flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <div @class([
             'grid grid-cols-1 gap-6',
             'lg:grid-cols-[190px_minmax(0,1fr)_220px]' => isset($aside) && $sidebarCategories->isNotEmpty(),
@@ -150,7 +150,7 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white">
-        <div class="mx-auto max-w-6xl space-y-2 px-4 py-6 text-center text-sm text-gray-500">
+        <div class="space-y-2 px-4 py-6 text-center text-sm text-gray-500 sm:px-6 lg:px-8">
             <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
                 <a href="{{ route('legal.terms') }}" class="hover:text-gray-900">利用規約</a>
                 <a href="{{ route('legal.privacy') }}" class="hover:text-gray-900">プライバシーポリシー</a>

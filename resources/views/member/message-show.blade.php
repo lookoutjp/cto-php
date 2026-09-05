@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-2xl space-y-4 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-4 px-4 sm:px-6 lg:px-8">
             <div class="rounded-lg bg-white p-6 shadow-sm">
                 <dl class="grid grid-cols-1 gap-y-2 border-b border-gray-100 pb-4 text-sm sm:grid-cols-2">
                     <div class="flex gap-2"><dt class="w-16 shrink-0 text-gray-500">差出人</dt><dd class="text-gray-900">{{ $message->sender?->name ?? $message->from }}</dd></div>

@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-5xl space-y-4 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-4 px-4 sm:px-6 lg:px-8">
             <p class="text-xs text-gray-500">
                 サマリ項目の計画値と、その配下タスクの集計を比較します。
                 <span class="rounded bg-red-100 px-1 text-red-700">超過</span>

@@ -154,9 +154,16 @@
                 <aside class="order-2 lg:order-1">
                     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                         <h2 class="bg-brand-bg px-4 py-2 text-base font-semibold text-brand">カテゴリ</h2>
-                        <ul class="divide-y divide-gray-100 text-base">
+                        <ul id="sidebar-category-list" data-admin-mode="{{ $adminMode ? '1' : '0' }}" class="divide-y divide-gray-100 text-base">
                             @foreach ($sidebarCategories as $cat)
-                                <li @class(['flex items-center justify-between' => $adminMode])>
+                                <li data-id="{{ $cat->id }}" @class(['flex items-center justify-between' => $adminMode])>
+                                    @if ($adminMode)
+                                        <span class="category-drag-handle cursor-move p-2 text-gray-300 hover:text-gray-500" title="ドラッグで並び替え">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                            </svg>
+                                        </span>
+                                    @endif
                                     <a href="{{ \App\Support\LegacyLinkResolver::resolve($cat->link, $site, route('contents.index', ['category' => $cat->id])) }}"
                                        @class([
                                            'block px-4 py-2 hover:bg-gray-50 hover:text-brand',
@@ -178,6 +185,7 @@
                             @endforeach
                         </ul>
                         @if ($adminMode)
+                            <p id="category-sort-note" class="hidden px-4 py-1 text-xs text-gray-500"></p>
                             <a href="{{ route('filament.admin.resources.content-sorts.create') }}?back={{ $backUrl }}"
                                class="block border-t border-dashed border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50">
                                 ＋ カテゴリを追加

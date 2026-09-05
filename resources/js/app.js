@@ -1,6 +1,7 @@
 import './bootstrap';
 
 import './wbs-sortable';
+import './category-sortable';
 
 // Alpine.js は自前で import/start しない — Livewire 3 が同梱の Alpine を
 // 全ページに自動注入・自動起動するため、ここで別インスタンスを起動すると

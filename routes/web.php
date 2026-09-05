@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\CategoryReorderController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Member\BoardController;
 use App\Http\Controllers\Member\FileController;
@@ -70,6 +71,9 @@ Route::middleware('auth')->group(function () {
 
     // 旧ASPの「管理員モード」トグル。公開ページにインライン管理コントロールを出す/消す。
     Route::post('/admin-mode/toggle', [AdminModeController::class, 'toggle'])->name('admin-mode.toggle');
+
+    // 公開ページ左サイドバー「カテゴリ」の管理者モードでのドラッグ&ドロップ並び替え。
+    Route::post('/categories/reorder', [CategoryReorderController::class, 'reorder'])->name('categories.reorder');
 
     // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ。
     // 支払い滞納中のテナントは書き込み系をブロック（閲覧は可）。

@@ -68,8 +68,22 @@ class ContentController extends Controller
 
             $ownContents = $category->contents()->published()->listingOrder()->get();
 
+            // 「現在位置」をトップ→親→…→本カテゴリの階層で明示するための祖先リスト。
+            $byId = $all->keyBy('id');
+            $ancestors = [];
+            $cursor = $category;
+            while ($cursor->father_id) {
+                $parent = $byId->get((int) $cursor->father_id) ?? ContentSort::find($cursor->father_id);
+                if (! $parent) {
+                    break;
+                }
+                array_unshift($ancestors, $parent);
+                $cursor = $parent;
+            }
+
             return view('public.contents-index', [
-                'mode' => 'category', 'category' => $category, 'children' => $children, 'ownContents' => $ownContents,
+                'mode' => 'category', 'category' => $category, 'children' => $children,
+                'ownContents' => $ownContents, 'ancestors' => $ancestors,
             ]);
         }
 

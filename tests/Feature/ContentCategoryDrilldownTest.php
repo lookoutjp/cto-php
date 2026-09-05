@@ -66,6 +66,31 @@ class ContentCategoryDrilldownTest extends TestCase
             ->assertDontSee('prose', false);
     }
 
+    /**
+     * 「現在位置」は トップ→親→…→本カテゴリ の階層をすべて表示する（旧ASP同様）。
+     * 途中の階層（親カテゴリ）へもリンクが張られる。
+     */
+    public function test_breadcrumb_shows_the_full_ancestor_chain(): void
+    {
+        $root = ContentSort::create(['site_id' => 'www', 'name' => 'システム概要', 'father_id' => 0]);
+        $child = ContentSort::create(['site_id' => 'www', 'name' => '機能一覧', 'father_id' => $root->id]);
+
+        $response = $this->get("/contents?category={$child->id}")->assertOk();
+
+        $response->assertSeeInOrder(['現在位置', 'トップ', 'システム概要', '機能一覧']);
+        $response->assertSee('href="'.route('contents.index').'"', false);
+        $response->assertSee('href="'.route('contents.index', ['category' => $root->id]).'"', false);
+    }
+
+    public function test_top_level_category_breadcrumb_has_no_extra_ancestors(): void
+    {
+        $category = ContentSort::create(['site_id' => 'www', 'name' => 'システム概要', 'father_id' => 0]);
+
+        $response = $this->get("/contents?category={$category->id}")->assertOk();
+
+        $response->assertSeeInOrder(['現在位置', 'トップ', 'システム概要']);
+    }
+
     public function test_unknown_category_id_is_404(): void
     {
         $this->get('/contents?category=999999')->assertNotFound();

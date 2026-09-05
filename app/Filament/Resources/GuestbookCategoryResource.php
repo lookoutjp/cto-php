@@ -19,6 +19,8 @@ class GuestbookCategoryResource extends Resource
 
     protected static ?string $navigationLabel = '掲示板カテゴリ';
 
+    protected static ?int $navigationSort = 80;
+
     protected static ?string $modelLabel = '掲示板カテゴリ';
 
     protected static ?string $pluralModelLabel = '掲示板カテゴリ';

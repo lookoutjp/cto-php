@@ -19,6 +19,8 @@ class SurveyChoiceResultResource extends Resource
 
     protected static ?string $navigationLabel = 'サーベイ回答結果';
 
+    protected static ?int $navigationSort = 290;
+
     protected static ?string $modelLabel = 'サーベイ回答結果';
 
     protected static ?string $pluralModelLabel = 'サーベイ回答結果';

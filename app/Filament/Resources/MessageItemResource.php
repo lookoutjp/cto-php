@@ -19,6 +19,8 @@ class MessageItemResource extends Resource
 
     protected static ?string $navigationLabel = 'メッセージ';
 
+    protected static ?int $navigationSort = 150;
+
     protected static ?string $modelLabel = 'メッセージ';
 
     protected static ?string $pluralModelLabel = 'メッセージ';

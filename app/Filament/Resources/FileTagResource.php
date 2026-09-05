@@ -19,6 +19,8 @@ class FileTagResource extends Resource
 
     protected static ?string $navigationLabel = 'ファイルタグ';
 
+    protected static ?int $navigationSort = 70;
+
     protected static ?string $modelLabel = 'ファイルタグ';
 
     protected static ?string $pluralModelLabel = 'ファイルタグ';

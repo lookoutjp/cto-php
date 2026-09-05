@@ -30,6 +30,8 @@ class MemberRoomResource extends Resource
 
     protected static ?string $navigationLabel = '会員権限';
 
+    protected static ?int $navigationSort = 140;
+
     protected static ?string $modelLabel = '会員権限';
 
     protected static ?string $pluralModelLabel = '会員権限';

@@ -19,6 +19,8 @@ class StatusMasterResource extends Resource
 
     protected static ?string $navigationLabel = 'ステータスマスター';
 
+    protected static ?int $navigationSort = 270;
+
     protected static ?string $modelLabel = 'ステータスマスター';
 
     protected static ?string $pluralModelLabel = 'ステータスマスター';

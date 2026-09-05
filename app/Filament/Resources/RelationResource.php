@@ -19,6 +19,8 @@ class RelationResource extends Resource
 
     protected static ?string $navigationLabel = 'タスク関連';
 
+    protected static ?int $navigationSort = 220;
+
     protected static ?string $modelLabel = 'タスク関連';
 
     protected static ?string $pluralModelLabel = 'タスク関連';

@@ -20,6 +20,8 @@ class RoutineWorkListResource extends Resource
 
     protected static ?string $navigationLabel = '定例作業実績';
 
+    protected static ?int $navigationSort = 240;
+
     protected static ?string $modelLabel = '定例作業実績';
 
     protected static ?string $pluralModelLabel = '定例作業実績';

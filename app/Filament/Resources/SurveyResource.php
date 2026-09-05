@@ -19,6 +19,8 @@ class SurveyResource extends Resource
 
     protected static ?string $navigationLabel = 'サーベイ';
 
+    protected static ?int $navigationSort = 280;
+
     protected static ?string $modelLabel = 'サーベイ';
 
     protected static ?string $pluralModelLabel = 'サーベイ';

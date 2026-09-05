@@ -19,6 +19,8 @@ class SiteCustomResource extends Resource
 
     protected static ?string $navigationLabel = 'カスタム項目';
 
+    protected static ?int $navigationSort = 260;
+
     protected static ?string $modelLabel = 'カスタム項目';
 
     protected static ?string $pluralModelLabel = 'カスタム項目';

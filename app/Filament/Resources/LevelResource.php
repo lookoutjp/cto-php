@@ -19,6 +19,8 @@ class LevelResource extends Resource
 
     protected static ?string $navigationLabel = '組織階層';
 
+    protected static ?int $navigationSort = 340;
+
     protected static ?string $modelLabel = '組織階層';
 
     protected static ?string $pluralModelLabel = '組織階層';

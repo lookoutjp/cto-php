@@ -29,22 +29,19 @@ class ContentCommentResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Textarea::make('name')
+                    ->label('タイトル')
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('comment')->label(FieldLabels::ja('comment'))
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_id')->label(FieldLabels::ja('content_id'))
-                    ->maxLength(50)
-                    ->default(null),
                 Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('name')->label(FieldLabels::ja('name'))
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('ninshou')->label(FieldLabels::ja('ninshou'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('time')->label(FieldLabels::ja('time'))
+                Forms\Components\TextInput::make('time')
+                    ->label('日時')
                     ->maxLength(50)
                     ->default(null),
+                // 権限(ninshou)は非表示。DB既定値 0（マイグレーション + モデルの $attributes）。
             ]);
     }
 
@@ -52,14 +49,14 @@ class ContentCommentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('content_id')->label(FieldLabels::ja('content_id'))
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')->label('タイトル')
+                    ->searchable()
+                    ->limit(40),
+                Tables\Columns\TextColumn::make('comment')->label(FieldLabels::ja('comment'))
+                    ->limit(50),
                 Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('time')->label(FieldLabels::ja('time'))
+                Tables\Columns\TextColumn::make('time')->label('日時')
                     ->searchable(),
             ])
             ->filters([

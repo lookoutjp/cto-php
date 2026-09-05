@@ -21,7 +21,7 @@
                 @foreach ($topMenus as $tm)
                     <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
                        @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
-                       class="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-brand-fg transition hover:bg-brand-dark">
+                       class="rounded-md bg-brand px-3 py-1.5 text-base font-medium text-brand-fg transition hover:bg-brand-dark">
                         {{ $tm->label() }}
                     </a>
                 @endforeach
@@ -41,16 +41,16 @@
     <header class="border-b border-gray-200 bg-white" x-data="{ open: false }">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
             <a href="{{ route('home') }}" class="flex items-center gap-2">
-                <x-site-logo :site="$site" class="h-9 w-auto" />
+                <x-site-logo :site="$site" class="h-12 w-auto" />
                 @unless (trim((string) $site?->logo))
-                    <span class="text-lg font-bold tracking-tight" style="color: var(--brand-name)">
+                    <span class="text-xl font-bold tracking-tight" style="color: var(--brand-name)">
                         {{ $site?->sitename ?? config('app.name') }}
                     </span>
                 @endunless
             </a>
 
             {{-- デスクトップ: 横並びナビ --}}
-            <nav class="hidden items-center gap-1 text-sm sm:flex">
+            <nav class="hidden items-center gap-1 text-base sm:flex">
                 @foreach ($nav as [$routeName, $label])
                     <a href="{{ route($routeName) }}"
                        @class([
@@ -114,8 +114,8 @@
                 @php($activeCategoryId = request()->routeIs('contents.index') ? request()->integer('category') : null)
                 <aside class="order-2 lg:order-1">
                     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-                        <h2 class="bg-brand-bg px-4 py-2 text-sm font-semibold text-brand">カテゴリ</h2>
-                        <ul class="divide-y divide-gray-100 text-sm">
+                        <h2 class="bg-brand-bg px-4 py-2 text-base font-semibold text-brand">カテゴリ</h2>
+                        <ul class="divide-y divide-gray-100 text-base">
                             @foreach ($sidebarCategories as $cat)
                                 <li>
                                     <a href="{{ \App\Support\LegacyLinkResolver::resolve($cat->link, $site, route('contents.index', ['category' => $cat->id])) }}"
@@ -150,7 +150,7 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white">
-        <div class="mx-auto max-w-6xl space-y-2 px-4 py-6 text-center text-xs text-gray-500">
+        <div class="mx-auto max-w-6xl space-y-2 px-4 py-6 text-center text-sm text-gray-500">
             <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
                 <a href="{{ route('legal.terms') }}" class="hover:text-gray-900">利用規約</a>
                 <a href="{{ route('legal.privacy') }}" class="hover:text-gray-900">プライバシーポリシー</a>

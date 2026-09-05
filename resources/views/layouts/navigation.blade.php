@@ -1,12 +1,12 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-20">
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}" class="flex items-center gap-2">
-                        <x-site-logo :site="$site" class="block h-9 w-auto" />
+                        <x-site-logo :site="$site" class="block h-12 w-auto" />
                         @unless (trim((string) $site?->logo))
                             <span class="hidden font-bold tracking-tight sm:inline" style="color: var(--brand-name)">{{ $site?->sitename }}</span>
                         @endunless
@@ -36,7 +36,7 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:gap-3 sm:ms-6">
                 @if ($site && auth()->user()?->managesSite($site->site_id))
-                    <a href="/admin" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">管理画面</a>
+                    <a href="/admin" class="rounded-md border border-gray-300 px-3 py-1.5 text-base text-gray-700 hover:bg-gray-100">管理画面</a>
                 @endif
                 @if ($site?->hasFunction('dengonfunction'))
                     <a href="{{ route('messages.index') }}" class="text-gray-400 hover:text-brand" title="メッセージ">
@@ -47,7 +47,7 @@
                 @endif
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-base leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}({{ Auth::user()->getKey() }})</div>
 
                             <div class="ms-1">

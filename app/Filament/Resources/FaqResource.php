@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class FaqResource extends Resource
 {
@@ -34,8 +35,9 @@ class FaqResource extends Resource
                     ->required()
                     ->maxLength(500)
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('answer')->label(FieldLabels::ja('answer'))
-                    ->rows(8)
+                TiptapEditor::make('answer')->label(FieldLabels::ja('answer'))
+                    ->profile('default')
+                    ->extraInputAttributes(['style' => 'min-height: 12rem;'])
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()

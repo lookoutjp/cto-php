@@ -27,6 +27,11 @@ class Guestbook extends Model
 
     protected $guarded = [];
 
+    /** space_num は NOT NULL だが編集画面から外しているため既定 0（インデント無し）。 */
+    protected $attributes = [
+        'space_num' => 0,
+    ];
+
     protected $casts = [
         'category' => 'integer',
         'space_num' => 'integer',

@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class LinkItemResource extends Resource
 {
@@ -33,7 +34,9 @@ class LinkItemResource extends Resource
                     ->maxLength(255)
                     ->default(null)
                     ->columnSpanFull(),
-                Forms\Components\Textarea::make('com')->label(FieldLabels::ja('com'))
+                Forms\Components\TextInput::make('com')->label(FieldLabels::ja('com'))
+                    ->maxLength(255)
+                    ->default(null)
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
@@ -48,7 +51,9 @@ class LinkItemResource extends Resource
                 Forms\Components\TextInput::make('homepage')->label(FieldLabels::ja('homepage'))
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\Textarea::make('jj')->label('サイト紹介')
+                TiptapEditor::make('jj')->label('サイト紹介')
+                    ->profile('default')
+                    ->extraInputAttributes(['style' => 'min-height: 12rem;'])
                     ->columnSpanFull(),
                 Forms\Components\Checkbox::make('allow')->label('許可')
                     ->helperText('チェックすると「許可」になります。')

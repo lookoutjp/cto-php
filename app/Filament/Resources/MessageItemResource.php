@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class MessageItemResource extends Resource
 {
@@ -29,24 +30,25 @@ class MessageItemResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('content')->label(FieldLabels::ja('content'))
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('delete_from')->label(FieldLabels::ja('delete_from'))
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('delete_to')->label(FieldLabels::ja('delete_to'))
-                    ->numeric()
-                    ->default(null),
                 Forms\Components\TextInput::make('from')->label(FieldLabels::ja('from'))
                     ->maxLength(225)
-                    ->default(null),
-                Forms\Components\TextInput::make('readed')->label(FieldLabels::ja('readed'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('time')->label(FieldLabels::ja('time')),
+                    ->default(null)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('to')->label(FieldLabels::ja('to'))
                     ->maxLength(225)
-                    ->default(null),
+                    ->default(null)
+                    ->columnSpanFull(),
+                TiptapEditor::make('content')->label(FieldLabels::ja('content'))
+                    ->profile('default')
+                    ->extraInputAttributes(['style' => 'min-height: 12rem;'])
+                    ->columnSpanFull(),
+                Forms\Components\DateTimePicker::make('time')->label(FieldLabels::ja('time'))
+                    ->columnSpanFull(),
+                Forms\Components\Checkbox::make('readed')->label(FieldLabels::ja('readed')),
+                Forms\Components\Checkbox::make('delete_from')->label(FieldLabels::ja('delete_from'))
+                    ->helperText('チェックすると「削除」になります。'),
+                Forms\Components\Checkbox::make('delete_to')->label(FieldLabels::ja('delete_to'))
+                    ->helperText('チェックすると「削除」になります。'),
             ]);
     }
 

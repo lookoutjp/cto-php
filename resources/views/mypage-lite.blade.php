@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-6 px-4 sm:px-6 lg:px-8">
             @if (session('status'))
                 <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('status') }}</div>
             @endif

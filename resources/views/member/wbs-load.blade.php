@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-6xl space-y-4 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-4 px-4 sm:px-6 lg:px-8">
 
             <p class="text-xs text-gray-500">
                 各リーフ WBS の所要日数を期間（着手予定〜期限）の稼働日に均等配分し、担当者 × 週 で合計した負荷です。

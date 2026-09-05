@@ -6,10 +6,9 @@ use App\Filament\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\ContentResource\Pages;
 use App\Models\Content;
 use App\Models\ContentSort;
-use App\Models\Member;
-use App\Models\MemberRoom;
 use App\Support\CategoryOptions;
 use App\Support\CurrentSite;
+use App\Support\MemberOptions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -56,7 +55,7 @@ class ContentResource extends Resource
 
                 Forms\Components\Select::make('owner')
                     ->label('投稿者')
-                    ->options(fn () => self::memberOptions())
+                    ->options(fn () => MemberOptions::forCurrentSite())
                     ->default(fn () => auth()->user()?->getAuthIdentifier())
                     ->native(false)
                     ->searchable()
@@ -123,29 +122,6 @@ class ContentResource extends Resource
                     ->columns(2)
                     ->columnSpanFull(),
             ]);
-    }
-
-    /**
-     * 投稿者(owner)候補: 現在サイトの会員。
-     *
-     * @return array<string, string>
-     */
-    private static function memberOptions(): array
-    {
-        $siteId = app(CurrentSite::class)->id();
-
-        $memberIds = MemberRoom::query()->where('site_id', $siteId)->pluck('member_id');
-
-        return Member::query()
-            ->whereIn('member_id', $memberIds)
-            ->orderBy('name')
-            ->get(['member_id', 'name'])
-            ->mapWithKeys(fn (Member $m) => [
-                $m->member_id => trim((string) $m->name) !== ''
-                    ? trim($m->name).'（'.$m->member_id.'）'
-                    : $m->member_id,
-            ])
-            ->all();
     }
 
     public static function table(Table $table): Table

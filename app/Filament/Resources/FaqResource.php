@@ -29,10 +29,13 @@ class FaqResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('question')
+                Forms\Components\TextInput::make('question')
                     ->label('質問')
+                    ->required()
+                    ->maxLength(500)
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('answer')->label(FieldLabels::ja('answer'))
+                    ->rows(8)
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()

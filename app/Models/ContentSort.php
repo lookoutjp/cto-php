@@ -20,11 +20,17 @@ class ContentSort extends Model
     protected $guarded = [];
 
     /**
-     * 未ログインの来訪者に見せてよいカテゴリ（旧ASP: ninshou is null or 0）。
+     * 未ログインの来訪者に見せてよいカテゴリ。
+     *   - 権限(ninshou) が null（ゲスト）または 0（承認待ち）
+     *   - かつ 個別公開設定(ninshouspecial) が明示的に '0'（＝管理員だけに見える）でない
+     *     ※既存データの NULL や ',,' は「公開」扱い。Filamentで明示的にチェックを外して
+     *       保存したものだけ '0' になる。
      */
     public function scopePublicVisible(Builder $query): Builder
     {
-        return $query->where(fn ($q) => $q->whereNull('ninshou')->orWhere('ninshou', 0));
+        return $query
+            ->where(fn ($q) => $q->whereNull('ninshou')->orWhere('ninshou', 0))
+            ->where(fn ($q) => $q->whereNull('ninshouspecial')->orWhere('ninshouspecial', '<>', '0'));
     }
 
     public function scopeListingOrder(Builder $query): Builder

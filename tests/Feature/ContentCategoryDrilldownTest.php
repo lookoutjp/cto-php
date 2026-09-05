@@ -96,6 +96,25 @@ class ContentCategoryDrilldownTest extends TestCase
         $this->get('/contents?category=999999')->assertNotFound();
     }
 
+    /**
+     * 個別公開設定を明示的に外した（ninshouspecial='0'）カテゴリは公開ツリーに出ない。
+     * 既存データ（NULL や ',,'）は従来どおり公開されること。
+     */
+    public function test_ninshouspecial_zero_hides_category_from_public_but_legacy_values_stay_visible(): void
+    {
+        ContentSort::create(['site_id' => 'www', 'name' => '公開カテゴリ(NULL)', 'father_id' => 0, 'ninshouspecial' => null]);
+        ContentSort::create(['site_id' => 'www', 'name' => '公開カテゴリ(旧)', 'father_id' => 0, 'ninshouspecial' => ',,']);
+        $hidden = ContentSort::create(['site_id' => 'www', 'name' => '管理員のみカテゴリ', 'father_id' => 0, 'ninshouspecial' => '0']);
+        Content::create(['site_id' => 'www', 'name' => '隠れ記事', 'content_sort' => $hidden->id, 'ok' => 1]);
+
+        $visible = ContentSort::query()->publicVisible()->pluck('name');
+        $this->assertContains('公開カテゴリ(NULL)', $visible);
+        $this->assertContains('公開カテゴリ(旧)', $visible);
+        $this->assertNotContains('管理員のみカテゴリ', $visible);
+
+        $this->get("/contents?category={$hidden->id}")->assertNotFound();
+    }
+
     public function test_keyword_search_matches_name(): void
     {
         $cat = ContentSort::create(['site_id' => 'www', 'name' => 'カテゴリ', 'father_id' => 0]);

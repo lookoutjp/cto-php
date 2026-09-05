@@ -19,6 +19,8 @@ class TopMenuResource extends Resource
 
     protected static ?string $navigationLabel = 'トップメニュー';
 
+    protected static ?int $navigationSort = 10;
+
     protected static ?string $modelLabel = 'トップメニュー';
 
     protected static ?string $pluralModelLabel = 'トップメニュー';

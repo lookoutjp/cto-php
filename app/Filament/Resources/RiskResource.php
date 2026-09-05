@@ -20,6 +20,8 @@ class RiskResource extends Resource
 
     protected static ?string $navigationLabel = 'リスク';
 
+    protected static ?int $navigationSort = 210;
+
     protected static ?string $modelLabel = 'リスク';
 
     protected static ?string $pluralModelLabel = 'リスク';

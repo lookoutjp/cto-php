@@ -19,6 +19,8 @@ class FaqResource extends Resource
 
     protected static ?string $navigationLabel = 'よくある質問';
 
+    protected static ?int $navigationSort = 50;
+
     protected static ?string $modelLabel = 'よくある質問';
 
     protected static ?string $pluralModelLabel = 'よくある質問';

@@ -20,6 +20,8 @@ class ContentResource extends Resource
 
     protected static ?string $navigationLabel = 'コンテンツ';
 
+    protected static ?int $navigationSort = 30;
+
     protected static ?string $modelLabel = 'コンテンツ';
 
     protected static ?string $pluralModelLabel = 'コンテンツ';

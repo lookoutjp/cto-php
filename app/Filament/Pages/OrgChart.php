@@ -17,7 +17,7 @@ class OrgChart extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-share';
 
-    protected static ?int $navigationSort = 80;
+    protected static ?int $navigationSort = 345;
 
     protected static string $view = 'filament.pages.org-chart';
 

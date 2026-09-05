@@ -19,6 +19,8 @@ class MemberResource extends Resource
 
     protected static ?string $navigationLabel = '会員';
 
+    protected static ?int $navigationSort = 130;
+
     protected static ?string $modelLabel = '会員';
 
     protected static ?string $pluralModelLabel = '会員';

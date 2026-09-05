@@ -27,6 +27,8 @@ class RoomResource extends Resource
 
     protected static ?string $navigationLabel = 'サイト設定';
 
+    protected static ?int $navigationSort = 230;
+
     protected static ?string $modelLabel = 'サイト設定';
 
     protected static ?string $pluralModelLabel = 'サイト設定';

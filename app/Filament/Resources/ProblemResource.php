@@ -20,6 +20,8 @@ class ProblemResource extends Resource
 
     protected static ?string $navigationLabel = '課題';
 
+    protected static ?int $navigationSort = 190;
+
     protected static ?string $modelLabel = '課題';
 
     protected static ?string $pluralModelLabel = '課題';

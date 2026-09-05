@@ -20,6 +20,8 @@ class TodoResource extends Resource
 
     protected static ?string $navigationLabel = 'TODO';
 
+    protected static ?int $navigationSort = 330;
+
     protected static ?string $modelLabel = 'TODO';
 
     protected static ?string $pluralModelLabel = 'TODO';

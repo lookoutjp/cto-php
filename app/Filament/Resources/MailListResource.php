@@ -19,6 +19,8 @@ class MailListResource extends Resource
 
     protected static ?string $navigationLabel = 'メール配信リスト';
 
+    protected static ?int $navigationSort = 120;
+
     protected static ?string $modelLabel = 'メール配信リスト';
 
     protected static ?string $pluralModelLabel = 'メール配信リスト';

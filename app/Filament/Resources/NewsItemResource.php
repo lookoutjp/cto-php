@@ -19,6 +19,8 @@ class NewsItemResource extends Resource
 
     protected static ?string $navigationLabel = 'ニュース';
 
+    protected static ?int $navigationSort = 160;
+
     protected static ?string $modelLabel = 'ニュース';
 
     protected static ?string $pluralModelLabel = 'ニュース';

@@ -19,6 +19,8 @@ class LinkItemResource extends Resource
 
     protected static ?string $navigationLabel = 'リンク集';
 
+    protected static ?int $navigationSort = 110;
+
     protected static ?string $modelLabel = 'リンク集';
 
     protected static ?string $pluralModelLabel = 'リンク集';

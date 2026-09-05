@@ -19,6 +19,8 @@ class GuestbookResource extends Resource
 
     protected static ?string $navigationLabel = '掲示板';
 
+    protected static ?int $navigationSort = 90;
+
     protected static ?string $modelLabel = '掲示板';
 
     protected static ?string $pluralModelLabel = '掲示板';

@@ -19,6 +19,8 @@ class InquiryResource extends Resource
 
     protected static ?string $navigationLabel = 'お問い合わせ';
 
+    protected static ?int $navigationSort = 100;
+
     protected static ?string $modelLabel = 'お問い合わせ';
 
     protected static ?string $pluralModelLabel = 'お問い合わせ';

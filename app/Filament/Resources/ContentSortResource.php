@@ -19,6 +19,8 @@ class ContentSortResource extends Resource
 
     protected static ?string $navigationLabel = 'コンテンツカテゴリ';
 
+    protected static ?int $navigationSort = 20;
+
     protected static ?string $modelLabel = 'コンテンツカテゴリ';
 
     protected static ?string $pluralModelLabel = 'コンテンツカテゴリ';

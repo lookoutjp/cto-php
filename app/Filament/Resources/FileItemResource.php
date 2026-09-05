@@ -23,6 +23,8 @@ class FileItemResource extends Resource
 
     protected static ?string $navigationLabel = 'ファイル';
 
+    protected static ?int $navigationSort = 60;
+
     protected static ?string $modelLabel = 'ファイル';
 
     public static function form(Form $form): Form

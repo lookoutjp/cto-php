@@ -20,6 +20,8 @@ class WbsResource extends Resource
 
     protected static ?string $navigationLabel = 'WBS';
 
+    protected static ?int $navigationSort = 320;
+
     protected static ?string $modelLabel = 'WBS';
 
     protected static ?string $pluralModelLabel = 'WBS';

@@ -19,6 +19,8 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationLabel = 'ステージ／カテゴリ';
 
+    protected static ?int $navigationSort = 170;
+
     protected static ?string $modelLabel = 'ステージ／カテゴリ';
 
     protected static ?string $pluralModelLabel = 'ステージ／カテゴリ';

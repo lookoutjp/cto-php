@@ -20,6 +20,8 @@ class ProductResource extends Resource
 
     protected static ?string $navigationLabel = '成果物';
 
+    protected static ?int $navigationSort = 200;
+
     protected static ?string $modelLabel = '成果物';
 
     protected static ?string $pluralModelLabel = '成果物';

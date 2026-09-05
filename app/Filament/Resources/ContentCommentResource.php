@@ -19,6 +19,8 @@ class ContentCommentResource extends Resource
 
     protected static ?string $navigationLabel = 'コンテンツコメント';
 
+    protected static ?int $navigationSort = 40;
+
     protected static ?string $modelLabel = 'コンテンツコメント';
 
     protected static ?string $pluralModelLabel = 'コンテンツコメント';

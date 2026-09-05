@@ -19,6 +19,8 @@ class SurveyReplyListResource extends Resource
 
     protected static ?string $navigationLabel = 'サーベイ回答者一覧';
 
+    protected static ?int $navigationSort = 300;
+
     protected static ?string $modelLabel = 'サーベイ回答者一覧';
 
     protected static ?string $pluralModelLabel = 'サーベイ回答者一覧';

@@ -19,6 +19,8 @@ class ComplaintResource extends Resource
 
     protected static ?string $navigationLabel = '苦情分類';
 
+    protected static ?int $navigationSort = 350;
+
     protected static ?string $modelLabel = '苦情分類';
 
     protected static ?string $pluralModelLabel = '苦情分類';

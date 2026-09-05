@@ -20,6 +20,8 @@ class ChangeRequestResource extends Resource
 
     protected static ?string $navigationLabel = '変更管理';
 
+    protected static ?int $navigationSort = 180;
+
     protected static ?string $modelLabel = '変更管理';
 
     protected static ?string $pluralModelLabel = '変更管理';

@@ -19,6 +19,8 @@ class RoutineWorkResource extends Resource
 
     protected static ?string $navigationLabel = '定例作業マスター';
 
+    protected static ?int $navigationSort = 250;
+
     protected static ?string $modelLabel = '定例作業マスター';
 
     protected static ?string $pluralModelLabel = '定例作業マスター';

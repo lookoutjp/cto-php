@@ -23,9 +23,9 @@ class MemberPresenceTest extends TestCase
         ]);
     }
 
-    private function participant(string $id): Member
+    private function participant(string $id, ?string $name = null): Member
     {
-        $m = Member::create(['member_id' => $id, 'name' => strtoupper($id)]);
+        $m = Member::create(['member_id' => $id, 'name' => $name ?? strtoupper($id)]);
         MemberRoom::create(['member_id' => $id, 'site_id' => 'www', 'ninshou' => 1]);
 
         return $m;
@@ -47,15 +47,18 @@ class MemberPresenceTest extends TestCase
         $this->site('onlinemembersfunction');
         app(CurrentSite::class)->set('www');
 
-        $online = $this->participant('u1');
+        // 2文字の名前だと CSRF トークンや Livewire のチェックサム等、ページ内の
+        // ランダム文字列と偶然一致して assertDontSee が不安定になるため、
+        // 十分にユニークな表示名を使う。
+        $online = $this->participant('u1', 'オンライン参加者テスト');
         $online->forceFill(['timerenew' => now()])->save();
 
-        $stale = $this->participant('u2');
+        $stale = $this->participant('u2', 'オフライン参加者テスト');
         $stale->forceFill(['timerenew' => now()->subHour()])->save();
 
         $res = $this->actingAs($online)->get('/members/online')->assertOk();
-        $res->assertSee('U1');
-        $res->assertDontSee('U2');
+        $res->assertSee('オンライン参加者テスト');
+        $res->assertDontSee('オフライン参加者テスト');
     }
 
     public function test_online_list_404_without_function(): void

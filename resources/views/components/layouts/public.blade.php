@@ -26,38 +26,6 @@
         </div>
     @endif
 
-    {{-- 旧 inc_top.asp 相当のトップメニュー（top_menus）。運営者が Filament で登録した場合のみ表示 --}}
-    @if (($topMenus ?? collect())->isNotEmpty() || $adminMode)
-        <div class="bg-brand-bg">
-            <nav class="flex flex-wrap items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
-                @foreach ($topMenus as $tm)
-                    <span class="inline-flex items-center gap-1">
-                        <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
-                           @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
-                           class="rounded-md bg-brand px-3 py-1.5 text-base font-medium text-brand-fg transition hover:bg-brand-dark">
-                            {{ $tm->label() }}
-                        </a>
-                        @if ($adminMode)
-                            <a href="{{ route('filament.admin.resources.top-menus.edit', $tm) }}?back={{ $backUrl }}"
-                               class="rounded-md bg-white/90 p-1.5 text-brand hover:bg-white" title="「{{ $tm->label() }}」を編集">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </a>
-                        @endif
-                    </span>
-                @endforeach
-
-                @if ($adminMode)
-                    <a href="{{ route('filament.admin.resources.top-menus.create') }}?back={{ $backUrl }}"
-                       class="rounded-md border border-dashed border-amber-600 px-3 py-1.5 text-base font-medium text-amber-700 hover:bg-amber-50">
-                        ＋ メニューを追加
-                    </a>
-                @endif
-            </nav>
-        </div>
-    @endif
-
     @php($nav = array_filter([
         ['home', 'ホーム'],
         ['news.index', 'ニュース'],
@@ -78,8 +46,33 @@
                 @endunless
             </a>
 
-            {{-- デスクトップ: 管理者/マイページ導線のみ（サイト内メニューはフッターへ移動） --}}
+            {{-- デスクトップ: 旧 inc_top.asp 相当のトップメニュー（管理画面等のボタンより左側） --}}
             <nav class="hidden items-center gap-1 text-base sm:flex">
+                @foreach ($topMenus ?? [] as $tm)
+                    <span class="inline-flex items-center gap-1">
+                        <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
+                           @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
+                           class="rounded-md bg-brand px-3 py-2 font-medium text-brand-fg transition hover:bg-brand-dark">
+                            {{ $tm->label() }}
+                        </a>
+                        @if ($adminMode)
+                            <a href="{{ route('filament.admin.resources.top-menus.edit', $tm) }}?back={{ $backUrl }}"
+                               class="rounded-md bg-white/90 p-1.5 text-brand hover:bg-white" title="「{{ $tm->label() }}」を編集">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                        @endif
+                    </span>
+                @endforeach
+
+                @if ($adminMode)
+                    <a href="{{ route('filament.admin.resources.top-menus.create') }}?back={{ $backUrl }}"
+                       class="rounded-md border border-dashed border-amber-600 px-3 py-2 font-medium text-amber-700 hover:bg-amber-50">
+                        ＋ メニューを追加
+                    </a>
+                @endif
+
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <a href="/admin" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">管理画面</a>
@@ -111,9 +104,23 @@
             </button>
         </div>
 
-        {{-- モバイル: 管理者/マイページ導線のみ（サイト内メニューはフッターへ移動） --}}
+        {{-- モバイル: 旧 inc_top.asp 相当のトップメニュー（管理画面等のリンクより上） --}}
         <nav x-show="open" x-cloak class="border-t border-gray-200 sm:hidden">
             <div class="space-y-1 py-2">
+                @foreach ($topMenus ?? [] as $tm)
+                    <a href="{{ \App\Support\LegacyLinkResolver::resolve($tm->linkaddress, $site, route('home')) }}"
+                       @if ($tm->isExternal()) target="_blank" rel="noopener" @endif
+                       class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-gray-600 transition duration-150 ease-in-out hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 focus:outline-none">
+                        {{ $tm->label() }}
+                    </a>
+                @endforeach
+
+                @if ($adminMode)
+                    <x-responsive-nav-link href="{{ route('filament.admin.resources.top-menus.create') }}?back={{ $backUrl }}">
+                        ＋ メニューを追加
+                    </x-responsive-nav-link>
+                @endif
+
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>

@@ -5,13 +5,19 @@ namespace App\Support;
 use App\Models\Room;
 
 /**
- * 旧ASPのページ名（`top_menus.linkaddress` / `content_sorts.link` 等に保存された
- * "index.asp" のような相対パスや "contents.asp?Contentsort=30" のようなクエリ付き
- * パス）を、新サイトのルートへできる範囲でマッピングする。
+ * top_menus.linkaddress / content_sorts.link に設定された「リンク先」を実際のURLに変換する。
  *
- * 絶対URL（http/https）はそのまま外部リンクとして扱う。
- * 対応表に無い相対パスは $fallback（省略時は自サイトのトップ）を返す —
- * 旧データを保ったまま Filament 側で linkaddress / link を更新してもらう前提。
+ * 優先順位:
+ *   1. 空文字                  → $fallback（何も設定されていない場合の既定動作）
+ *   2. http(s)/mailto/tel の絶対URL → そのまま使う
+ *   3. 旧ASPの定番ページ名（index.asp 等）→ 新システムの対応ルートに変換
+ *      （contents.asp?Contentsort=N は category=N を引き継ぐ）
+ *   4. それ以外                → 管理画面に設定された値をそのまま自サイトのパスとして使う
+ *
+ * 3.までは「管理員が意図した遷移先」を新システムの実際のルートに読み替えているだけで、
+ * 設定を無視しているわけではない。4.が肝心で、対応表に無い値を勝手に別の場所（トップ
+ * ページ等）へ差し替えることはしない — 存在しないパスなら404になるが、それは管理画面の
+ * 「リンク先」を直すべきというサインであり、黙って別ページに飛ばすより正しい挙動。
  */
 class LegacyLinkResolver
 {
@@ -23,25 +29,51 @@ class LegacyLinkResolver
             return $fallback;
         }
 
-        if (preg_match('#^https?://#i', $raw)) {
+        if (preg_match('#^(https?|mailto|tel):#i', $raw)) {
             return $raw;
         }
 
-        // クエリ文字列・アンカーを外してページ名だけで判定する
-        $page = strtolower(explode('?', explode('#', $raw)[0])[0]);
-        $page = ltrim($page, '/');
+        [$path, $query] = self::splitPathAndQuery($raw);
+        $page = strtolower(ltrim($path, '/'));
 
-        return match (true) {
+        $mapped = match (true) {
             $page === 'index.asp' => route('home'),
             $page === 'aboutsite.asp' => route('about'),
             in_array($page, ['otoi.asp', 'otoi2.asp', 'otoi3.asp'], true) => route('contact.create'),
             $page === 'faq.asp' => route('faq.index'),
             $page === 'news.asp' => route('news.index'),
-            $page === 'contents.asp' => route('contents.index'),
+            $page === 'contents.asp' => self::contentsUrl($query),
             in_array($page, ['meetlist.asp', 'meet.asp'], true) && $site?->hasFunction('freeguestbookfunction') => route('board.index'),
             $page === 'managerwords.asp' && $site?->hasFunction('managerwordsfunction') => route('manager-words'),
             $page === 'friendlink.asp' && $site?->hasFunction('friendlinkfunction') => route('links.index'),
-            default => $fallback,
+            default => null,
         };
+
+        return $mapped ?? url('/'.ltrim($raw, '/'));
+    }
+
+    /**
+     * "contents.asp?Contentsort=30#foo" のようなクエリ・アンカー付きパスを分解する。
+     *
+     * @return array{0: string, 1: array<string, string>}
+     */
+    private static function splitPathAndQuery(string $raw): array
+    {
+        [$withoutAnchor] = explode('#', $raw, 2);
+        $parts = explode('?', $withoutAnchor, 2);
+
+        parse_str($parts[1] ?? '', $query);
+
+        return [$parts[0], $query];
+    }
+
+    /** @param array<string, string> $query */
+    private static function contentsUrl(array $query): string
+    {
+        $categoryId = $query['Contentsort'] ?? $query['contentsort'] ?? null;
+
+        return filled($categoryId)
+            ? route('contents.index', ['category' => (int) $categoryId])
+            : route('contents.index');
     }
 }

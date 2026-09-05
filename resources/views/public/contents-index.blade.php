@@ -8,7 +8,20 @@
 
 <x-layouts.public title="コンテンツ">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-        <div class="text-gray-500">現在位置：<span class="font-medium text-gray-800">{{ $breadcrumb }}</span></div>
+        @if ($mode === 'category')
+            {{-- トップ→親カテゴリ→…→本カテゴリの階層を明示する（旧ASP同様）。 --}}
+            <div class="text-gray-500">
+                現在位置：<a href="{{ route('contents.index') }}" class="hover:text-brand hover:underline">トップ</a>
+                @foreach ($ancestors as $ancestor)
+                    <span class="mx-1 text-gray-400">→</span>
+                    <a href="{{ route('contents.index', ['category' => $ancestor->id]) }}" class="hover:text-brand hover:underline">{{ $ancestor->name }}</a>
+                @endforeach
+                <span class="mx-1 text-gray-400">→</span>
+                <span class="font-medium text-gray-800">{{ $category->name }}</span>
+            </div>
+        @else
+            <div class="text-gray-500">現在位置：<span class="font-medium text-gray-800">{{ $breadcrumb }}</span></div>
+        @endif
         <form method="get" action="{{ route('contents.index') }}" class="flex items-center gap-2">
             <input type="text" name="q" value="{{ $keyword ?? '' }}" placeholder="キーワード検索"
                    class="w-40 rounded-md border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand sm:w-56">

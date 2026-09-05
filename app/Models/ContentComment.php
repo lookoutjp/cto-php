@@ -25,6 +25,11 @@ class ContentComment extends Model
 
     protected $guarded = [];
 
+    /** 権限(ninshou)は編集画面から外しているため、新規作成時は常に 0。 */
+    protected $attributes = [
+        'ninshou' => 0,
+    ];
+
     public function content(): BelongsTo
     {
         return $this->belongsTo(Content::class, 'content_id');

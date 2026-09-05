@@ -29,13 +29,14 @@ class FaqResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Textarea::make('question')
+                    ->label('質問')
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('answer')->label(FieldLabels::ja('answer'))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('question')->label(FieldLabels::ja('question'))
-                    ->columnSpanFull(),
             ]);
     }
 
@@ -43,6 +44,11 @@ class FaqResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('question')->label('質問')
+                    ->searchable()
+                    ->limit(50),
+                Tables\Columns\TextColumn::make('answer')->label(FieldLabels::ja('answer'))
+                    ->limit(50),
                 Tables\Columns\TextColumn::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->sortable(),

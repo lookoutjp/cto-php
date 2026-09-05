@@ -24,6 +24,11 @@ class MessageItem extends Model
 
     protected $guarded = [];
 
+    /** delete_from は NOT NULL。既定は未削除(0)。 */
+    protected $attributes = [
+        'delete_from' => 0,
+    ];
+
     protected $casts = [
         'time' => 'datetime',
         'readed' => 'boolean',

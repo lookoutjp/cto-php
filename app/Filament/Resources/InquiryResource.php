@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class InquiryResource extends Resource
 {
@@ -29,45 +30,59 @@ class InquiryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('address')->label(FieldLabels::ja('address'))
-                    ->maxLength(250)
-                    ->default(null),
-                Forms\Components\TextInput::make('code')->label(FieldLabels::ja('code'))
+                Forms\Components\TextInput::make('customer_name')->label('お名前')
                     ->maxLength(50)
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('create_date')->label(FieldLabels::ja('create_date')),
-                Forms\Components\TextInput::make('customer_name')->label(FieldLabels::ja('customer_name'))
-                    ->maxLength(50)
-                    ->default(null),
+                    ->default(null)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('customer_nameread')->label(FieldLabels::ja('customer_nameread'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\TextInput::make('dayphone')->label(FieldLabels::ja('dayphone'))
-                    ->tel()
                     ->maxLength(50)
                     ->default(null),
                 Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
-                    ->maxLength(50)
-                    ->default(null),
                 Forms\Components\TextInput::make('phone')->label(FieldLabels::ja('phone'))
                     ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Textarea::make('remark')->label(FieldLabels::ja('remark'))
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('state')->label(FieldLabels::ja('state'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('title')->label(FieldLabels::ja('title'))
+                Forms\Components\TextInput::make('dayphone')->label(FieldLabels::ja('dayphone'))
+                    ->tel()
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\DateTimePicker::make('treated_date')->label(FieldLabels::ja('treated_date')),
+                Forms\Components\TextInput::make('code')->label('郵便番号')
+                    ->maxLength(50)
+                    ->default(null),
+                Forms\Components\TextInput::make('address')->label(FieldLabels::ja('address'))
+                    ->maxLength(250)
+                    ->default(null)
+                    ->columnSpanFull(),
+
+                Forms\Components\TextInput::make('title')->label(FieldLabels::ja('title'))
+                    ->maxLength(50)
+                    ->default(null)
+                    ->columnSpanFull(),
+                TiptapEditor::make('remark')->label('内容')
+                    ->profile('default')
+                    ->columnSpanFull(),
+
+                Forms\Components\Radio::make('state')->label('対応状況')
+                    ->options([
+                        0 => '処理待ち',
+                        1 => '処理済',
+                        2 => 'ゴミ箱',
+                    ])
+                    ->default(0)
+                    ->formatStateUsing(fn ($state) => (int) $state)
+                    ->dehydrateStateUsing(fn ($state) => (int) $state)
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('treated_remark')->label(FieldLabels::ja('treated_remark'))
                     ->columnSpanFull(),
+                Forms\Components\DateTimePicker::make('treated_date')->label(FieldLabels::ja('treated_date')),
+
+                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
+                    ->maxLength(50)
+                    ->default(null),
+                Forms\Components\DateTimePicker::make('create_date')->label(FieldLabels::ja('create_date')),
             ]);
     }
 

@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\GuestbookCategoryResource\Pages;
 use App\Models\GuestbookCategory;
 use App\Support\FieldLabels;
+use App\Support\MemberOptions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class GuestbookCategoryResource extends Resource
 {
@@ -29,14 +31,39 @@ class GuestbookCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('intro')->label(FieldLabels::ja('intro'))
-                    ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('madetime')->label(FieldLabels::ja('madetime')),
-                Forms\Components\Textarea::make('member')->label(FieldLabels::ja('member'))
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('name')->label(FieldLabels::ja('name'))
+                Forms\Components\TextInput::make('name')
+                    ->label('名前')
                     ->required()
-                    ->maxLength(225),
+                    ->maxLength(225)
+                    ->columnSpanFull(),
+
+                TiptapEditor::make('intro')
+                    ->label('説明')
+                    ->profile('default')
+                    ->columnSpanFull(),
+
+                // メンバー（旧 guestbookc.member の "||id||id||" 制限リスト）。
+                // 空 = 全参加者に公開。指定するとそのメンバーだけに限定。
+                Forms\Components\Select::make('member')
+                    ->label('メンバー')
+                    ->helperText('指定するとそのメンバーだけがこのコミュニティを閲覧・投稿できます。空なら全員。')
+                    ->multiple()
+                    ->searchable()
+                    ->options(fn () => MemberOptions::forCurrentSite())
+                    ->formatStateUsing(fn ($state) => collect(preg_split('/\|\||,/', (string) $state))
+                        ->map(fn ($v) => trim($v))
+                        ->filter()
+                        ->values()
+                        ->all())
+                    ->dehydrateStateUsing(fn ($state) => empty($state)
+                        ? null
+                        : '||'.implode('||', $state).'||')
+                    ->columnSpanFull(),
+
+                Forms\Components\DateTimePicker::make('madetime')
+                    ->label('作成日時')
+                    ->seconds(true)
+                    ->columnSpanFull(),
             ]);
     }
 

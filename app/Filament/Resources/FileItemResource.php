@@ -35,6 +35,9 @@ class FileItemResource extends Resource
                     ->label('ファイル')
                     ->disk(FileStorage::DISK)
                     ->visibility('private')
+                    // 非公開ディスク(R2)の一時URL生成が遅く/効かず、プレビュー画像が
+                    // 出ないまま待たされていたため、インラインプレビューは無効化する。
+                    ->previewable(false)
                     ->directory(fn () => 'sites/'.app(CurrentSite::class)->id().'/files')
                     ->getUploadedFileNameForStorageUsing(
                         fn ($file) => Str::uuid()->toString().'.'.strtolower($file->getClientOriginalExtension())

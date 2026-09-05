@@ -29,33 +29,33 @@ class LinkItemResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('allow')->label(FieldLabels::ja('allow'))
-                    ->maxLength(50)
-                    ->default(null),
+                Forms\Components\TextInput::make('name')->label(FieldLabels::ja('name'))
+                    ->maxLength(255)
+                    ->default(null)
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('com')->label(FieldLabels::ja('com'))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('hits')->label(FieldLabels::ja('hits'))
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('homepage')->label(FieldLabels::ja('homepage'))
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\Textarea::make('jj')->label(FieldLabels::ja('jj'))
-                    ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('linktime')->label(FieldLabels::ja('linktime')),
-                Forms\Components\TextInput::make('logo')->label(FieldLabels::ja('logo'))
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('name')->label(FieldLabels::ja('name'))
+                Forms\Components\TextInput::make('logo')->label('ロゴ画像アドレス')
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\TextInput::make('site')->label(FieldLabels::ja('site'))
                     ->maxLength(255)
                     ->default(null),
+                Forms\Components\TextInput::make('homepage')->label(FieldLabels::ja('homepage'))
+                    ->maxLength(255)
+                    ->default(null),
+                Forms\Components\Textarea::make('jj')->label('サイト紹介')
+                    ->columnSpanFull(),
+                Forms\Components\Checkbox::make('allow')->label('許可')
+                    ->helperText('チェックすると「許可」になります。')
+                    ->default(false)
+                    ->formatStateUsing(fn ($state) => (string) $state === '1')
+                    ->dehydrateStateUsing(fn ($state) => $state ? '1' : '0')
+                    ->columnSpanFull(),
             ]);
     }
 

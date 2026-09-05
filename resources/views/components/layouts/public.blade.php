@@ -78,17 +78,8 @@
                 @endunless
             </a>
 
-            {{-- デスクトップ: 横並びナビ --}}
+            {{-- デスクトップ: 管理者/マイページ導線のみ（サイト内メニューはフッターへ移動） --}}
             <nav class="hidden items-center gap-1 text-base sm:flex">
-                @foreach ($nav as [$routeName, $label])
-                    <a href="{{ route($routeName) }}"
-                       @class([
-                           'rounded-md px-3 py-2 transition',
-                           'bg-brand text-brand-fg' => request()->routeIs($routeName),
-                           'text-gray-600 hover:bg-gray-100 hover:text-gray-900' => ! request()->routeIs($routeName),
-                       ])>{{ $label }}</a>
-                @endforeach
-
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <a href="/admin" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">管理画面</a>
@@ -120,15 +111,9 @@
             </button>
         </div>
 
-        {{-- モバイル: 展開メニュー --}}
+        {{-- モバイル: 管理者/マイページ導線のみ（サイト内メニューはフッターへ移動） --}}
         <nav x-show="open" x-cloak class="border-t border-gray-200 sm:hidden">
             <div class="space-y-1 py-2">
-                @foreach ($nav as [$routeName, $label])
-                    <x-responsive-nav-link :href="route($routeName)" :active="request()->routeIs($routeName)">
-                        {{ $label }}
-                    </x-responsive-nav-link>
-                @endforeach
-
                 @auth
                     @if ($site && auth()->user()?->managesSite($site->site_id))
                         <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>
@@ -212,7 +197,17 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white">
-        <div class="space-y-2 px-4 py-6 text-center text-sm text-gray-500 sm:px-6 lg:px-8">
+        <div class="space-y-4 px-4 py-6 text-center text-sm text-gray-500 sm:px-6 lg:px-8">
+            <nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-base font-medium">
+                @foreach ($nav as [$routeName, $label])
+                    <a href="{{ route($routeName) }}"
+                       @class([
+                           'text-brand' => request()->routeIs($routeName),
+                           'text-gray-600 hover:text-gray-900' => ! request()->routeIs($routeName),
+                       ])>{{ $label }}</a>
+                @endforeach
+            </nav>
+
             <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
                 <a href="{{ route('legal.terms') }}" class="hover:text-gray-900">利用規約</a>
                 <a href="{{ route('legal.privacy') }}" class="hover:text-gray-900">プライバシーポリシー</a>

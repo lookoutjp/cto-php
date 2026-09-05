@@ -42,6 +42,30 @@ class ContentCategoryDrilldownTest extends TestCase
         $response->assertDontSee('非公開記事');
     }
 
+    /**
+     * 旧ASPのカテゴリ詳細画面は「現在位置」の直下にカテゴリの紹介文を出していた。
+     * 新システムでも content_sorts.introduce をそこに表示する。
+     */
+    public function test_category_intro_text_shows_below_the_breadcrumb(): void
+    {
+        $category = ContentSort::create([
+            'site_id' => 'www', 'name' => 'システム概要', 'father_id' => 0,
+            'introduce' => '<p>CTOシステムは無料のシステムです。</p>',
+        ]);
+
+        $response = $this->get("/contents?category={$category->id}")->assertOk();
+
+        $response->assertSeeInOrder(['現在位置', 'CTOシステムは無料のシステムです。'], false);
+    }
+
+    public function test_category_without_intro_text_shows_nothing_extra(): void
+    {
+        $category = ContentSort::create(['site_id' => 'www', 'name' => 'カテゴリ', 'father_id' => 0]);
+
+        $this->get("/contents?category={$category->id}")->assertOk()
+            ->assertDontSee('prose', false);
+    }
+
     public function test_unknown_category_id_is_404(): void
     {
         $this->get('/contents?category=999999')->assertNotFound();

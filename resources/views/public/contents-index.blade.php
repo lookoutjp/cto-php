@@ -16,6 +16,14 @@
         </form>
     </div>
 
+    {{-- 旧ASPのカテゴリ詳細画面（contents.asp?Contentsort=N）は「現在位置」の直下に
+         カテゴリの紹介文（content_sorts.introduce）を表示していた。それに合わせる。 --}}
+    @if ($mode === 'category' && filled($category->introduce))
+        <div class="prose prose-sm mb-4 max-w-none rounded-lg border border-gray-200 bg-white px-4 py-4 text-gray-700">
+            {!! $category->introduce !!}
+        </div>
+    @endif
+
     @if ($mode === 'search')
         @if ($results->isEmpty())
             <p class="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">

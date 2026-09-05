@@ -15,6 +15,7 @@
     <div class="h-1 bg-brand"></div>
 
     @php($adminMode = $adminMode ?? false)
+    @php($backUrl = urlencode(url()->full()))
     @if ($adminMode)
         <div class="bg-amber-500 px-4 py-1.5 text-center text-sm font-semibold text-white sm:px-6 lg:px-8">
             🛠 管理者モードで表示中です。トップメニューとカテゴリを直接追加・編集できます。
@@ -37,7 +38,7 @@
                             {{ $tm->label() }}
                         </a>
                         @if ($adminMode)
-                            <a href="{{ route('filament.admin.resources.top-menus.edit', $tm) }}"
+                            <a href="{{ route('filament.admin.resources.top-menus.edit', $tm) }}?back={{ $backUrl }}"
                                class="rounded-md bg-white/90 p-1.5 text-brand hover:bg-white" title="「{{ $tm->label() }}」を編集">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -48,7 +49,7 @@
                 @endforeach
 
                 @if ($adminMode)
-                    <a href="{{ route('filament.admin.resources.top-menus.create') }}"
+                    <a href="{{ route('filament.admin.resources.top-menus.create') }}?back={{ $backUrl }}"
                        class="rounded-md border border-dashed border-amber-600 px-3 py-1.5 text-base font-medium text-amber-700 hover:bg-amber-50">
                         ＋ メニューを追加
                     </a>
@@ -174,7 +175,7 @@
                                         {{ $cat->name }}
                                     </a>
                                     @if ($adminMode)
-                                        <a href="{{ route('filament.admin.resources.content-sorts.edit', $cat) }}"
+                                        <a href="{{ route('filament.admin.resources.content-sorts.edit', $cat) }}?back={{ $backUrl }}"
                                            class="mr-2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-brand" title="「{{ $cat->name }}」を編集">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -185,7 +186,7 @@
                             @endforeach
                         </ul>
                         @if ($adminMode)
-                            <a href="{{ route('filament.admin.resources.content-sorts.create') }}"
+                            <a href="{{ route('filament.admin.resources.content-sorts.create') }}?back={{ $backUrl }}"
                                class="block border-t border-dashed border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50">
                                 ＋ カテゴリを追加
                             </a>

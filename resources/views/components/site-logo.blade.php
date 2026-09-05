@@ -1,4 +1,4 @@
-@props(['site' => null, 'class' => 'h-9 w-auto'])
+@props(['site' => null, 'class' => 'h-12 w-auto'])
 
 @php
     $logo = trim((string) ($site?->logo ?? ''));

@@ -75,7 +75,8 @@
                 @endif
 
                 @auth
-                    @if ($site && auth()->user()?->managesSite($site->site_id))
+                    @php($me = auth()->user())
+                    @if ($site && $me?->managesSite($site->site_id))
                         <a href="/admin" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">管理画面</a>
                         <form method="POST" action="{{ route('admin-mode.toggle') }}" class="ml-2">
                             @csrf
@@ -89,7 +90,36 @@
                             </button>
                         </form>
                     @endif
-                    <a href="{{ route('dashboard') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">マイページ</a>
+
+                    @if ($site?->hasFunction('dengonfunction'))
+                        <a href="{{ route('messages.index') }}" class="ml-2 text-gray-400 hover:text-brand" title="メッセージ">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </a>
+                    @endif
+
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="ml-1 inline-flex items-center rounded-md border border-gray-300 px-3 py-2 text-base font-medium text-gray-700 transition hover:bg-gray-100">
+                                <span>{{ $me->name }}（{{ $me->getKey() }}）</span>
+                                <svg class="ms-1 h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('dashboard')">マイページ</x-dropdown-link>
+                            <x-dropdown-link :href="route('profile.edit')">プロフィール</x-dropdown-link>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <x-dropdown-link :href="route('logout')"
+                                                 onclick="event.preventDefault(); this.closest('form').submit();">
+                                    ログアウト
+                                </x-dropdown-link>
+                            </form>
+                        </x-slot>
+                    </x-dropdown>
                 @else
                     <a href="{{ route('login') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">ログイン</a>
                 @endauth
@@ -123,7 +153,8 @@
                 @endif
 
                 @auth
-                    @if ($site && auth()->user()?->managesSite($site->site_id))
+                    @php($me = auth()->user())
+                    @if ($site && $me?->managesSite($site->site_id))
                         <x-responsive-nav-link href="/admin">管理画面</x-responsive-nav-link>
                         <form method="POST" action="{{ route('admin-mode.toggle') }}">
                             @csrf
@@ -132,7 +163,22 @@
                             </button>
                         </form>
                     @endif
+
+                    <div class="border-t border-gray-200 px-3 pt-3 pb-1 text-sm font-medium text-gray-500">
+                        {{ $me->name }}（{{ $me->getKey() }}）
+                    </div>
+                    @if ($site?->hasFunction('dengonfunction'))
+                        <x-responsive-nav-link :href="route('messages.index')">メッセージ</x-responsive-nav-link>
+                    @endif
                     <x-responsive-nav-link href="{{ route('dashboard') }}">マイページ</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('profile.edit')">プロフィール</x-responsive-nav-link>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <x-responsive-nav-link :href="route('logout')"
+                                               onclick="event.preventDefault(); this.closest('form').submit();">
+                            ログアウト
+                        </x-responsive-nav-link>
+                    </form>
                 @else
                     <x-responsive-nav-link :href="route('login')">ログイン</x-responsive-nav-link>
                 @endauth

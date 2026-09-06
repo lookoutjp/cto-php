@@ -32,7 +32,6 @@
         ['news.index', 'ニュース'],
         ['contents.index', 'コンテンツ'],
         ['faq.index', 'FAQ'],
-        $site?->hasFunction('managerwordsfunction') ? ['manager-words', $site->manager_shouko ? $site->manager_shouko.'の言葉' : '管理員の言葉'] : null,
         $site?->hasFunction('friendlinkfunction') ? ['links.index', 'リンク集'] : null,
         $site?->hasFunction('otoiawasefunction') ? ['contact.create', 'お問い合わせ'] : null,
     ]))

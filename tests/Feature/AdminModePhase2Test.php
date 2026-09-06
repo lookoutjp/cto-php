@@ -130,26 +130,27 @@ class AdminModePhase2Test extends TestCase
             ->assertSet('data.content_sort', $category->id);
     }
 
-    public function test_add_category_from_subcategory_page_prefills_parent_as_its_parent(): void
+    public function test_add_subcategory_from_category_page_prefills_current_category_as_parent(): void
     {
         $manager = $this->manager();
         $parent = ContentSort::create(['site_id' => 'www', 'name' => 'ナレッジ', 'junban' => 1]);
-        $sub = ContentSort::create([
+        $current = ContentSort::create([
             'site_id' => 'www', 'name' => '操作マニュアル', 'father_id' => $parent->id, 'junban' => 1,
         ]);
         AdminMode::enable('www');
 
-        // カテゴリ詳細ページの「＋カテゴリを追加」リンクに ?father_id=<親> が付く
-        $this->actingAs($manager)->get('/contents?category='.$sub->id)->assertOk()
-            ->assertSee('father_id='.$parent->id, false);
+        // カテゴリ詳細ページの「＋サブカテゴリを追加」は現在のカテゴリを親に指定する
+        $this->actingAs($manager)->get('/contents?category='.$current->id)->assertOk()
+            ->assertSee('サブカテゴリを追加')
+            ->assertSee('father_id='.$current->id, false);
 
-        // 作成ページはその親を事前選択する
+        // 作成ページは現在のカテゴリを親として事前選択する
         $this->actingAs($manager);
         Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Livewire::withQueryParams(['father_id' => (string) $parent->id]);
+        Livewire::withQueryParams(['father_id' => (string) $current->id]);
 
         Livewire::test(CreateContentSort::class)
-            ->assertSet('data.father_id', $parent->id);
+            ->assertSet('data.father_id', $current->id);
     }
 
     public function test_editing_faq_with_back_param_redirects_after_save(): void

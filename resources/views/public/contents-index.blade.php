@@ -36,8 +36,8 @@
                 <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $category)"
                               label="このカテゴリを編集" :show-label="true" />
                 <x-admin-add :href="route('filament.admin.resources.contents.create', ['content_sort' => $category->id])">このカテゴリに記事を追加</x-admin-add>
-                {{-- 「操作マニュアル」を見ているとき「＋カテゴリを追加」は同階層（親＝ナレッジ）に足す想定。 --}}
-                <x-admin-add :href="route('filament.admin.resources.content-sorts.create', ['father_id' => $category->father_id ?? 0])">カテゴリを追加</x-admin-add>
+                {{-- 現在のカテゴリの下に子カテゴリを足す（親＝現在のカテゴリを事前選択）。 --}}
+                <x-admin-add :href="route('filament.admin.resources.content-sorts.create', ['father_id' => $category->id])">サブカテゴリを追加</x-admin-add>
             @else
                 <x-admin-add :href="route('filament.admin.resources.contents.create')">記事を追加</x-admin-add>
                 <x-admin-add :href="route('filament.admin.resources.content-sorts.create')">カテゴリを追加</x-admin-add>

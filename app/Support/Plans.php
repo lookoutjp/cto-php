@@ -76,10 +76,13 @@ class Plans
         return self::forRoom($room)['limits'][$limitKey] ?? null;
     }
 
-    /** そのテナントの会員数（member_room の総数）。 */
+    /** そのテナントの会員数（承認済みの member_room 行数。承認待ちの加入申請は数えない）。 */
     public static function memberUsage(Room $room): int
     {
-        return DB::table('member_room')->where('site_id', $room->getKey())->count();
+        return DB::table('member_room')
+            ->where('site_id', $room->getKey())
+            ->where(fn ($q) => $q->whereNull('applied_at')->orWhereNotNull('approved_at'))
+            ->count();
     }
 
     /** あと $additional 人追加してもプランの会員上限内か。 */

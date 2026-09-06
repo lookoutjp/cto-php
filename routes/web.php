@@ -9,6 +9,7 @@ use App\Http\Controllers\Member\FileController;
 use App\Http\Controllers\Member\MemberListController;
 use App\Http\Controllers\Member\MessageController;
 use App\Http\Controllers\Member\RoutineWorkController;
+use App\Http\Controllers\Member\SiteJoinController;
 use App\Http\Controllers\Member\SurveyController;
 use App\Http\Controllers\Member\TaskController;
 use App\Http\Controllers\Member\WbsController;
@@ -71,6 +72,10 @@ Route::middleware('auth')->group(function () {
 
     // 旧ASPの「管理員モード」トグル。公開ページにインライン管理コントロールを出す/消す。
     Route::post('/admin-mode/toggle', [AdminModeController::class, 'toggle'])->name('admin-mode.toggle');
+
+    // 既存会員が別サイト（テナント）へ加入申請する。承認は Filament「会員権限」で。
+    Route::get('/join', [SiteJoinController::class, 'index'])->name('site-join.index');
+    Route::post('/join/{site}', [SiteJoinController::class, 'store'])->name('site-join.store');
 
     // 公開ページ左サイドバー「カテゴリ」の管理者モードでのドラッグ&ドロップ並び替え。
     Route::post('/categories/reorder', [CategoryReorderController::class, 'reorder'])->name('categories.reorder');

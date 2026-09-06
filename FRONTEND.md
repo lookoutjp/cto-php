@@ -33,7 +33,14 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/mypage` | 誰でも（要ログイン）。非参加者には `mypage-lite`（機能が使えない旨の案内）を表示 | `MypageController` で分岐 |
 | 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
 
-- `ninshou = 0` = コンテンツ閲覧のみの会員。PM機能は不可。旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
+- `member_room.ninshou` = `-1` 管理員 / `1` 参加者 / `0` コンテンツ閲覧のみ / `NULL` 加入申請中（未承認）。
+  旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
+- **サイト加入フロー**（`App\Http\Controllers\Member\SiteJoinController`、`/join`）: 既にログイン中の会員が
+  別サイト（テナント）へ「加入申請」する。`member_room` に `applied_at` 付き・`ninshou = NULL` の行が作られ、
+  `MemberRoom` の `confirmed` グローバルスコープで通常クエリからは除外される（＝メンバー扱いされない）。
+  管理員が Filament「会員権限」(`MemberRoomResource`) の **承認**アクション（権限レベルを選択）で `ninshou` +
+  `approved_at` を付与、または**却下**で行を削除。承認待ちでも公開コンテンツは閲覧できる（`accessibleSiteIds()` に含む）。
+  承認待ち件数はナビにバッジ表示。新規ユーザーの初回登録は従来どおり `/register`。
 - 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）相当を
   「管理者モード」として復活させている。
   - `App\Support\AdminMode`: サイトごとのON/OFF（session）。`isEnabled()` は判定のみ（権限チェックは呼び出し側）、

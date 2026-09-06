@@ -39,6 +39,18 @@ class Member extends Authenticatable implements FilamentUser
     /** オンライン判定の有効時間（分）。旧ASP onlinechk.asp は 20 分。 */
     public const PRESENCE_MINUTES = 15;
 
+    protected static function booted(): void
+    {
+        // 会員を削除したら、その会員のサイト権限・加入申請（member_room）も消す。
+        // 会員のいない member_room 行は意味を持たない孤児レコード。
+        static::deleting(function (Member $member): void {
+            MemberRoom::query()
+                ->withoutGlobalScope('confirmed')
+                ->where('member_id', $member->getKey())
+                ->delete();
+        });
+    }
+
     /** 最終アクセスが直近 PRESENCE_MINUTES 以内ならオンライン。 */
     public function isOnline(): bool
     {

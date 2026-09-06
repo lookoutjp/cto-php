@@ -73,6 +73,23 @@ class RegistrationTest extends TestCase
             ->assertOk()->assertSee('承認待ち');
     }
 
+    public function test_deleting_a_member_removes_their_member_room_rows(): void
+    {
+        $this->site('www');
+        $this->site('demo');
+
+        $member = Member::create(['member_id' => 'gone', 'name' => '退会太郎']);
+        MemberRoom::create(['member_id' => 'gone', 'site_id' => 'www', 'ninshou' => 1]);
+        MemberRoom::withoutGlobalScope('confirmed')->create([
+            'member_id' => 'gone', 'site_id' => 'demo', 'ninshou' => null, 'applied_at' => now(),
+        ]);
+
+        $member->delete();
+
+        $this->assertSame(0, MemberRoom::withoutGlobalScope('confirmed')
+            ->where('member_id', 'gone')->count());
+    }
+
     public function test_member_list_is_global_for_default_site_but_scoped_elsewhere(): void
     {
         $this->site('www');

@@ -1,5 +1,4 @@
 @php
-    $tagline = trim(strip_tags(explode('。', strip_tags((string) $site?->siteintro))[0] ?? '')) ?: null;
     $ownerLabel = trim((string) ($site?->manager_shouko ?: 'オーナー'));
     $ownerName = trim((string) $site?->webmanager);
 @endphp
@@ -29,9 +28,6 @@
         <div class="flex flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ $site?->sitename ?? config('app.name') }}</h1>
-                @if ($tagline)
-                    <p class="mt-2 text-brand-fg opacity-90">{{ $tagline }}</p>
-                @endif
             </div>
             @if ($site?->homepagemainimage)
                 <img src="{{ Illuminate\Support\Str::startsWith($site->homepagemainimage, ['http://', 'https://']) ? $site->homepagemainimage : asset(trim($site->homepagemainimage, '/')) }}"
@@ -41,32 +37,7 @@
     </section>
 
     <div class="mt-6 space-y-8">
-        @if ($site?->siteintro)
-            <section class="rounded-lg border border-gray-200 bg-white p-6">
-                <div class="prose prose-sm max-w-none text-gray-700">
-                    {!! $site->siteintro !!}
-                </div>
-            </section>
-        @endif
-
-        @foreach (['おすすめコンテンツ' => $recommended, '人気コンテンツ' => $popular] as $heading => $list)
-            @if ($list->isNotEmpty())
-                <section>
-                    <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ $heading }}</h2>
-                    <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
-                        @foreach ($list as $c)
-                            <li class="px-4 py-3">
-                                <a href="{{ route('contents.show', $c) }}" class="font-medium text-gray-900 hover:text-gray-600 hover:underline">{{ $c->name }}</a>
-                                @if ($c->introduce)
-                                    <p class="mt-0.5 truncate text-sm text-gray-500">{{ strip_tags($c->introduce) }}</p>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                </section>
-            @endif
-        @endforeach
-
+        {{-- 最新ニュースを先頭に --}}
         <section>
             <div class="mb-3 flex items-baseline justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">最新ニュース</h2>
@@ -95,5 +66,28 @@
                 </ul>
             @endif
         </section>
+
+        {{-- おすすめ／人気コンテンツを左右2列に --}}
+        @if ($recommended->isNotEmpty() || $popular->isNotEmpty())
+            <div class="grid gap-6 md:grid-cols-2">
+                @foreach (['おすすめコンテンツ' => $recommended, '人気コンテンツ' => $popular] as $heading => $list)
+                    @if ($list->isNotEmpty())
+                        <section>
+                            <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ $heading }}</h2>
+                            <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                                @foreach ($list as $c)
+                                    <li class="px-4 py-3">
+                                        <a href="{{ route('contents.show', $c) }}" class="font-medium text-gray-900 hover:text-gray-600 hover:underline">{{ $c->name }}</a>
+                                        @if ($c->introduce)
+                                            <p class="mt-0.5 truncate text-sm text-gray-500">{{ strip_tags($c->introduce) }}</p>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </section>
+                    @endif
+                @endforeach
+            </div>
+        @endif
     </div>
 </x-layouts.public>

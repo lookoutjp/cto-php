@@ -34,9 +34,10 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming registration request.
      *
-     * 旧ASP reguser_*.asp 相当。現在のサイトに対して「コンテンツ閲覧のみ（ninshou = 0）」の
-     * 会員として登録する。プロジェクト機能を使うには管理員が member_room の ninshou を
-     * 1（参加者）以上に引き上げる必要がある（＝旧ASP の「本承認」）。
+     * 旧ASP reguser_*.asp 相当。会員（members）はプラットフォーム全体で一元管理し、
+     * 現在のサイトに対しては「加入申請中（承認待ち）」の member_room 行を作る。
+     * サイト管理員が「会員権限」画面で承認すると ninshou（閲覧のみ/参加者/管理員）が付与される。
+     * members.signup_site に登録元サイトを記録する。
      *
      * @throws ValidationException
      */
@@ -68,6 +69,7 @@ class RegisteredUserController extends Controller
             $member = Member::create([
                 // member_id は旧Acc ではオートナンバーでなく手動発行の文字列キーだったため UUID を使う。
                 'member_id' => (string) Str::uuid(),
+                'signup_site' => $siteId,
                 'name' => $data['name'],
                 'nameread' => $data['nameread'] ?? null,
                 'email' => $data['email'],
@@ -76,9 +78,11 @@ class RegisteredUserController extends Controller
                 'regtime' => now(),
             ]);
 
-            MemberRoom::updateOrCreate(
+            // 登録＝そのサイトへの「加入申請」。管理員が「会員権限」画面で承認すると
+            // ninshou が付与される（承認待ちの間は applied_at 有・approved_at 無・ninshou NULL）。
+            MemberRoom::query()->withoutGlobalScope('confirmed')->updateOrCreate(
                 ['member_id' => $member->getKey(), 'site_id' => $siteId],
-                ['ninshou' => 0], // コンテンツ閲覧のみ。管理員が承認して引き上げる。
+                ['ninshou' => null, 'applied_at' => now(), 'approved_at' => null],
             );
 
             return $member;
@@ -89,7 +93,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false))
-            ->with('status', 'ご登録ありがとうございます。プロジェクト機能のご利用には管理員の承認が必要です。');
+            ->with('status', 'ご登録ありがとうございます。サイト管理員の承認をお待ちください。承認までの間も公開コンテンツはご覧いただけます。');
     }
 
     private function ensureRegistrationOpen(): void

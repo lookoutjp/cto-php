@@ -40,7 +40,15 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   `MemberRoom` の `confirmed` グローバルスコープで通常クエリからは除外される（＝メンバー扱いされない）。
   管理員が Filament「会員権限」(`MemberRoomResource`) の **承認**アクション（権限レベルを選択）で `ninshou` +
   `approved_at` を付与、または**却下**で行を削除。承認待ちでも公開コンテンツは閲覧できる（`accessibleSiteIds()` に含む）。
-  承認待ち件数はナビにバッジ表示。新規ユーザーの初回登録は従来どおり `/register`。
+  承認待ち件数はナビにバッジ表示。
+- **新規ユーザー登録**（`/register`、`RegisteredUserController`）も同じ承認フローに乗る:
+  会員（`members`）はプラットフォーム全体で一元管理し、登録したサイトへは「承認待ち」で加入
+  （`member_room` に `applied_at` 有・`ninshou` NULL）、`members.signup_site` に登録元サイトを記録。
+  登録直後はログイン済みだが mypage-lite（承認待ち表示）。`/login`・公開ヘッダーに登録リンク
+  （`newmemberregfunction` 有効サイトのみ）。`/{site}/register` で対象サイトを指定できる。
+- **会員一覧の可視範囲**（`MemberResource`）: 既定サイト（cto.jp）の管理画面／スーパー管理者は
+  全会員が見え、`登録元サイト`・`所属/申請サイト`列で出所が分かる。それ以外のサイトの管理画面は
+  そのサイトで登録した or 加入申請した会員のみ（`member_room` で絞り込み、承認待ち含む）。
 - 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）相当を
   「管理者モード」として復活させている。
   - `App\Support\AdminMode`: サイトごとのON/OFF（session）。`isEnabled()` は判定のみ（権限チェックは呼び出し側）、
@@ -107,7 +115,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/contents/{id}` | `Public\ContentController@show` | ContentDetail.asp | 本文HTML。非公開/非公開カテゴリ/他サイトは404。clicks++ |
 | `/faq` | `Public\FaqController@index` | faq.asp | 全FAQ（`<details>` で開閉）+ キーワード検索 |
 | `/signup` | `Auth\TenantSignupController` | （新規） | **セルフサーブのテナント作成**（新機能）。会社名・サイトID（半角英小文字/数字/ハイフン、予約語・重複不可）・お名前・メール・パスワードを入力すると `rooms`＋`members`＋`member_room`(ninshou=-1) を一括作成し、作成者をそのテナントの管理員としてログインさせ `/admin` へ。新テナントは free プラン・内部共同作業機能一式（todo/problem/risk/wbs/product/routinework/change/members/messages/files/survey/board）を有効化した状態で始まる。**制約**: カスタムドメイン/サブドメインの自動払い出しは無いため、新テナントの公開フロント（`/`・`/news`・`/contents` 等、ホスト名で解決）にはまだ独自URLで到達できない。ログイン後の会員向け機能（`/admin`・`/dashboard`・`/tasks` 等はセッションで解決）はすぐ使える。`/login` からもリンク |
-| `/register` | `Auth\RegisteredUserController` | reguser_*.asp | 会員登録。お名前・ふりがな・メール・電話（任意）・パスワード。現在サイトに `member_room`（`ninshou = 0` = コンテンツ閲覧のみ）を作成し自動ログイン。プロジェクト機能の利用には管理員が `ninshou` を 1 以上に引き上げる（＝旧「本承認」）。`newmemberregfunction` が無いサイトは 404 |
+| `/register` | `Auth\RegisteredUserController` | reguser_*.asp | 会員登録。お名前・ふりがな・メール・電話（任意）・パスワード。会員は全体で一元管理し、現在サイトへは「承認待ち」で加入（`member_room` に `applied_at` 有・`ninshou` NULL）。`members.signup_site` に登録元を記録。自動ログイン（mypage-lite・承認待ち表示）。承認は Filament「会員権限」画面。`newmemberregfunction` が無いサイトは 404 |
 | `/manager` | `Public\SitePageController@managerWords` | managerwords.asp | `rooms.managerwords`（HTML）をそのまま表示。見出しは `rooms.manager_shouko`（無ければ「管理員」）。`managerwordsfunction` 必須 |
 | `/links` | `Public\SitePageController@links` | friendlink 系 | 管理員が承認したリンク（`links.allow = 1`）の一覧。承認は Filament `LinkItemResource`。`friendlinkfunction` 必須 |
 | `/members` | `Member\MemberListController@index` | memberlist.asp | サイト参加者（`member_room.ninshou` 1/-1）の一覧。名前・自己紹介・オンライン表示。名前は個人ページへリンク。`memberlistfunction` 必須 |

@@ -121,6 +121,9 @@
                         </x-slot>
                     </x-dropdown>
                 @else
+                    @if ($site?->hasFunction('newmemberregfunction'))
+                        <a href="{{ route('register') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">会員登録</a>
+                    @endif
                     <a href="{{ route('login') }}" class="ml-2 rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100">ログイン</a>
                 @endauth
             </nav>
@@ -181,6 +184,9 @@
                         </x-responsive-nav-link>
                     </form>
                 @else
+                    @if ($site?->hasFunction('newmemberregfunction'))
+                        <x-responsive-nav-link :href="route('register')">会員登録</x-responsive-nav-link>
+                    @endif
                     <x-responsive-nav-link :href="route('login')">ログイン</x-responsive-nav-link>
                 @endauth
             </div>

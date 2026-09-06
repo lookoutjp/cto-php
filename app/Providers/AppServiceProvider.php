@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         // 現在のサイト情報($site)を、公開フロント・会員画面・共通レイアウトのビューに渡す。
         View::composer([
             'components.layouts.public', 'layouts.app', 'layouts.navigation', 'layouts.guest',
-            'public.*', 'livewire.public.*',
+            'public.*', 'livewire.public.*', 'auth.*',
             'member.*', 'livewire.member.*', 'mypage',
         ], function ($view) {
             $view->with('site', once(fn () => Room::find(app(CurrentSite::class)->id())));

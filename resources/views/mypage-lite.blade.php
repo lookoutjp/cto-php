@@ -13,6 +13,16 @@
                 <p class="text-lg font-semibold text-gray-900">{{ $member->name ?: $member->getKey() }} さん</p>
             </div>
 
+            @if ($pendingApproval ?? false)
+                <div class="rounded-lg border border-amber-300 bg-amber-50 p-6 shadow-sm">
+                    <p class="font-semibold text-amber-800">このサイトへの加入を申請中です（承認待ち）</p>
+                    <p class="mt-1 text-sm text-amber-700">
+                        サイト管理員の承認をお待ちください。承認されると各機能をご利用いただけます。
+                        承認までの間も公開コンテンツはご覧いただけます。
+                    </p>
+                </div>
+            @endif
+
             <div class="rounded-lg bg-white p-6 shadow-sm">
                 <p class="text-sm text-gray-600">
                     現在このサイトのプロジェクト機能（TODO・課題・リスク・WBS・サーベイ）はご利用いただけません。

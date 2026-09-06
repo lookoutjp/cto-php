@@ -78,6 +78,7 @@ class TenantSignupController extends Controller
 
             $member = Member::create([
                 'member_id' => (string) Str::uuid(),
+                'signup_site' => $data['site_id'],
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
@@ -88,6 +89,7 @@ class TenantSignupController extends Controller
                 'member_id' => $member->getKey(),
                 'site_id' => $data['site_id'],
                 'ninshou' => -1, // 作成者はそのテナントの管理員
+                'approved_at' => now(),
             ]);
 
             return $member;

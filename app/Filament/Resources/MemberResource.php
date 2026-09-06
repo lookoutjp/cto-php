@@ -4,12 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MemberResource\Pages;
 use App\Models\Member;
+use App\Models\MemberRoom;
+use App\Support\CurrentSite;
 use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class MemberResource extends Resource
 {
@@ -25,6 +28,32 @@ class MemberResource extends Resource
 
     protected static ?string $pluralModelLabel = '会員';
 
+    /**
+     * 会員（members）はプラットフォーム全体で一元管理する。
+     *   - 既定サイト（cto.jp）の管理画面 / スーパー管理者 … 全会員が見える
+     *   - それ以外のサイトの管理画面 … そのサイトで登録した or 加入申請した会員のみ
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+        $siteId = app(CurrentSite::class)->idOrNull();
+        $seesAll = ($user instanceof Member && $user->isSuperAdmin())
+            || $siteId === config('app.default_site', 'www');
+
+        if (! $seesAll && $siteId !== null) {
+            $memberIds = MemberRoom::query()
+                ->withoutGlobalScope('confirmed')
+                ->where('site_id', $siteId)
+                ->pluck('member_id');
+
+            $query->whereIn('member_id', $memberIds);
+        }
+
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -35,6 +64,10 @@ class MemberResource extends Resource
                     ->default(null),
                 Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->maxLength(50)
+                    ->default(null),
+                Forms\Components\TextInput::make('signup_site')->label('登録元サイト')
+                    ->maxLength(50)
+                    ->helperText('会員が最初に登録したサイトの site_id。')
                     ->default(null),
                 Forms\Components\TextInput::make('appeal')->label(FieldLabels::ja('appeal'))
                     ->maxLength(255)
@@ -115,8 +148,24 @@ class MemberResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('member_id')->label(FieldLabels::ja('member_id'))
                     ->searchable(),
+                Tables\Columns\TextColumn::make('signup_site')->label('登録元サイト')
+                    ->badge()
+                    ->placeholder('—')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('site_memberships')->label('所属 / 申請サイト')
+                    ->state(fn (Member $record) => MemberRoom::query()
+                        ->withoutGlobalScope('confirmed')
+                        ->where('member_id', $record->member_id)
+                        ->orderBy('site_id')
+                        ->get()
+                        ->map(fn (MemberRoom $mr) => $mr->site_id.($mr->isPending() ? '（承認待ち）' : ' ['.$mr->ninshouLabel().']'))
+                        ->implode(' / '))
+                    ->wrap()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('appeal')->label(FieldLabels::ja('appeal'))
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('question')->label(FieldLabels::ja('question'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('answer')->label(FieldLabels::ja('answer'))

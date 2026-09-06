@@ -34,6 +34,13 @@
     @endif
 
     <div class="space-y-6">
+        @if (($adminMode ?? false) && $site)
+            <div>
+                <x-admin-edit :href="route('filament.admin.resources.rooms.edit', $site)"
+                              label="サイト概要・運営者情報を編集" :show-label="true" />
+            </div>
+        @endif
+
         <section class="rounded-lg border border-gray-200 bg-white p-6">
             <h1 class="mb-4 text-xl font-bold tracking-tight text-gray-900">{{ $site?->sitename ?? config('app.name') }}</h1>
 

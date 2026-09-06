@@ -19,7 +19,7 @@
     @php($backUrl = urlencode(url()->full()))
     @if ($adminMode)
         <div class="bg-amber-500 px-4 py-1.5 text-center text-sm font-semibold text-white sm:px-6 lg:px-8">
-            🛠 管理者モードで表示中です。トップメニューとカテゴリを直接追加・編集できます。
+            🛠 管理者モードで表示中です。メニュー・カテゴリ・記事・ニュース・FAQ・リンクなどを各ページから直接追加・編集できます。
             <form method="POST" action="{{ route('admin-mode.toggle') }}" class="inline">
                 @csrf
                 <button type="submit" class="ml-2 underline hover:no-underline">終了する</button>

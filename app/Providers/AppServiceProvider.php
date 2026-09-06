@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Auth\LegacyAwareUserProvider;
 use App\Auth\Passwords\CustomPasswordBrokerManager;
 use App\Models\ContentSort;
-use App\Models\Member;
 use App\Models\Room;
 use App\Models\TopMenu;
 use App\Support\AdminMode;
@@ -63,18 +62,17 @@ class AppServiceProvider extends ServiceProvider
         View::composer('components.layouts.public', function ($view) {
             $view->with('topMenus', once(fn () => TopMenu::query()->orderBy('junban')->orderBy('id')->get()));
             $view->with('sidebarCategories', once(fn () => ContentSort::query()->publicVisible()->topLevel()->listingOrder()->get()));
-
-            // 旧ASPの「管理員モード」相当。サイト管理員がONにしている間だけ、
-            // トップメニュー・カテゴリに追加/編集アイコンを出す。
-            // (session由来で1リクエスト中でも変わり得るため once() でキャッシュしない)
-            $siteId = app(CurrentSite::class)->idOrNull();
-            $user = Auth::user();
-            $view->with('adminMode',
-                $siteId !== null
-                    && $user instanceof Member
-                    && $user->managesSite($siteId)
-                    && AdminMode::isEnabled($siteId)
-            );
         });
+
+        // 旧ASPの「管理員モード」相当。サイト管理員がONにしている間だけ、公開フロントの
+        // 各画面に「追加/編集/削除（→ Filament）」の導線を出す。共通レイアウトだけでなく
+        // 個々のページビュー（public.* / livewire.public.*）でも $adminMode を使えるようにする。
+        // session 由来で1リクエスト中でも変わり得るため once() ではキャッシュしない。
+        View::composer(
+            ['components.layouts.public', 'public.*', 'livewire.public.*'],
+            function ($view) {
+                $view->with('adminMode', AdminMode::activeFor(app(CurrentSite::class)->idOrNull()));
+            }
+        );
     }
 }

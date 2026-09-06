@@ -1,4 +1,12 @@
 <x-layouts.public :title="$news->title">
+    @if ($adminMode ?? false)
+        <div class="mb-4 flex flex-wrap gap-2">
+            <x-admin-edit :href="route('filament.admin.resources.news-items.edit', $news)"
+                          label="このニュースを編集" :show-label="true" />
+            <x-admin-add :href="route('filament.admin.resources.news-items.create')">ニュースを追加</x-admin-add>
+        </div>
+    @endif
+
     <article class="rounded-lg border border-gray-200 bg-white p-6">
         <div class="mb-4 flex items-baseline gap-3 border-b border-gray-100 pb-4">
             <time class="text-sm tabular-nums text-gray-500">

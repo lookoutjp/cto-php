@@ -12,10 +12,16 @@
     <ul class="divide-y divide-gray-100">
         @forelse ($comments as $comment)
             <li class="px-4 py-3">
-                <div class="flex items-baseline gap-2 text-xs text-gray-500">
-                    <span class="font-medium text-gray-700">{{ $comment->member?->name ?? $comment->member_id ?? '会員' }}</span>
-                    @if ($posted = $comment->postedAt())
-                        <time class="tabular-nums">{{ $posted->isoFormat('YYYY/MM/DD HH:mm') }}</time>
+                <div class="flex items-baseline justify-between gap-2 text-xs text-gray-500">
+                    <div class="flex items-baseline gap-2">
+                        <span class="font-medium text-gray-700">{{ $comment->member?->name ?? $comment->member_id ?? '会員' }}</span>
+                        @if ($posted = $comment->postedAt())
+                            <time class="tabular-nums">{{ $posted->isoFormat('YYYY/MM/DD HH:mm') }}</time>
+                        @endif
+                    </div>
+                    @if ($adminMode ?? false)
+                        <x-admin-edit :href="route('filament.admin.resources.content-comments.edit', $comment)"
+                                      label="このコメントを編集・削除" />
                     @endif
                 </div>
                 <p class="mt-1 whitespace-pre-wrap text-sm text-gray-800">{{ $comment->comment }}</p>

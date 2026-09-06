@@ -1,5 +1,11 @@
 <div>
-    <div class="mb-6 flex justify-end">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        @if ($adminMode ?? false)
+            <x-admin-add :href="route('filament.admin.resources.news-items.create')">ニュースを追加</x-admin-add>
+        @else
+            <span></span>
+        @endif
+
         <input
             type="search"
             wire:model.live.debounce.400ms="keyword"
@@ -24,10 +30,16 @@
                             <span class="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-600">重要</span>
                         @endif
                     </div>
-                    <a href="{{ route('news.show', $item) }}"
-                       class="mt-1 block font-medium text-gray-900 hover:text-gray-600 hover:underline">
-                        {{ $item->title }}
-                    </a>
+                    <div class="mt-1 flex items-start justify-between gap-2">
+                        <a href="{{ route('news.show', $item) }}"
+                           class="block font-medium text-gray-900 hover:text-gray-600 hover:underline">
+                            {{ $item->title }}
+                        </a>
+                        @if ($adminMode ?? false)
+                            <x-admin-edit :href="route('filament.admin.resources.news-items.edit', $item)"
+                                          :label="'「'.\Illuminate\Support\Str::limit($item->title, 20).'」を編集'" />
+                        @endif
+                    </div>
                 </li>
             @endforeach
         </ul>

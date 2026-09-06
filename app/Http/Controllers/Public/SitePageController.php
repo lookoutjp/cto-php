@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\LinkItem;
 use App\Models\Room;
+use App\Support\AdminMode;
 use App\Support\CurrentSite;
 use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -36,9 +37,15 @@ class SitePageController extends Controller
 
     public function links(): View
     {
-        $this->siteWithFunction('friendlinkfunction');
+        $site = $this->siteWithFunction('friendlinkfunction');
 
-        $links = LinkItem::query()->approved()->listingOrder()->get();
+        // 管理者モードでは未承認（allow=0）のリンクも薄く表示し、その場で編集できるようにする。
+        $adminMode = AdminMode::activeFor($site->site_id);
+
+        $links = LinkItem::query()
+            ->when(! $adminMode, fn ($q) => $q->approved())
+            ->listingOrder()
+            ->get();
 
         return view('public.links', compact('links'));
     }

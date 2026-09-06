@@ -145,8 +145,8 @@
     <main class="w-full flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <div @class([
             'grid grid-cols-1 gap-6',
-            'lg:grid-cols-[190px_minmax(0,1fr)_220px]' => isset($aside) && $showSidebar,
-            'lg:grid-cols-[190px_minmax(0,1fr)]' => ! isset($aside) && $showSidebar,
+            'lg:grid-cols-[250px_minmax(0,1fr)_220px]' => isset($aside) && $showSidebar,
+            'lg:grid-cols-[250px_minmax(0,1fr)]' => ! isset($aside) && $showSidebar,
             'lg:grid-cols-[minmax(0,1fr)_220px]' => isset($aside) && ! $showSidebar,
         ])>
             {{-- 旧 inc_left.asp 相当の左サイドバー「カテゴリ」（content_sorts のトップレベル）。全ページ共通 --}}

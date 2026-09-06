@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Content;
 use App\Models\ContentSort;
+use App\Models\NewsItem;
 use App\Models\Room;
 use App\Models\TopMenu;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,6 +39,37 @@ class HomeLegacyWidgetsTest extends TestCase
         $response->assertSee('よくある質問');
         $response->assertSee(route('faq.index'), false);
         $response->assertDontSee('非公開カテゴリ');
+    }
+
+    public function test_home_puts_news_before_recommended_and_hides_siteintro(): void
+    {
+        Room::create([
+            'site_id' => 'www', 'sitename' => 'テスト', 'site_joutai' => 1,
+            'siteintro' => '<p>これは表示されないはずのサイト紹介文です。</p>',
+            'function_list' => 'osusumecontentsfunction',
+        ]);
+
+        $sort = ContentSort::create(['site_id' => 'www', 'name' => 'カテゴリ', 'father_id' => 0]);
+        Content::create([
+            'site_id' => 'www', 'content_sort' => $sort->id, 'name' => 'おすすめ記事A',
+            'ok' => 1, 'recommend' => 1,
+        ]);
+        NewsItem::create([
+            'site_id' => 'www', 'title' => '最新ニュースA', 'content' => '本文',
+            'newsdate' => now()->subDay(),
+        ]);
+
+        $html = $this->get('/')->assertOk()
+            ->assertSee('最新ニュースA')
+            ->assertSee('おすすめ記事A')
+            ->assertDontSee('表示されないはずのサイト紹介文')
+            ->getContent();
+
+        $this->assertLessThan(
+            strpos($html, 'おすすめコンテンツ'),
+            strpos($html, '最新ニュース'),
+            '最新ニュースはおすすめコンテンツより前に出るべき',
+        );
     }
 
     public function test_home_renders_without_legacy_widgets_when_no_data(): void

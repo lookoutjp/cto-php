@@ -45,7 +45,8 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
     元のページへ戻る＝`RedirectsEditBackToOrigin` / `RedirectsCreateBackToOrigin`）と「＋追加」ボタンが出る:
     - フェーズ1: ヘッダーのトップメニュー（`top_menus`）、左サイドバーのカテゴリ（`content_sorts`、D&D並び替えも）
     - フェーズ2: コンテンツ一覧/カテゴリ詳細/記事詳細（記事＝`contents`、カテゴリ＝`content_sorts`、
-      「このカテゴリに記事を追加」は `?content_sort=` でカテゴリ事前選択）、コンテンツのコメント（`content_comments`）、
+      「このカテゴリに記事を追加」は `?content_sort=`、「サブカテゴリを追加」は `?father_id=`＝現在カテゴリ
+      で事前選択）、コンテンツのコメント（`content_comments`）、
       ニュース一覧/詳細（`news_items`）、FAQ（`faqs`）、リンク集（`link_items`。管理者モードでは未承認 `allow=0` も薄く表示）、
       管理員の言葉 / サイト概要（`rooms` の該当フィールド）
   - 一覧・削除UIそのものはFilament任せで、独自のインライン編集フォームは持たない（工数を抑えるための意図的な設計判断）。

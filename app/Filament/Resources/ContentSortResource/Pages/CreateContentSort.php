@@ -13,8 +13,8 @@ class CreateContentSort extends CreateRecord
     protected static string $resource = ContentSortResource::class;
 
     /**
-     * 管理者モードのカテゴリ詳細ページ「＋カテゴリを追加」からは ?father_id=N が付く
-     * （N はそのカテゴリの親＝同じ階層に足す想定。トップレベルなら 0＝ルート）。
+     * 管理者モードのカテゴリ詳細ページ「＋サブカテゴリを追加」からは ?father_id=N が付く
+     * （N は現在表示中のカテゴリ＝その配下に子カテゴリを足す）。
      * 親カテゴリを事前選択した状態でフォームを開く。
      */
     protected function fillForm(): void

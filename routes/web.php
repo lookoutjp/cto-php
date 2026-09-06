@@ -157,3 +157,13 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// 共有ドメイン上でテナントの公開フロントを開く: /{site}/ , /{site}/{path}
+//   例: https://cto.jp/miraipmo/  https://cto.jp/demo/contents/5
+// session('site_view') に保存してルート無しの URL へリダイレクトする（SitePageController@enter）。
+// 全ルート定義の最後に置く（他ルートが優先。実在しない {site} は 404）。
+// インフラ系プレフィックス（admin / livewire 等）はサービスプロバイダの登録順に依存しないよう明示除外。
+Route::get('/{site}/{path?}', [SitePageController::class, 'enter'])
+    ->where('site', '(?!(?:admin|livewire|storage|build|vendor|up|sanctum|broadcasting|_debugbar|_ignition)$)[a-z0-9][a-z0-9-]*')
+    ->where('path', '.*')
+    ->name('site.enter');

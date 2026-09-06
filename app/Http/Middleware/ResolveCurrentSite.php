@@ -22,10 +22,14 @@ use Symfony\Component\HttpFoundation\Response;
  *
  *   公開フロント + ログイン中 Member
  *     → 対象は accessibleSiteIds()（所属していれば ninshou 問わない）
- *     → ホスト名 → session('site_id') → 既定サイト → 先頭 の順で解決
+ *     → session('site_id')（/{site}/ プレフィックスで明示選択）→ ホスト名 → 既定サイト → 先頭
+ *       ※ session の値は所属外でも尊重する（公開コンテンツの閲覧のみ。管理・PM機能は別途 gate）
  *
  *   公開フロント + 未ログイン
- *     → ホスト名（rooms.sitedomain）→ 既定サイト
+ *     → session('site_id')（/{site}/ プレフィックスで明示選択）→ ホスト名（rooms.sitedomain）→ 既定サイト
+ *
+ * `/{site}/…`（SitePageController@enter）に来ると session('site_id') に {site} を保存し
+ * ルート無しの URL へリダイレクトする。以降その session が「表示中サイト」を決める。
  *
  * livewire/update は web ミドルウェア経由で管理画面からも来るため、
  * リクエストパスだけでなく Referer も見て管理画面コンテキストか判定する。
@@ -40,7 +44,11 @@ class ResolveCurrentSite
 
         // --- ゲスト（公開フロント）---
         if (! $user instanceof Member) {
-            $current->set(Room::resolveSiteIdFromHost($request->getHost()) ?? $default);
+            $current->set(
+                $this->explicitlyChosenSite($request)
+                    ?? Room::resolveSiteIdFromHost($request->getHost())
+                    ?? $default
+            );
 
             return $next($request);
         }
@@ -75,10 +83,15 @@ class ResolveCurrentSite
             return $next($request);
         }
 
+        // /{site}/ プレフィックスで明示選択されたサイトは、所属外でも尊重する
+        // （見えるのは公開コンテンツのみ。管理・プロジェクト機能は managesSite() /
+        //   isProjectMemberOf() で別途 gate されるので閲覧させて問題ない）。
+        $explicit = $this->explicitlyChosenSite($request);
         $fromHost = Room::resolveSiteIdFromHost($request->getHost());
         $fromSession = $request->session()->get('site_id');
 
         $picked = match (true) {
+            $explicit !== null => $explicit,
             in_array($fromHost, $accessible, true) => $fromHost,
             in_array($fromSession, $accessible, true) => $fromSession,
             in_array($default, $accessible, true) => $default,
@@ -89,6 +102,21 @@ class ResolveCurrentSite
         $request->session()->put('site_id', $picked);
 
         return $next($request);
+    }
+
+    /**
+     * `/{site}/…` プレフィックス（SitePageController@enter）で明示選択されたサイト。
+     * 実在するテナントであることだけ確認する（所属チェックはしない＝公開コンテンツ閲覧用）。
+     */
+    private function explicitlyChosenSite(Request $request): ?string
+    {
+        $siteId = $request->session()->get('site_view');
+
+        if ($siteId === null || $siteId === '') {
+            return null;
+        }
+
+        return Room::whereKey($siteId)->exists() ? $siteId : null;
     }
 
     private function isAdminContext(Request $request): bool

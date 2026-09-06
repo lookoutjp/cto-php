@@ -8,6 +8,8 @@ use App\Models\Room;
 use App\Support\AdminMode;
 use App\Support\CurrentSite;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -23,6 +25,28 @@ class SitePageController extends Controller
     public function about(): View
     {
         return view('public.about');
+    }
+
+    /**
+     * `/{site}/…` — 独自ドメインを使わずに、共有ドメイン上でテナントの公開フロントを開く。
+     *   例: https://cto.jp/miraipmo/         → session に miraipmo を保存して / へ
+     *       https://cto.jp/demo/contents/5   → session に demo を保存して /contents/5 へ
+     *
+     * 保存先は session('site_view')。ResolveCurrentSite が「表示中サイト」として最優先で使う。
+     * 実在しない {site} は 404（ワイルドカードなので通常の 404 と同じ挙動）。
+     */
+    public function enter(Request $request, string $site, ?string $path = null): RedirectResponse
+    {
+        abort_unless(Room::whereKey($site)->exists(), 404);
+
+        $request->session()->put('site_view', $site);
+
+        $target = '/'.ltrim((string) $path, '/');
+        if ($query = $request->getQueryString()) {
+            $target .= '?'.$query;
+        }
+
+        return redirect()->to($target);
     }
 
     public function managerWords(): View

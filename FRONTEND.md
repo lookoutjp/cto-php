@@ -79,9 +79,15 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | コンテキスト | 対象サイト集合 | 解決順 | session キー |
 |---|---|---|---|
 | /admin + Member | `manageableSiteIds()`（管理員/スーパー管理者） | session → 先頭。無ければ `denyAll()` | `admin_site_id` |
-| 公開フロント + Member | `accessibleSiteIds()`（所属サイト） | ホスト → session → 既定サイト → 先頭 | `site_id` |
-| 公開フロント + ゲスト | 全 rooms | `Room::resolveSiteIdFromHost()` → 既定サイト | — |
+| 公開フロント + Member | `accessibleSiteIds()`（所属サイト）＋ 明示選択サイト | **明示選択(`site_view`)** → ホスト → session → 既定サイト → 先頭 | `site_id` / `site_view` |
+| 公開フロント + ゲスト | 全 rooms | **明示選択(`site_view`)** → `Room::resolveSiteIdFromHost()` → 既定サイト | `site_view` |
 
+- **共有ドメインでのテナント公開フロント**: `/{site}/` `/{site}/{path}`（`SitePageController@enter`、ルート名 `site.enter`、
+  全ルート定義の最後）で `session('site_view')` に `{site}` を保存し、プレフィックス無しの URL へリダイレクトする。
+  以降 `site_view` が「表示中サイト」を最優先で決める（独自ドメイン `rooms.sitedomain` を持たないテナントでも
+  `https://cto.jp/miraipmo/` のように開ける）。`site_view` は所属外でも尊重する＝公開コンテンツは誰でも閲覧可、
+  管理・PM機能は `managesSite()` / `isProjectMemberOf()` で別途 gate されるので安全。`{site}` 正規表現は
+  `admin` / `livewire` 等のインフラ系プレフィックスを除外。
 - 管理画面コンテキストの判定 = リクエストパスが `admin/*`、または Referer が `/admin` 始まり
   （livewire/update は web ミドルウェア経由で管理画面からも飛んでくるため）
 - どの経路でも必ず `CurrentSite::set()`（またはゲストは host 解決）するので、

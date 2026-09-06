@@ -120,6 +120,7 @@ class Member extends Authenticatable implements FilamentUser
 
     /**
      * この会員が「所属」している site_id 一覧（ninshou は問わない）。
+     * 加入申請中（未承認）のサイトも含む＝承認待ちでも公開コンテンツは閲覧できる。
      * フロント側（一般会員向け画面）のテナント解決に使う想定。
      * スーパー管理者は全サイト。
      */
@@ -130,6 +131,19 @@ class Member extends Authenticatable implements FilamentUser
         }
 
         return $this->rooms()->orderBy('rooms.site_id')->pluck('rooms.site_id');
+    }
+
+    /**
+     * 加入申請中（未承認）のサイト site_id 一覧。
+     */
+    public function pendingSiteIds(): Collection
+    {
+        return MemberRoom::query()
+            ->withoutGlobalScope('confirmed')
+            ->pendingRequests()
+            ->where('member_id', $this->getKey())
+            ->orderBy('site_id')
+            ->pluck('site_id');
     }
 
     /**

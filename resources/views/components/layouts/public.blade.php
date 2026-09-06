@@ -110,6 +110,7 @@
                         <x-slot name="content">
                             <x-dropdown-link :href="route('dashboard')">マイページ</x-dropdown-link>
                             <x-dropdown-link :href="route('profile.edit')">プロフィール</x-dropdown-link>
+                            <x-dropdown-link :href="route('site-join.index')">他サイトに加入</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <x-dropdown-link :href="route('logout')"
@@ -171,6 +172,7 @@
                     @endif
                     <x-responsive-nav-link href="{{ route('dashboard') }}">マイページ</x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('profile.edit')">プロフィール</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('site-join.index')">他サイトに加入</x-responsive-nav-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-responsive-nav-link :href="route('logout')"

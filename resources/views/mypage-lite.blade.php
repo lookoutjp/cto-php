@@ -18,9 +18,10 @@
                     現在このサイトのプロジェクト機能（TODO・課題・リスク・WBS・サーベイ）はご利用いただけません。
                     ご利用にはサイト管理者による権限設定が必要です。
                 </p>
-                <div class="mt-4 flex gap-3 text-sm">
+                <div class="mt-4 flex flex-wrap gap-3 text-sm">
                     <a href="{{ route('home') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50">サイトを見る</a>
                     <a href="{{ route('profile.edit') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50">プロフィール</a>
+                    <a href="{{ route('site-join.index') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50">サイトへの加入</a>
                 </div>
             </div>
         </div>

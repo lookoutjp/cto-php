@@ -26,8 +26,10 @@
                         <li class="rounded-lg border border-gray-200 bg-white p-5">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <p class="font-semibold text-gray-900">{{ $site->sitename ?: $site->site_id }}</p>
-                                    <p class="text-xs text-gray-400">{{ $site->site_id }}</p>
+                                    <a href="{{ url($site->site_id.'/') }}" class="font-semibold text-brand hover:underline">
+                                        {{ $site->sitename ?: $site->site_id }}
+                                    </a>
+                                    <p class="text-xs text-gray-400">{{ $site->site_id }} ・ <a href="{{ url($site->site_id.'/') }}" class="hover:underline">サイトを見る</a></p>
                                 </div>
 
                                 @switch($site->join_state)

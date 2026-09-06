@@ -34,16 +34,24 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
 
 - `ninshou = 0` = コンテンツ閲覧のみの会員。PM機能は不可。旧ASP の各ページ冒頭 `<%ninshou=",1,"%>` + `chkusr.asp` に対応。
-- 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）相当を、
-  「管理者モード」として一部復活させている（フェーズ1: トップメニュー・カテゴリのみ）。
-  - `App\Support\AdminMode`: サイトごとのON/OFF（session）。判定のみ、権限チェックは呼び出し側。
+- 旧ASPの「管理員メニュー」（ページ上に浮かぶ編集/非表示/並び替えボタン群）相当を
+  「管理者モード」として復活させている。
+  - `App\Support\AdminMode`: サイトごとのON/OFF（session）。`isEnabled()` は判定のみ（権限チェックは呼び出し側）、
+    `activeFor(?siteId)` は「ログイン中の会員がそのサイトの管理員 かつ ON」を一括判定する唯一の判定点。
   - `AdminModeController@toggle`（`POST /admin-mode/toggle`）: サイト管理員のみ切替可（他は403）。
-  - ONの間、公開ヘッダーのトップメニュー・カテゴリサイドバー（`components.layouts.public`）に
-    編集アイコン（→ Filament の該当編集ページへ直リンク。削除は編集ページのヘッダーアクションから）と
-    「＋追加」ボタン（→ Filament の作成ページへ直リンク）が出る。一覧・削除UIそのものはFilament任せで、
-    独自のインライン編集フォームは持たない（工数を抑えるための意図的な設計判断）。
-  - 対象を増やす場合はこのパターン（`$adminMode` フラグ + Filamentの index/create/edit route への
-    直リンク）を他のリソースにも横展開する。
+  - `$adminMode` は `AppServiceProvider` の View::composer が `components.layouts.public` /
+    `public.*` / `livewire.public.*` に注入。個々の公開ページビューでもそのまま使える。
+  - ONの間、以下に編集アイコン（→ Filament の該当編集ページへ `?back=` 付き直リンク。保存/削除後は
+    元のページへ戻る＝`RedirectsEditBackToOrigin` / `RedirectsCreateBackToOrigin`）と「＋追加」ボタンが出る:
+    - フェーズ1: ヘッダーのトップメニュー（`top_menus`）、左サイドバーのカテゴリ（`content_sorts`、D&D並び替えも）
+    - フェーズ2: コンテンツ一覧/カテゴリ詳細/記事詳細（記事＝`contents`、カテゴリ＝`content_sorts`、
+      「このカテゴリに記事を追加」は `?content_sort=` でカテゴリ事前選択）、コンテンツのコメント（`content_comments`）、
+      ニュース一覧/詳細（`news_items`）、FAQ（`faqs`）、リンク集（`link_items`。管理者モードでは未承認 `allow=0` も薄く表示）、
+      管理員の言葉 / サイト概要（`rooms` の該当フィールド）
+  - 一覧・削除UIそのものはFilament任せで、独自のインライン編集フォームは持たない（工数を抑えるための意図的な設計判断）。
+  - 導線用の共通コンポーネント: `<x-admin-edit :href :label :show-label :icon>` / `<x-admin-add :href>`（`back=` を自動付与）。
+  - 対象を増やす場合はこのパターン（`$adminMode` フラグ + `<x-admin-edit>` / `<x-admin-add>` +
+    対象 Edit/Create ページに `RedirectsEditBackToOrigin` / `RedirectsCreateBackToOrigin`）を横展開する。
   管理そのものは引き続き Filament（`/admin`）に一本化: `top_menus`→`TopMenuResource`、`content_sorts`（並び順=`junban`、
   公開可否=`ninshou`、外部リンク=`link`）→`ContentSortResource`、ニュース→`NewsItemResource`、
   サイト設定（ロゴ・トップ画像・サイト名等）→`RoomResource`。フロント側の導線として、

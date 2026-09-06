@@ -4,6 +4,7 @@
         'search' => "「{$keyword}」の検索結果",
         default => 'コンテンツ',
     };
+    $isAdmin = $adminMode ?? false;
 @endphp
 
 <x-layouts.public title="コンテンツ">
@@ -29,11 +30,35 @@
         </form>
     </div>
 
+    @if ($isAdmin)
+        <div class="mb-4 flex flex-wrap gap-2">
+            @if ($mode === 'category')
+                <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $category)"
+                              label="このカテゴリを編集" :show-label="true" />
+                <x-admin-add :href="route('filament.admin.resources.contents.create', ['content_sort' => $category->id])">このカテゴリに記事を追加</x-admin-add>
+                <x-admin-add :href="route('filament.admin.resources.content-sorts.create')">カテゴリを追加</x-admin-add>
+            @else
+                <x-admin-add :href="route('filament.admin.resources.contents.create')">記事を追加</x-admin-add>
+                <x-admin-add :href="route('filament.admin.resources.content-sorts.create')">カテゴリを追加</x-admin-add>
+            @endif
+        </div>
+    @endif
+
     {{-- 旧ASPのカテゴリ詳細画面（contents.asp?Contentsort=N）は「現在位置」の直下に
          カテゴリの紹介文（content_sorts.introduce）を表示していた。それに合わせる。 --}}
-    @if ($mode === 'category' && filled($category->introduce))
+    @if ($mode === 'category' && (filled($category->introduce) || $isAdmin))
         <div class="prose prose-sm mb-4 max-w-none rounded-lg border border-gray-200 bg-white px-4 py-4 text-gray-700">
-            {!! $category->introduce !!}
+            @if (filled($category->introduce))
+                {!! $category->introduce !!}
+            @else
+                <p class="text-sm text-gray-400">（このカテゴリの紹介文は未登録です）</p>
+            @endif
+            @if ($isAdmin)
+                <div class="mt-2 not-prose">
+                    <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $category)"
+                                  label="紹介文を編集" :show-label="true" />
+                </div>
+            @endif
         </div>
     @endif
 
@@ -45,10 +70,16 @@
         @else
             <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
                 @foreach ($results as $content)
-                    <li class="px-4 py-3">
-                        <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
-                        @if ($content->title2)
-                            <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                    <li class="flex items-start justify-between gap-2 px-4 py-3">
+                        <div>
+                            <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
+                            @if ($content->title2)
+                                <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                            @endif
+                        </div>
+                        @if ($isAdmin)
+                            <x-admin-edit :href="route('filament.admin.resources.contents.edit', $content)"
+                                          :label="'「'.\Illuminate\Support\Str::limit($content->name, 20).'」を編集'" />
                         @endif
                     </li>
                 @endforeach
@@ -59,10 +90,16 @@
             @if ($ownContents->isNotEmpty())
                 <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
                     @foreach ($ownContents as $content)
-                        <li class="px-4 py-3">
-                            <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
-                            @if ($content->title2)
-                                <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                        <li class="flex items-start justify-between gap-2 px-4 py-3">
+                            <div>
+                                <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
+                                @if ($content->title2)
+                                    <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                                @endif
+                            </div>
+                            @if ($isAdmin)
+                                <x-admin-edit :href="route('filament.admin.resources.contents.edit', $content)"
+                                              :label="'「'.\Illuminate\Support\Str::limit($content->name, 20).'」を編集'" />
                             @endif
                         </li>
                     @endforeach
@@ -71,19 +108,35 @@
 
             @foreach ($children as $child)
                 <section class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-                    <a href="{{ route('contents.index', ['category' => $child->id]) }}"
-                       class="block bg-brand px-4 py-2 text-sm font-semibold text-brand-fg hover:bg-brand-dark">
-                        {{ $child->name }}
-                    </a>
+                    <div class="flex items-stretch bg-brand text-brand-fg">
+                        <a href="{{ route('contents.index', ['category' => $child->id]) }}"
+                           class="block flex-1 px-4 py-2 text-sm font-semibold hover:bg-brand-dark">
+                            {{ $child->name }}
+                        </a>
+                        @if ($isAdmin)
+                            <span class="flex items-center gap-1 pr-2">
+                                <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $child)"
+                                              label="「{{ $child->name }}」を編集" class="border-white/60 bg-white/90" />
+                                <x-admin-edit :href="route('filament.admin.resources.contents.create', ['content_sort' => $child->id])"
+                                              label="「{{ $child->name }}」に記事を追加" icon="plus" class="border-white/60 bg-white/90" />
+                            </span>
+                        @endif
+                    </div>
                     @if ($child->contents->isEmpty())
                         <p class="px-4 py-4 text-sm text-gray-400">コンテンツはまだありません。</p>
                     @else
                         <ul class="divide-y divide-gray-100">
                             @foreach ($child->contents as $content)
-                                <li class="px-4 py-3">
-                                    <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
-                                    @if ($content->title2)
-                                        <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                                <li class="flex items-start justify-between gap-2 px-4 py-3">
+                                    <div>
+                                        <a href="{{ route('contents.show', $content) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $content->name }}</a>
+                                        @if ($content->title2)
+                                            <p class="mt-0.5 truncate text-sm text-gray-500">{{ \Illuminate\Support\Str::limit(strip_tags($content->title2), 80) }}</p>
+                                        @endif
+                                    </div>
+                                    @if ($isAdmin)
+                                        <x-admin-edit :href="route('filament.admin.resources.contents.edit', $content)"
+                                                      :label="'「'.\Illuminate\Support\Str::limit($content->name, 20).'」を編集'" />
                                     @endif
                                 </li>
                             @endforeach

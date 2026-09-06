@@ -1,4 +1,16 @@
 <x-layouts.public :title="$content->name">
+    @if ($adminMode ?? false)
+        <div class="mb-4 flex flex-wrap gap-2">
+            <x-admin-edit :href="route('filament.admin.resources.contents.edit', $content)"
+                          label="この記事を編集" :show-label="true" />
+            @if ($content->sort)
+                <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $content->sort)"
+                              label="カテゴリを編集" :show-label="true" />
+            @endif
+            <x-admin-add :href="route('filament.admin.resources.contents.create')">記事を追加</x-admin-add>
+        </div>
+    @endif
+
     <article class="rounded-lg border border-gray-200 bg-white p-6">
         <div class="mb-4 border-b border-gray-100 pb-4">
             @if ($content->sort)

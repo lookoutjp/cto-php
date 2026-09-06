@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 /**
  * 公開フロントのヘッダー右上（旧 inc_top.asp の会員メニュー相当）:
- * ログイン中は「名前（会員ID）」のドロップダウン、dengonfunction 有効なら
+ * ログイン中は名前（displayName）のドロップダウン、dengonfunction 有効なら
  * メッセージアイコンも出す。ゲストは「ログイン」リンク。
  */
 class PublicHeaderUserMenuTest extends TestCase
@@ -27,7 +27,8 @@ class PublicHeaderUserMenuTest extends TestCase
         MemberRoom::create(['member_id' => 'taro-001', 'site_id' => 'www', 'ninshou' => 1]);
 
         $this->actingAs($member)->get('/')->assertOk()
-            ->assertSee('サンプル太郎（taro-001）')
+            ->assertSee('サンプル太郎')
+            ->assertDontSee('taro-001')
             ->assertSee(route('messages.index'), false)
             ->assertSee(route('profile.edit'), false)
             ->assertDontSee('ログイン');
@@ -42,7 +43,7 @@ class PublicHeaderUserMenuTest extends TestCase
         MemberRoom::create(['member_id' => 'taro-002', 'site_id' => 'www', 'ninshou' => 1]);
 
         $this->actingAs($member)->get('/')->assertOk()
-            ->assertSee('サンプル次郎（taro-002）')
+            ->assertSee('サンプル次郎')
             ->assertDontSee(route('messages.index'), false);
     }
 

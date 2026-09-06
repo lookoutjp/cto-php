@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use FilamentTiptapEditor\TiptapEditor;
 
 class NewsItemResource extends Resource
 {
@@ -29,22 +30,28 @@ class NewsItemResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DateTimePicker::make('adddatetime')->label(FieldLabels::ja('adddatetime')),
+                Forms\Components\TextInput::make('title')->label(FieldLabels::ja('title'))
+                    ->maxLength(255)
+                    ->default(null)
+                    ->columnSpanFull(),
+                TiptapEditor::make('content')->label(FieldLabels::ja('content'))
+                    ->profile('default')
+                    ->extraInputAttributes(['style' => 'min-height: 12rem;'])
+                    ->columnSpanFull(),
+                Forms\Components\Checkbox::make('istop')->label(FieldLabels::ja('istop'))
+                    ->helperText('チェックするとトップページ・一覧の先頭に固定表示されます。')
+                    ->formatStateUsing(fn ($state) => (string) $state === '1')
+                    ->dehydrateStateUsing(fn ($state) => $state ? '1' : '0'),
+                Forms\Components\DateTimePicker::make('newsdate')->label(FieldLabels::ja('newsdate'))
+                    ->seconds(false)
+                    ->default(now()),
+                Forms\Components\DateTimePicker::make('adddatetime')->label(FieldLabels::ja('adddatetime'))
+                    ->default(now()),
+                Forms\Components\DateTimePicker::make('editdatetime')->label(FieldLabels::ja('editdatetime')),
                 Forms\Components\TextInput::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->default(null),
-                Forms\Components\Textarea::make('content')->label(FieldLabels::ja('content'))
-                    ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('editdatetime')->label(FieldLabels::ja('editdatetime')),
-                Forms\Components\TextInput::make('istop')->label(FieldLabels::ja('istop'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('newsdate')->label(FieldLabels::ja('newsdate')),
-                Forms\Components\TextInput::make('news_img')->label(FieldLabels::ja('news_img'))
-                    ->maxLength(50)
-                    ->default(null),
-                Forms\Components\Textarea::make('title')->label(FieldLabels::ja('title'))
-                    ->columnSpanFull(),
+                // 画像(news_img) は編集画面では非表示。
             ]);
     }
 
@@ -52,22 +59,24 @@ class NewsItemResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('title')->label(FieldLabels::ja('title'))
+                    ->searchable()
+                    ->limit(60),
+                Tables\Columns\IconColumn::make('istop')->label(FieldLabels::ja('istop'))
+                    ->boolean()
+                    ->state(fn ($record) => (string) $record->istop === '1'),
+                Tables\Columns\TextColumn::make('newsdate')->label(FieldLabels::ja('newsdate'))
+                    ->dateTime()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('adddatetime')->label(FieldLabels::ja('adddatetime'))
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('editdatetime')->label(FieldLabels::ja('editdatetime'))
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('clicks')->label(FieldLabels::ja('clicks'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('editdatetime')->label(FieldLabels::ja('editdatetime'))
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('istop')->label(FieldLabels::ja('istop'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('newsdate')->label(FieldLabels::ja('newsdate'))
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('news_img')->label(FieldLabels::ja('news_img'))
-                    ->searchable(),
             ])
             ->filters([
                 //

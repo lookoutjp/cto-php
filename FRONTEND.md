@@ -30,6 +30,9 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/admin`（Filament） | 現在サイトの**管理員**（`ninshou = -1`）or スーパー管理者 | `Member::canAccessPanel()` |
 | `/tasks/*` `/wbs/*` `/surveys/*` `/board/*` | 現在サイトの**プロジェクト参加者**（`ninshou = 1` or `-1`）or スーパー管理者 | `EnsureProjectMember` ミドルウェア + `Member::isProjectMemberOf()`。Livewire の即時編集メソッドにも `guardWrite()` |
 | コンテンツのコメント投稿 | 現在サイトのプロジェクト参加者（閲覧は誰でも） | `Livewire\Public\ContentComments::submit()` の `abort_unless` |
+| コンテンツ投稿（`/contents/{category}/submit`）・管理員申請 | 現在サイトの確定会員（`ninshou` 問わず、承認待ちは不可） | `Member\ContentSubmissionController::member()` の `abort_unless($member->belongsToSite())` |
+| 会員投稿の承認・却下、サブカテゴリ追加、投稿の直接公開 | そのカテゴリ or その**祖先**カテゴリの承認済みカテゴリ管理員 / サイト管理員（`-1`）/ スーパー管理者 | `Member::managesCategory()` + `ContentSort::manageableIdsFor()` |
+| カテゴリ管理員の承認・直接指定（Filament `/admin/content-sort-managers`） | スーパー管理者のみ | `ContentSortManagerResource::canAccess()` = `Member::isSuperAdmin()` |
 | `/mypage` | 誰でも（要ログイン）。非参加者には `mypage-lite`（機能が使えない旨の案内）を表示 | `MypageController` で分岐 |
 | 公開フロント（`/` `/news` `/contents` `/faq` `/contact`） | 誰でも | — |
 
@@ -79,6 +82,15 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
   ショートカットを置いている
 - **レコード単位のアクセス制御は無し**（旧ASP同様、参加者なら他人のタスクも編集・削除できる協働ツール）。
 - nav は `isProjectMemberOf()` で業務系リンクを出し分け。
+- **カテゴリ管理員**（`content_sort_managers`、`ContentSortManager`）: 会員が公開フロントの各カテゴリ見出しの
+  「カテゴリ管理員になる」ボタンで申請（`status='pending'`）→ スーパー管理者が Filament
+  `ContentSortManagerResource`（`/admin/content-sort-managers`）で承認（`status='approved'` + `decided_by`）。
+  申請なしの**直接指定**も同リソースの「カテゴリ管理員を指定」から。`Member::managesCategory($cat)` が
+  「スーパー管理者 / そのサイトのサイト管理員（`managesSite`）/ そのカテゴリか祖先の承認済み管理員」で true を返し、
+  管理範囲は**カテゴリ配下のサブツリー全体**（`ContentSort::manageableIdsFor()` が `father_id` マップで子孫展開）。
+  **注意**: スーパー管理者は `config('app.super_admin_member_ids')`（`.env` の `APP_SUPER_ADMIN_MEMBER_IDS`、
+  カンマ区切り）で定義。**未設定だとこの Filament リソースは誰にも見えず、申請の承認・直接指定ができない**ため、
+  本番では運営者の `member_id` を設定する必要がある。
 
 ## サイト（テナント）解決
 
@@ -138,6 +150,7 @@ Laravel の Blade + Livewire + Tailwind で作り直す。管理画面は Filame
 | `/surveys/manage` `/surveys/create` `/surveys/{id}/edit` ほか | `Member\SurveyController@manage/create/store/edit/update/destroy/toggleOpen` | SurveyList_Mytask.asp / Survey_new.asp / Surveyedit_son.asp | サーベイの作成・編集・締切／再開（`open_yn`）・論理削除（`delete_to=1`）。一覧は「自分が作成したもの」＋管理員は全件。選択肢は Alpine の可変行（タイトル＋説明）。**回答が付いた後は選択肢を編集不可**（メタ情報は可）。回答期限は `endOfDay` で保存 |
 | `/board` `/board/categories/{id}` `/board/threads/{id}` ほか | `Member\BoardController` | meetlist.asp / meet.asp / meet_disp.asp / meetadd.asp / meet_re.asp | 掲示板。`/board`=コミュニティ一覧（`guestbook_categories`。id=1 は「サイト掲示板」既定カテゴリで一覧では別枠表示）／`categories/{id}`=スレッド一覧（`guestbooks` の `parent='0'`、返信数・管理員返信バッジ、10件/頁）／`threads/{id}`=スレッド詳細（本文＋`revert` 管理員返信＋`parent`/`top`/`space_num` の自己参照ツリーで返信をインデント表示、各ノードに Alpine 開閉式の返信フォーム）／`categories/{id}/new` 新規スレッド。返信は `top`=スレッド先頭ID・`space_num`=親+1 を自動セット。`create_date` に投稿時刻。旧Access由来の空行は `Guestbook::scopeReal()` で除外。管理員返信の編集は Filament（`GuestbookResource`）。`freeguestbookfunction` 必須 |
 | コンテンツのコメント（`<livewire:public.content-comments>`） | 公開コンテンツ詳細に埋め込み | ContentCommentSon.asp / ContentComment_Write.asp / ContentCommentList.asp | `commentfunction` かつ `contents.commentok=1` のとき表示。`content_comments` を新しい順・10件/頁。閲覧は誰でも、投稿はプロジェクト参加者のみ（未ログインは「ログインすると…」、`ninshou=0` は不可の旨）。`time` は旧データにあわせ `Y/m/d H:i:s` 文字列で保存 |
+| `/contents/{category}/submit` `/contents/mine` `/contents/review` `/contents/{category}/subcategory` | `Member\ContentSubmissionController` | （新規） | **会員のコンテンツ投稿**。`/contents` の各カテゴリ見出しに会員向けアクション（`public.partials.category-actions`）を追加: 「投稿する」（→ 投稿フォーム。タイトル＋本文リッチテキスト `<x-rich-text>`、`RichText::clean()` でサニタイズ）、「カテゴリ管理員になる」（→ POST `apply-manager`）。一般会員の投稿は `contents.ok = 2`（審査待ち、`scopePublished` が自動で非公開）で入り `/contents/mine` に「承認待ち」表示。カテゴリ管理員（祖先含む）は「＋投稿を追加」（`ok=1` 直接公開）「＋サブカテゴリ」「承認待ち N」バッジが出る。承認は**専用ページ `/contents/review`** ＋ カテゴリ詳細ページ上のインライン（`member.partials.content-review-item`、承認＝`ok=1`／却下＝`ok=0` + `review_note` で下書きに差し戻し、投稿者は `?edit=` で再申請）。MyMenu に「投稿の管理」「投稿の承認（N）」。要ログイン＋現在サイトの確定会員 |
 
 ## サイトロゴ・favicon（`x-site-logo` / `partials.favicon`）
 
@@ -169,7 +182,10 @@ Blade の匿名コンポーネントは呼び出し元のスコープを自動�
 ## モデルのスコープ
 
 - `NewsItem::scopePublished()` = `newsdate <= now`、`scopeListingOrder()` = istop→newsdate→id
-- `Content::scopePublished()` = `ok = 1`、`scopeListingOrder()` = junban→adddatetime→id
+- `Content::scopePublished()` = `ok = 1`、`scopeListingOrder()` = junban→adddatetime→id。
+  `ok` は `0`=下書き／差し戻し・`2`=審査待ち（会員投稿）・`1`=公開。`scopePendingReview()` = `ok = 2`
+- `ContentSort::scopePublicVisible()` / `publicTree()` は会員向けアクション行のためにビューへ
+  `$isSiteMember` / `$manageableCatIds` / `$pendingCatIds` / `$pendingCountByCat` を渡す（`ContentController::memberContext()`）
 - `ContentSort::scopePublicVisible()` = `ninshou is null or 0`
 
 ## 未実装（旧ASPの主要導線の残り）

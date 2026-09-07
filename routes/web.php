@@ -5,6 +5,7 @@ use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CategoryReorderController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Member\BoardController;
+use App\Http\Controllers\Member\ContentSubmissionController;
 use App\Http\Controllers\Member\FileController;
 use App\Http\Controllers\Member\MemberListController;
 use App\Http\Controllers\Member\MessageController;
@@ -35,6 +36,11 @@ Route::get('/news', NewsIndex::class)->name('news.index');
 Route::get('/news/{news}', [NewsController::class, 'show'])->name('news.show');
 
 Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+// 会員のコンテンツ投稿・承認（静的パスは model binding の /contents/{content} より前に置く）
+Route::middleware('auth')->group(function () {
+    Route::get('/contents/mine', [ContentSubmissionController::class, 'mySubmissions'])->name('contents.mine');
+    Route::get('/contents/review', [ContentSubmissionController::class, 'review'])->name('contents.review');
+});
 Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
 
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
@@ -79,6 +85,15 @@ Route::middleware('auth')->group(function () {
 
     // 公開ページ左サイドバー「カテゴリ」の管理者モードでのドラッグ&ドロップ並び替え。
     Route::post('/categories/reorder', [CategoryReorderController::class, 'reorder'])->name('categories.reorder');
+
+    // 会員のコンテンツ投稿 / カテゴリ管理員申請 / 投稿の承認・却下。
+    Route::get('/contents/{category}/submit', [ContentSubmissionController::class, 'submitForm'])->whereNumber('category')->name('contents.submit');
+    Route::post('/contents/{category}/submit', [ContentSubmissionController::class, 'submit'])->whereNumber('category');
+    Route::get('/contents/{category}/subcategory', [ContentSubmissionController::class, 'subcategoryForm'])->whereNumber('category')->name('contents.subcategory');
+    Route::post('/contents/{category}/subcategory', [ContentSubmissionController::class, 'subcategory'])->whereNumber('category');
+    Route::post('/contents/{category}/apply-manager', [ContentSubmissionController::class, 'applyManager'])->whereNumber('category')->name('contents.apply-manager');
+    Route::post('/contents/{content}/approve', [ContentSubmissionController::class, 'approve'])->whereNumber('content')->name('contents.approve');
+    Route::post('/contents/{content}/reject', [ContentSubmissionController::class, 'reject'])->whereNumber('content')->name('contents.reject');
 
     // 業務系（TODO / 課題 / リスク / WBS / サーベイ） — プロジェクト参加者(ninshou 1 or -1)のみ。
     // 支払い滞納中のテナントは書き込み系をブロック（閲覧は可）。

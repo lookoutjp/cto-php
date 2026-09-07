@@ -30,6 +30,23 @@
             コンテンツ
         </a>
 
+        @php($me = auth()->user())
+        @if ($me instanceof \App\Models\Member && $me->belongsToSite($site?->site_id))
+            @php($manageableCatIds = \App\Models\ContentSort::manageableIdsFor($me))
+            @php($reviewCount = $manageableCatIds === [] ? 0 : \App\Models\Content::query()->pendingReview()->whereIn('content_sort', $manageableCatIds)->count())
+            <a href="{{ route('contents.mine') }}" class="block bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
+                投稿の管理
+            </a>
+            @if ($manageableCatIds !== [])
+                <a href="{{ route('contents.review') }}" class="flex items-center justify-between bg-brand-bg px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-fg">
+                    <span>投稿の承認</span>
+                    @if ($reviewCount > 0)
+                        <span class="rounded-full bg-amber-400 px-2 text-xs font-bold text-amber-950">{{ $reviewCount }}</span>
+                    @endif
+                </a>
+            @endif
+        @endif
+
         @if ($isProjectMember)
             @foreach (\App\Support\TaskKind::all() as $tk)
                 @if ($site->hasFunction($tk->function))

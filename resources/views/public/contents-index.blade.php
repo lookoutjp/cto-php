@@ -43,6 +43,21 @@
                 <x-admin-add :href="route('filament.admin.resources.content-sorts.create')">カテゴリを追加</x-admin-add>
             @endif
         </div>
+    @elseif ($mode === 'category' && ($isSiteMember ?? false))
+        {{-- 会員向け: このカテゴリへの投稿・管理員申請・（管理員なら）サブカテゴリ/承認待ち --}}
+        <div class="mb-4 flex flex-wrap items-center gap-2 rounded-lg bg-brand px-3 py-2">
+            @include('public.partials.category-actions', ['cat' => $category])
+        </div>
+    @endif
+
+    {{-- 管理員が見るとき: このカテゴリ配下の承認待ち投稿をインライン表示 --}}
+    @if ($mode === 'category' && ($pendingItems ?? collect())->isNotEmpty())
+        <div class="mb-4 space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+            <p class="text-sm font-semibold text-amber-800">承認待ちの投稿（{{ $pendingItems->count() }}）</p>
+            @foreach ($pendingItems as $c)
+                @include('member.partials.content-review-item', ['c' => $c])
+            @endforeach
+        </div>
     @endif
 
     {{-- 旧ASPのカテゴリ詳細画面（contents.asp?Contentsort=N）は「現在位置」の直下に
@@ -120,6 +135,10 @@
                                               label="「{{ $child->name }}」を編集" class="border-white/60 bg-white/90" />
                                 <x-admin-edit :href="route('filament.admin.resources.contents.create', ['content_sort' => $child->id])"
                                               label="「{{ $child->name }}」に記事を追加" icon="plus" class="border-white/60 bg-white/90" />
+                            </span>
+                        @else
+                            <span class="flex items-center pr-2">
+                                @include('public.partials.category-actions', ['cat' => $child])
                             </span>
                         @endif
                     </div>

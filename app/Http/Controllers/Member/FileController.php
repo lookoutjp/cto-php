@@ -34,10 +34,12 @@ class FileController extends Controller
 
         $activeTag = $request->integer('tag') ?: null;
 
+        // 自分がアップロードしたファイルのみ表示（サイト全体の一覧は Filament の
+        // FileItemResource /admin/file-items で管理員が閲覧）。
         $files = FileItem::query()
+            ->where('member_id', (string) $request->user()->getKey())
             ->listingOrder()
             ->when($activeTag, fn ($q) => $q->withTag($activeTag))
-            ->with('uploader:member_id,name')
             ->paginate(20)
             ->withQueryString();
 
@@ -115,7 +117,7 @@ class FileController extends Controller
 
     public function download(Request $request, int $id): StreamedResponse
     {
-        $file = $this->fileWithBytes($id);
+        $file = $this->fileWithBytes($request, $id);
 
         return Storage::disk(FileStorage::DISK)->download($file->storage_key, $file->downloadName());
     }
@@ -123,7 +125,7 @@ class FileController extends Controller
     /** ブラウザで inline 表示（PDF・画像・テキスト）。それ以外はダウンロード。 */
     public function preview(Request $request, int $id): StreamedResponse
     {
-        $file = $this->fileWithBytes($id);
+        $file = $this->fileWithBytes($request, $id);
 
         if (! FileStorage::canPreviewInline($file->fileext)) {
             return Storage::disk(FileStorage::DISK)->download($file->storage_key, $file->downloadName());
@@ -135,11 +137,18 @@ class FileController extends Controller
         ]);
     }
 
-    private function fileWithBytes(int $id): FileItem
+    private function fileWithBytes(Request $request, int $id): FileItem
     {
         $this->ensureEnabled();
 
         $file = FileItem::query()->findOrFail($id); // BelongsToSite で他サイトは対象外
+
+        // 自分のファイルのみ（管理員は全ファイル可）。
+        abort_unless(
+            $this->isManager($request) || (string) $file->member_id === (string) $request->user()->getKey(),
+            403,
+            'このファイルにアクセスする権限がありません。'
+        );
 
         if (! $file->hasBytes() || ! Storage::disk(FileStorage::DISK)->exists($file->storage_key)) {
             throw new NotFoundHttpException('このファイルの実体は保存されていません。');

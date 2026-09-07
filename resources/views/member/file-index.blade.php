@@ -1,7 +1,7 @@
 @php use App\Support\FileStorage; @endphp
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">ファイル</h2>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">ファイル（自分のアップロード）</h2>
     </x-slot>
 
     <div class="py-8">
@@ -52,7 +52,7 @@
 
                 <div class="flex items-center justify-between">
                     <p class="text-xs text-gray-400">
-                        使用量 {{ FileStorage::humanSize($storageUsed) }}
+                        サイト全体の使用量 {{ FileStorage::humanSize($storageUsed) }}
                         @if ($storageLimitMb !== null) / {{ number_format($storageLimitMb) }} MB @else（無制限）@endif
                     </p>
                     <button type="submit" class="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-brand-fg hover:bg-brand-dark">
@@ -94,8 +94,7 @@
                                 <p class="mt-0.5 text-gray-600">{{ $file->intro }}</p>
                             @endif
                             <p class="mt-0.5 text-xs text-gray-400">
-                                {{ $file->uploader?->name ?? $file->member_id ?? '—' }}
-                                ・{{ optional($file->adddt)->isoFormat('YYYY/MM/DD') ?? '—' }}
+                                {{ optional($file->adddt)->isoFormat('YYYY/MM/DD') ?? '—' }}
                                 ・{{ FileStorage::humanSize($file->size_bytes) }}
                                 @unless ($file->hasBytes())
                                     <span class="text-amber-600">（実体未移行）</span>

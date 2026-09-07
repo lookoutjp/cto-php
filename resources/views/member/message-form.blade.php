@@ -16,17 +16,15 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-medium text-gray-600">宛先</label>
-                    <select name="to" required class="mt-1 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand">
-                        <option value="">選択してください</option>
-                        @foreach ($members as $m)
-                            <option value="{{ $m->member_id }}" @selected(old('to', request('to')) === $m->member_id)>{{ $m->name ?: $m->member_id }}</option>
-                        @endforeach
-                    </select>
+                    <div class="mt-1">
+                        <x-member-picker name="to" :members="$members" :value="old('to', request('to'))" />
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600">本文</label>
-                    <textarea name="content" rows="8" required maxlength="20000"
-                              class="mt-1 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand">{{ old('content') }}</textarea>
+                    <div class="mt-1">
+                        <x-rich-text name="content" :value="old('content')" min-height="12rem" />
+                    </div>
                 </div>
                 <div class="flex items-center justify-end gap-3">
                     <a href="{{ route('messages.index') }}" class="text-sm text-gray-500 hover:underline">キャンセル</a>

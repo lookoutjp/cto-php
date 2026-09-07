@@ -181,7 +181,9 @@ Blade の匿名コンポーネントは呼び出し元のスコープを自動�
 - スケジュール計算はプレビュー→明示的な「反映」でのみ DB を書き換える（自動再計算はしない）
 - WBS D&D は SortableJS の `forceFallback: true`（ポインタイベント）。タッチ端末での操作性は要確認
 - サーベイの作成・編集・締切は `/surveys/manage` 系で対応済み。`specify_yn`（記名式）は集計画面で選択肢ごとの投票者名を表示（`show` は締切済みサーベイも閲覧可に修正）
-- 掲示板: コミュニティの参加者制限は `GuestbookCategory::allowsMember()`（旧 `guestbook_categories.member` の `||id||` リスト、空 or サイト掲示板 id=1 は無制限、管理員/スーパー管理者は常に可）で適用。一覧は許可カテゴリのみ表示、直リンクは 403。管理員返信（`revert`）の入力・投稿削除・コミュニティ CRUD は Filament 側。旧 CKEditor リッチ入力は素の textarea に
+- 掲示板: コミュニティの参加者制限は `GuestbookCategory::allowsMember()`（旧 `guestbook_categories.member` の `||id||` リスト、空 or サイト掲示板 id=1 は無制限、管理員/スーパー管理者は常に可）で適用。一覧は許可カテゴリのみ表示、直リンクは 403。管理員返信（`revert`）の入力・投稿削除・コミュニティ CRUD は Filament 側。
+- **会員フォームのリッチテキスト**: 掲示板の投稿/返信・メッセージ本文は Trix エディタ（`<x-rich-text>` コンポーネント、`resources/js/rich-text.js`、添付機能は無効）。保存時に `App\Support\RichText::clean()`（`symfony/html-sanitizer` の許可リスト方式：`script`/`iframe`/`on*`/`javascript:` 等を除去、`p div strong em u s h1-4 ul ol li blockquote pre code a[href] hr` などを許可）を必ず通す。表示は `.trix-content` コンテナで `{!! !!}`。Filament 側の管理員リッチ入力は `awcodes/filament-tiptap-editor`（別系統）。
+- メッセージ作成の宛先は検索できるコンボボックス（`<x-member-picker>`、Alpine）。候補はサイト参加者（`ninshou` 1/-1）から自分を除いたもの。`to` はサーバ側で `in:` バリデーション。
 - コンテンツのコメント: 削除・管理は Filament（`ContentCommentResource`）。旧 `Contentcomment_about.asp`（プライバシーポリシー）リンクは省略
 - タスクの担当変更・状況更新の簡易操作（一覧から直接。旧ASP の ✪「本日のタスク」トグルも）
 - レコード単位のアクセス制御（旧ASP同様「参加者なら誰でも編集可」を踏襲。person_do/maker ベースの制限を入れるかは要検討）

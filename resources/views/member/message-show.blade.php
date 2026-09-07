@@ -14,7 +14,7 @@
                     <div class="flex gap-2"><dt class="w-16 shrink-0 text-gray-500">宛先</dt><dd class="text-gray-900">{{ $message->recipient?->name ?? $message->to }}</dd></div>
                     <div class="flex gap-2"><dt class="w-16 shrink-0 text-gray-500">日時</dt><dd class="text-gray-900">{{ optional($message->time)->isoFormat('YYYY年M月D日 HH:mm') }}</dd></div>
                 </dl>
-                <div class="prose prose-sm mt-4 max-w-none">{!! $message->content !!}</div>
+                <div class="trix-content mt-4">{!! $message->content !!}</div>
             </div>
 
             <div class="flex items-center gap-3">

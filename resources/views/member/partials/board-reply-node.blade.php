@@ -6,7 +6,7 @@
         <time class="tabular-nums">{{ optional($node->create_date)->isoFormat('YYYY/MM/DD HH:mm') }}</time>
     </div>
     @if (filled(trim(strip_tags($node->content ?? ''))))
-        <div class="prose prose-sm mt-2 max-w-none text-gray-700">{!! $node->content !!}</div>
+        <div class="trix-content mt-2 text-gray-700">{!! $node->content !!}</div>
     @endif
 
     @if ($node->hasManagerReply())

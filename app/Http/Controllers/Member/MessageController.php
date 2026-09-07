@@ -8,9 +8,11 @@ use App\Models\MemberRoom;
 use App\Models\MessageItem;
 use App\Models\Room;
 use App\Support\CurrentSite;
+use App\Support\RichText;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -72,13 +74,21 @@ class MessageController extends Controller
 
         $data = $request->validate([
             'to' => ['required', 'string', 'in:'.implode(',', $memberIds)],
-            'content' => ['required', 'string', 'max:20000'],
+            'content' => ['required', 'string', 'max:100000'],
         ], [], ['to' => '宛先', 'content' => '本文']);
+
+        // リッチテキスト（Trix）の HTML を許可リストでサニタイズ。空なら弾く。
+        $content = RichText::clean($data['content']);
+        if ($content === null) {
+            throw ValidationException::withMessages([
+                'content' => '本文を入力してください。',
+            ]);
+        }
 
         $m = new MessageItem;
         $m->from = $request->user()->getKey();
         $m->to = $data['to'];
-        $m->content = $data['content'];
+        $m->content = $content;
         $m->time = now();
         $m->readed = false;
         $m->delete_from = false;

@@ -23,8 +23,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600">本文</label>
-                    <textarea name="content" rows="10" maxlength="20000"
-                              class="mt-1 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ old('content') }}</textarea>
+                    <div class="mt-1">
+                        <x-rich-text name="content" :value="old('content')" min-height="14rem" />
+                    </div>
                 </div>
                 <div class="flex items-center justify-end gap-3">
                     <a href="{{ route('board.category', $cat->id) }}" class="text-sm text-gray-500 hover:underline">キャンセル</a>

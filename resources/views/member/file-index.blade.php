@@ -18,26 +18,25 @@
             <form method="post" action="{{ route('files.store') }}" enctype="multipart/form-data"
                   class="space-y-3 rounded-lg bg-white p-5 shadow-sm">
                 @csrf
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">ファイル</label>
-                        <input type="file" name="file" required
-                               class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-fg hover:file:bg-brand-dark">
-                        <p class="mt-1 text-xs text-gray-400">
-                            最大 {{ FileStorage::humanSize(FileStorage::MAX_BYTES) }}。
-                            {{ implode(' / ', array_slice(FileStorage::ALLOWED_EXTENSIONS, 0, 12)) }} など
-                        </p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">説明（任意）</label>
-                        <input type="text" name="intro" value="{{ old('intro') }}" maxlength="2000"
-                               class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">ファイル</label>
+                    <input type="file" name="file" required
+                           class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-fg hover:file:bg-brand-dark">
+                    <p class="mt-1 text-xs text-gray-400">
+                        最大 {{ FileStorage::humanSize(FileStorage::MAX_BYTES) }}。
+                        {{ implode(' / ', array_slice(FileStorage::ALLOWED_EXTENSIONS, 0, 12)) }} など
+                    </p>
                 </div>
 
-                @if ($tags->isNotEmpty())
-                    <div>
-                        <span class="block text-sm font-medium text-gray-700">タグ（任意）</span>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">説明（任意）</label>
+                    <input type="text" name="intro" value="{{ old('intro') }}" maxlength="2000"
+                           class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand">
+                </div>
+
+                <div>
+                    <span class="block text-sm font-medium text-gray-700">タグ（任意）</span>
+                    @if ($tags->isNotEmpty())
                         <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
                             @foreach ($tags as $t)
                                 <label class="inline-flex items-center gap-1.5 text-sm text-gray-600">
@@ -47,8 +46,12 @@
                                 </label>
                             @endforeach
                         </div>
-                    </div>
-                @endif
+                    @endif
+                    <input type="text" name="new_tags" value="{{ old('new_tags') }}" maxlength="200"
+                           placeholder="新しいタグ（カンマ区切りで複数可）"
+                           class="mt-2 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand focus:ring-brand">
+                    <p class="mt-1 text-xs text-gray-400">タグは自分だけに表示されます。</p>
+                </div>
 
                 <div class="flex items-center justify-between">
                     <p class="text-xs text-gray-400">

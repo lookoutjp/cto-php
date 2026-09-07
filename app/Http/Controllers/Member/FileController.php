@@ -30,9 +30,16 @@ class FileController extends Controller
     {
         $this->ensureEnabled();
 
-        $tags = FileTag::query()->orderBy('tagname')->get(['tag_id', 'tagname']);
+        // 自分が作ったタグのみ。
+        $tags = FileTag::query()
+            ->where('member_id', (string) $request->user()->getKey())
+            ->orderBy('tagname')
+            ->get(['tag_id', 'tagname']);
 
         $activeTag = $request->integer('tag') ?: null;
+        if ($activeTag !== null && ! $tags->contains('tag_id', $activeTag)) {
+            $activeTag = null;
+        }
 
         // 自分がアップロードしたファイルのみ表示（サイト全体の一覧は Filament の
         // FileItemResource /admin/file-items で管理員が閲覧）。
@@ -66,7 +73,8 @@ class FileController extends Controller
     {
         $this->ensureEnabled();
 
-        $tagIds = FileTag::query()->pluck('tag_id')->all();
+        $me = (string) $request->user()->getKey();
+        $ownTagIds = FileTag::query()->where('member_id', $me)->pluck('tag_id')->all();
 
         $data = $request->validate([
             'file' => [
@@ -76,10 +84,25 @@ class FileController extends Controller
             ],
             'intro' => ['nullable', 'string', 'max:2000'],
             'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => [Rule::in($tagIds)],
+            'tag_ids.*' => [Rule::in($ownTagIds)],
+            'new_tags' => ['nullable', 'string', 'max:200'],
         ], [], [
-            'file' => 'ファイル', 'intro' => '説明', 'tag_ids' => 'タグ',
+            'file' => 'ファイル', 'intro' => '説明', 'tag_ids' => 'タグ', 'new_tags' => '新しいタグ',
         ]);
+
+        // 新規タグ（カンマ区切り）を自分のタグとして作成し、選択タグに合流。
+        $tagIds = collect($data['tag_ids'] ?? [])->map(fn ($v) => (int) $v);
+        foreach (preg_split('/[,、]/u', (string) ($data['new_tags'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $name) {
+            $name = trim($name);
+            if ($name === '') {
+                continue;
+            }
+            $tag = FileTag::query()->firstOrCreate(
+                ['member_id' => $me, 'tagname' => $name],
+            );
+            $tagIds->push((int) $tag->tag_id);
+        }
+        $tagIds = $tagIds->unique()->values()->all();
 
         $upload = $data['file'];
         $room = Room::find(app(CurrentSite::class)->id());
@@ -103,8 +126,8 @@ class FileController extends Controller
         $file->filename = $originalName;
         $file->fileext = $ext;
         $file->intro = $data['intro'] ?? null;
-        $file->member_id = $request->user()->getKey();
-        $file->tag_id = $this->packTags($data['tag_ids'] ?? []);
+        $file->member_id = $me;
+        $file->tag_id = $this->packTags($tagIds);
         $file->storage_key = $key;
         $file->size_bytes = $upload->getSize();
         $file->mime = $upload->getMimeType();

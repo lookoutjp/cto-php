@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\FileItem;
+use App\Models\FileTag;
 use App\Models\Member;
 use App\Models\MemberRoom;
 use App\Models\Room;
 use App\Support\FileStorage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -87,5 +89,33 @@ class FileLibraryOwnershipTest extends TestCase
         $this->actingAs(Member::find('boss'))
             ->get(route('files.download', $aliceFile->id))
             ->assertOk();
+    }
+
+    public function test_tag_list_shows_only_own_tags(): void
+    {
+        $this->setUpSite();
+        FileTag::withoutGlobalScope('site')->create(['site_id' => 'www', 'member_id' => 'alice', 'tagname' => 'alice-tag']);
+        FileTag::withoutGlobalScope('site')->create(['site_id' => 'www', 'member_id' => 'bob', 'tagname' => 'bob-tag']);
+
+        $this->actingAs(Member::find('alice'))->get(route('files.index'))
+            ->assertOk()
+            ->assertSee('alice-tag')
+            ->assertDontSee('bob-tag');
+    }
+
+    public function test_member_can_create_tags_on_upload(): void
+    {
+        $this->setUpSite();
+
+        $this->actingAs(Member::find('alice'))->post(route('files.store'), [
+            'file' => UploadedFile::fake()->create('doc.txt', 2, 'text/plain'),
+            'new_tags' => '企画, レビュー',
+        ])->assertRedirect(route('files.index'));
+
+        $tags = FileTag::withoutGlobalScope('site')->where('member_id', 'alice')->pluck('tagname');
+        $this->assertEqualsCanonicalizing(['企画', 'レビュー'], $tags->all());
+
+        $file = FileItem::withoutGlobalScope('site')->where('member_id', 'alice')->firstOrFail();
+        $this->assertNotNull($file->tag_id);
     }
 }

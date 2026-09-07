@@ -25,6 +25,10 @@
                 <x-admin-edit :href="route('filament.admin.resources.contents.create', ['content_sort' => $category->id])"
                               label="「{{ $category->name }}」に記事を追加" icon="plus" class="border-white/60 bg-white/90" />
             </span>
+        @else
+            <span class="flex items-center pr-2">
+                @include('public.partials.category-actions', ['cat' => $category])
+            </span>
         @endif
     </h2>
 

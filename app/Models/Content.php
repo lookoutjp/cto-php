@@ -30,10 +30,22 @@ class Content extends Model
         return $this->belongsTo(ContentSort::class, 'content_sort');
     }
 
+    /** 投稿者（会員投稿の場合。owner と同じことが多い）。 */
+    public function submitter(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'member_id', 'member_id');
+    }
+
     /** 公開済み（承認済み = 旧ASP ok=1）。 */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('ok', 1);
+    }
+
+    /** 会員が投稿し、カテゴリ管理員の承認待ちのもの（ok=2）。 */
+    public function scopePendingReview(Builder $query): Builder
+    {
+        return $query->where('ok', 2);
     }
 
     public function scopeListingOrder(Builder $query): Builder

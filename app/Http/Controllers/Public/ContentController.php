@@ -5,12 +5,46 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Content;
 use App\Models\ContentSort;
+use App\Models\Member;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ContentController extends Controller
 {
+    /**
+     * ログイン会員向けに、カテゴリ見出しの「投稿する」「カテゴリ管理員になる」ボタンや
+     * 承認待ちの表示を出し分けるためのフラグ群。
+     *
+     * @return array{isSiteMember: bool, manageableCatIds: int[], pendingCatIds: int[]}
+     */
+    private function memberContext(Request $request): array
+    {
+        $user = $request->user();
+        if (! $user instanceof Member || ! $user->belongsToSite()) {
+            return ['isSiteMember' => false, 'manageableCatIds' => [], 'pendingCatIds' => [], 'pendingCountByCat' => []];
+        }
+
+        $manageable = ContentSort::manageableIdsFor($user);
+
+        $pendingCountByCat = $manageable === []
+            ? []
+            : Content::query()->pendingReview()
+                ->whereIn('content_sort', $manageable)
+                ->selectRaw('content_sort, count(*) as c')
+                ->groupBy('content_sort')
+                ->pluck('c', 'content_sort')
+                ->map(fn ($v) => (int) $v)
+                ->all();
+
+        return [
+            'isSiteMember' => true,
+            'manageableCatIds' => $manageable,
+            'pendingCatIds' => $user->pendingCategoryApplicationIds()->all(),
+            'pendingCountByCat' => $pendingCountByCat,
+        ];
+    }
+
     /**
      * 旧 contents.asp 相当。
      *   ?q=      キーワード検索（サイト内の公開コンテンツを name/keyword で検索）
@@ -20,6 +54,7 @@ class ContentController extends Controller
     public function index(Request $request): View
     {
         $keyword = trim((string) $request->get('q'));
+        $memberCtx = $this->memberContext($request);
 
         if ($keyword !== '') {
             $results = Content::query()->publiclyVisible()
@@ -29,7 +64,7 @@ class ContentController extends Controller
 
             return view('public.contents-index', [
                 'mode' => 'search', 'keyword' => $keyword, 'results' => $results,
-            ]);
+            ] + $memberCtx);
         }
 
         $categoryId = $request->integer('category');
@@ -68,6 +103,17 @@ class ContentController extends Controller
 
             $ownContents = $category->contents()->published()->listingOrder()->get();
 
+            // 管理員が見るときは、このカテゴリ配下の承認待ち投稿もカテゴリページに出す。
+            $pendingItems = collect();
+            if (in_array((int) $category->id, $memberCtx['manageableCatIds'], true)) {
+                $subtreeIds = collect($collectIds((int) $category->id));
+                $pendingItems = Content::query()->pendingReview()
+                    ->whereIn('content_sort', $subtreeIds->all())
+                    ->with(['sort:id,name', 'submitter:member_id,name'])
+                    ->orderBy('adddatetime')->orderBy('id')
+                    ->get();
+            }
+
             // 「現在位置」をトップ→親→…→本カテゴリの階層で明示するための祖先リスト。
             $byId = $all->keyBy('id');
             $ancestors = [];
@@ -84,12 +130,13 @@ class ContentController extends Controller
             return view('public.contents-index', [
                 'mode' => 'category', 'category' => $category, 'children' => $children,
                 'ownContents' => $ownContents, 'ancestors' => $ancestors,
-            ]);
+                'pendingItems' => $pendingItems,
+            ] + $memberCtx);
         }
 
         $categories = ContentSort::publicTree();
 
-        return view('public.contents-index', ['mode' => 'tree', 'categories' => $categories]);
+        return view('public.contents-index', ['mode' => 'tree', 'categories' => $categories] + $memberCtx);
     }
 
     public function show(Content $content): View

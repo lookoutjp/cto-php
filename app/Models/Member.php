@@ -131,6 +131,28 @@ class Member extends Authenticatable implements FilamentUser
     }
 
     /**
+     * 指定サイトの「確定した会員」か（承認待ちの加入申請は除く。ninshou は問わない）。
+     * スーパー管理員は常に true。
+     */
+    public function belongsToSite(?string $siteId = null): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $siteId ??= app(CurrentSite::class)->idOrNull();
+        if ($siteId === null) {
+            return false;
+        }
+
+        // MemberRoom の confirmed グローバルスコープが承認待ちを除外する
+        return MemberRoom::query()
+            ->where('member_id', $this->getKey())
+            ->where('site_id', $siteId)
+            ->exists();
+    }
+
+    /**
      * この会員が「所属」している site_id 一覧（ninshou は問わない）。
      * 加入申請中（未承認）のサイトも含む＝承認待ちでも公開コンテンツは閲覧できる。
      * フロント側（一般会員向け画面）のテナント解決に使う想定。
@@ -181,6 +203,46 @@ class Member extends Authenticatable implements FilamentUser
     public function managesSite(string $siteId): bool
     {
         return $this->manageableSiteIds()->contains($siteId);
+    }
+
+    /**
+     * 承認済みで「直接」管理を任されているカテゴリ（content_sort）の id 一覧。
+     * 配下カテゴリへの展開は ContentSort::manageableIdsFor() で行う。
+     */
+    public function managedCategoryIds(): Collection
+    {
+        return ContentSortManager::query()->approved()
+            ->where('member_id', $this->getKey())
+            ->pluck('content_sort_id')
+            ->map(fn ($id) => (int) $id);
+    }
+
+    /** カテゴリ管理員の申請中（承認待ち）の content_sort id 一覧。 */
+    public function pendingCategoryApplicationIds(): Collection
+    {
+        return ContentSortManager::query()->pendingApplications()
+            ->where('member_id', $this->getKey())
+            ->pluck('content_sort_id')
+            ->map(fn ($id) => (int) $id);
+    }
+
+    /**
+     * 指定カテゴリ（またはその祖先）のカテゴリ管理員か。
+     * スーパー管理員・そのサイトのサイト管理員は常に true。
+     */
+    public function managesCategory(ContentSort|int $category): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($category instanceof ContentSort && $this->managesSite((string) $category->site_id)) {
+            return true;
+        }
+
+        $catId = $category instanceof ContentSort ? (int) $category->id : (int) $category;
+
+        return in_array($catId, ContentSort::manageableIdsFor($this), true);
     }
 
     /**

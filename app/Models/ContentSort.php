@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToSite;
+use App\Support\CurrentSite;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,6 +54,55 @@ class ContentSort extends Model
     public function contents(): HasMany
     {
         return $this->hasMany(Content::class, 'content_sort');
+    }
+
+    public function managers(): HasMany
+    {
+        return $this->hasMany(ContentSortManager::class, 'content_sort_id');
+    }
+
+    /**
+     * この会員が管理できる（サブカテゴリ追加・投稿追加・投稿承認ができる）カテゴリ id の一覧。
+     * 現在サイトのカテゴリが対象。
+     *   - スーパー管理員 / サイト管理員 … 全カテゴリ
+     *   - カテゴリ管理員 … 承認済みで任されたカテゴリ ＋ その配下すべて（father_id で子孫展開）
+     *
+     * @return int[]
+     */
+    public static function manageableIdsFor(?Member $member): array
+    {
+        if (! $member instanceof Member) {
+            return [];
+        }
+
+        $siteId = app(CurrentSite::class)->idOrNull();
+
+        if ($member->isSuperAdmin() || ($siteId !== null && $member->managesSite($siteId))) {
+            return static::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+
+        $direct = $member->managedCategoryIds()->all();
+        if ($direct === []) {
+            return [];
+        }
+
+        $byFather = static::query()->get(['id', 'father_id'])
+            ->groupBy(fn (self $c) => (int) $c->father_id);
+
+        $result = [];
+        $stack = $direct;
+        while ($stack !== []) {
+            $id = (int) array_pop($stack);
+            if (isset($result[$id])) {
+                continue;
+            }
+            $result[$id] = true;
+            foreach ($byFather[$id] ?? [] as $child) {
+                $stack[] = (int) $child->id;
+            }
+        }
+
+        return array_keys($result);
     }
 
     /**

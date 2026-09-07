@@ -7,6 +7,7 @@ use App\Models\Guestbook;
 use App\Models\GuestbookCategory;
 use App\Models\Room;
 use App\Support\CurrentSite;
+use App\Support\RichText;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -143,10 +144,15 @@ class BoardController extends Controller
     /** @return array{title: string, content: ?string} */
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['nullable', 'string', 'max:20000'],
+            'content' => ['nullable', 'string', 'max:100000'],
         ], [], ['title' => 'タイトル', 'content' => '本文']);
+
+        // リッチテキスト（Trix）の HTML を許可リストでサニタイズしてから保存。
+        $data['content'] = RichText::clean($data['content'] ?? null);
+
+        return $data;
     }
 
     private function findCategory(int $id): GuestbookCategory

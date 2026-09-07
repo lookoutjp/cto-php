@@ -1,0 +1,79 @@
+/* Trix エディタと保存済み本文（.trix-content）を、アプリの入力欄／本文表示に馴染ませる。
+   読み込み順は Tailwind → trix.css → このファイル（rich-text.js が最後に import）。 */
+
+/* --- エディタ枠 --- */
+trix-toolbar {
+    margin-bottom: 0;
+}
+trix-toolbar .trix-button-group {
+    border-color: rgb(209 213 219);
+    margin-bottom: 0;
+}
+trix-toolbar .trix-button {
+    border-bottom: none;
+}
+
+/* 添付ファイルは使わないのでツールバーから隠す */
+trix-toolbar .trix-button-group--file-tools {
+    display: none;
+}
+
+trix-editor {
+    border: 1px solid rgb(209 213 219);
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    padding: 0.625rem 0.75rem;
+    min-height: 8rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    background: #fff;
+}
+trix-editor:focus {
+    outline: none;
+    border-color: var(--brand, #b45309);
+    box-shadow: 0 0 0 1px var(--brand, #b45309);
+}
+trix-editor:empty:not(:focus)::before {
+    color: rgb(156 163 175);
+}
+
+/* --- 保存済み本文の表示 (.trix-content) --- */
+.trix-content {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    word-break: break-word;
+}
+.trix-content h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0.75em 0 0.35em;
+}
+.trix-content ul,
+.trix-content ol {
+    padding-inline-start: 1.4em;
+    margin: 0.4em 0;
+}
+.trix-content ul { list-style: disc; }
+.trix-content ol { list-style: decimal; }
+.trix-content blockquote {
+    border-left: 3px solid rgb(209 213 219);
+    padding-left: 0.9em;
+    margin: 0.5em 0;
+    color: rgb(75 85 99);
+}
+.trix-content pre {
+    background: rgb(243 244 246);
+    padding: 0.7em 0.9em;
+    border-radius: 0.4rem;
+    font-size: 0.85em;
+    overflow-x: auto;
+}
+.trix-content a {
+    color: rgb(37 99 235);
+    text-decoration: underline;
+}
+.trix-content a[href^="http"]::after {
+    content: " ↗";
+    font-size: 0.8em;
+    color: rgb(107 114 128);
+}

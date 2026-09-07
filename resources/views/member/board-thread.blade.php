@@ -23,7 +23,7 @@
                     <span class="font-medium text-gray-700">{{ $post->author?->name ?? $post->user_name }}</span>
                     <time class="tabular-nums">{{ optional($post->create_date)->isoFormat('YYYY年M月D日 HH:mm') }}</time>
                 </div>
-                <div class="prose prose-sm mt-3 max-w-none">{!! $post->content !!}</div>
+                <div class="trix-content mt-3">{!! $post->content !!}</div>
 
                 @if ($post->hasManagerReply())
                     <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">

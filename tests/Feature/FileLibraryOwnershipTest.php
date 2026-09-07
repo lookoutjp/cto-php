@@ -6,7 +6,9 @@ use App\Models\FileItem;
 use App\Models\Member;
 use App\Models\MemberRoom;
 use App\Models\Room;
+use App\Support\FileStorage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -17,6 +19,12 @@ class FileLibraryOwnershipTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake(FileStorage::DISK);
+    }
+
     private function setUpSite(): void
     {
         Room::create(['site_id' => 'www', 'sitename' => 'テスト', 'site_joutai' => 1, 'function_list' => 'filemanagefunction']);
@@ -26,19 +34,24 @@ class FileLibraryOwnershipTest extends TestCase
         }
     }
 
-    private function file(string $owner, string $name): FileItem
+    private function file(string $owner, string $name, bool $withBytes = false): FileItem
     {
+        $key = $withBytes ? 'files/www/'.$name.'.txt' : null;
+        if ($key) {
+            Storage::disk(FileStorage::DISK)->put($key, 'x');
+        }
+
         return FileItem::withoutGlobalScope('site')->create([
-            'site_id' => 'www', 'member_id' => $owner, 'filename' => $name, 'fileext' => 'png',
-            'storage_key' => 'files/www/'.$name.'.png', 'size_bytes' => 100, 'adddt' => now(), 'renban' => 0,
+            'site_id' => 'www', 'member_id' => $owner, 'filename' => $name, 'fileext' => 'txt',
+            'storage_key' => $key, 'size_bytes' => 1, 'adddt' => now(), 'renban' => 0,
         ]);
     }
 
     public function test_index_shows_only_the_current_users_files(): void
     {
         $this->setUpSite();
-        $mine = $this->file('alice', 'alice-doc');
-        $theirs = $this->file('bob', 'bob-doc');
+        $this->file('alice', 'alice-doc');
+        $this->file('bob', 'bob-doc');
 
         $this->actingAs(Member::find('alice'))->get(route('files.index'))
             ->assertOk()
@@ -49,22 +62,30 @@ class FileLibraryOwnershipTest extends TestCase
     public function test_download_of_another_users_file_is_forbidden(): void
     {
         $this->setUpSite();
-        $theirs = $this->file('bob', 'bob-doc');
+        $theirs = $this->file('bob', 'bob-doc', withBytes: true);
 
         $this->actingAs(Member::find('alice'))
             ->get(route('files.download', $theirs->id))
             ->assertForbidden();
     }
 
-    public function test_manager_can_still_reach_any_file(): void
+    public function test_owner_can_download_their_own_file(): void
     {
         $this->setUpSite();
-        $aliceFile = $this->file('alice', 'alice-doc');
+        $mine = $this->file('alice', 'alice-doc', withBytes: true);
 
-        // 実体は無い（storage_key は指すが fake ディスクに無し）ので 404 になるが、
-        // 403（権限）ではないことを確認する。
+        $this->actingAs(Member::find('alice'))
+            ->get(route('files.download', $mine->id))
+            ->assertOk();
+    }
+
+    public function test_manager_can_reach_any_file(): void
+    {
+        $this->setUpSite();
+        $aliceFile = $this->file('alice', 'alice-doc', withBytes: true);
+
         $this->actingAs(Member::find('boss'))
             ->get(route('files.download', $aliceFile->id))
-            ->assertNotFound();
+            ->assertOk();
     }
 }

@@ -1,23 +1,29 @@
 {{-- 再帰: コンテンツのカテゴリ階層 1 ノード --}}
 <section @class(['border-l-2 border-gray-100 pl-4' => $depth > 0])>
+    {{-- カテゴリ詳細ページ（/contents?category=N）の子カテゴリ見出しと同じブランド色のバー。 --}}
     <h2 @class([
-        'font-semibold text-gray-900',
-        'text-lg mb-3' => $depth === 0,
-        'text-base mt-4 mb-2' => $depth === 1,
-        'text-sm mt-3 mb-2 text-gray-700' => $depth >= 2,
+        'flex items-stretch overflow-hidden rounded-lg bg-brand font-semibold text-brand-fg',
+        'mb-3' => $depth === 0,
+        'mt-4 mb-2' => $depth === 1,
+        'mt-3 mb-2' => $depth >= 2,
     ])>
-        <a href="{{ route('contents.index', ['category' => $category->id]) }}" class="hover:text-brand hover:underline">
+        <a href="{{ route('contents.index', ['category' => $category->id]) }}"
+           @class([
+               'block flex-1 px-4 hover:bg-brand-dark',
+               'py-2.5 text-base' => $depth === 0,
+               'py-2 text-sm' => $depth >= 1,
+           ])>
             {{ $category->name }}
+            @if ($category->contents->isNotEmpty())
+                <span class="ml-1 text-xs font-normal opacity-80">{{ $category->contents->count() }}</span>
+            @endif
         </a>
-        @if ($category->contents->isNotEmpty())
-            <span class="ml-1 text-xs font-normal text-gray-400">{{ $category->contents->count() }}</span>
-        @endif
         @if ($adminMode ?? false)
-            <span class="ml-1 inline-flex gap-1 align-middle">
+            <span class="flex items-center gap-1 pr-2">
                 <x-admin-edit :href="route('filament.admin.resources.content-sorts.edit', $category)"
-                              label="「{{ $category->name }}」を編集" />
+                              label="「{{ $category->name }}」を編集" class="border-white/60 bg-white/90" />
                 <x-admin-edit :href="route('filament.admin.resources.contents.create', ['content_sort' => $category->id])"
-                              label="「{{ $category->name }}」に記事を追加" icon="plus" />
+                              label="「{{ $category->name }}」に記事を追加" icon="plus" class="border-white/60 bg-white/90" />
             </span>
         @endif
     </h2>

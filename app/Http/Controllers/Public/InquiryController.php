@@ -13,6 +13,7 @@ use App\Support\CurrentSite;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -33,7 +34,12 @@ class InquiryController extends Controller
             'email' => $user->email,
         ] : [];
 
-        return view('public.inquiry-form', ['prefill' => $prefill, ...$this->newCaptcha($request)]);
+        $request->session()->put('inquiry_form_shown_at', now()->timestamp);
+
+        return view('public.inquiry-form', [
+            'prefill' => $prefill,
+            'turnstileSiteKey' => config('services.turnstile.site_key'),
+        ]);
     }
 
     public function store(StoreInquiryRequest $request): RedirectResponse
@@ -44,7 +50,7 @@ class InquiryController extends Controller
         // フォーム表示から極端に早い送信は、成功したように見せて静かに捨てる
         // （エラーを返すとボットに学習・調整の手がかりを与えてしまうため）。
         if (filled($request->input('website')) || $this->submittedTooFast($request)) {
-            $request->session()->forget(['inquiry_captcha_answer', 'inquiry_captcha_shown_at']);
+            $request->session()->forget('inquiry_form_shown_at');
 
             return redirect()->route('contact.thanks')->with([
                 'inquiry_ticket' => '-',
@@ -52,14 +58,13 @@ class InquiryController extends Controller
             ]);
         }
 
-        // 簡単な計算式で人間確認。
-        $expectedAnswer = $request->session()->get('inquiry_captcha_answer');
-        if ($expectedAnswer === null || (int) $request->input('captcha_answer') !== (int) $expectedAnswer) {
+        // Cloudflare Turnstile で人間確認（サイトキー未設定＝ローカル開発時などは検証をスキップ）。
+        if (! $this->verifyTurnstile($request)) {
             return back()->withInput()->withErrors([
-                'captcha_answer' => '計算の答えが正しくありません。もう一度お試しください。',
+                'cf-turnstile-response' => 'ロボットではないことの確認に失敗しました。もう一度お試しください。',
             ]);
         }
-        $request->session()->forget(['inquiry_captcha_answer', 'inquiry_captcha_shown_at']);
+        $request->session()->forget('inquiry_form_shown_at');
 
         $site = $this->site();
 
@@ -114,30 +119,39 @@ class InquiryController extends Controller
         return Room::find(app(CurrentSite::class)->id());
     }
 
-    /**
-     * ボット対策の簡単な計算式チャレンジを生成し、セッションに正解と表示時刻を保存する。
-     *
-     * @return array{captchaA: int, captchaB: int}
-     */
-    private function newCaptcha(Request $request): array
-    {
-        $a = random_int(1, 9);
-        $b = random_int(1, 9);
-
-        $request->session()->put('inquiry_captcha_answer', $a + $b);
-        $request->session()->put('inquiry_captcha_shown_at', now()->timestamp);
-
-        return ['captchaA' => $a, 'captchaB' => $b];
-    }
-
     /** フォーム表示から数秒未満での送信は人間には早すぎるためボットとみなす。 */
     private function submittedTooFast(Request $request): bool
     {
-        $shownAt = $request->session()->get('inquiry_captcha_shown_at');
+        $shownAt = $request->session()->get('inquiry_form_shown_at');
         if ($shownAt === null) {
             return false;
         }
 
         return (now()->timestamp - (int) $shownAt) < 3;
+    }
+
+    /**
+     * Cloudflare Turnstile のトークンをサーバー側で検証する。
+     * シークレットキー未設定（ローカル開発など）の場合は検証をスキップして true を返す。
+     */
+    private function verifyTurnstile(Request $request): bool
+    {
+        $secret = config('services.turnstile.secret_key');
+        if (blank($secret)) {
+            return true;
+        }
+
+        $token = (string) $request->input('cf-turnstile-response');
+        if ($token === '') {
+            return false;
+        }
+
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => $secret,
+            'response' => $token,
+            'remoteip' => $request->ip(),
+        ]);
+
+        return (bool) $response->json('success');
     }
 }

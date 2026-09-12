@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // /contact フォームのボット対策（Cloudflare Turnstile）。未設定なら検証をスキップする。
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

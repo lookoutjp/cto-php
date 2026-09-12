@@ -73,13 +73,13 @@
                       class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ $field('remark') }}</textarea>
         </div>
 
-        <div>
-            <label for="captcha_answer" class="block text-sm font-medium text-gray-700">
-                ロボットでないことの確認: {{ $captchaA }} ＋ {{ $captchaB }} = ？ <span class="text-red-600">*</span>
-            </label>
-            <input type="text" inputmode="numeric" autocomplete="off" id="captcha_answer" name="captcha_answer" maxlength="3" required
-                   class="mt-1 w-24 rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
-        </div>
+        @if ($turnstileSiteKey)
+            {{-- ロボット対策（Cloudflare Turnstile）。送信時に cf-turnstile-response がサーバーへ送られる。 --}}
+            <div>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+            </div>
+        @endif
 
         <div class="pt-2">
             <button type="submit"

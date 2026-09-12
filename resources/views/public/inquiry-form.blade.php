@@ -19,6 +19,13 @@
 
         @php($field = fn ($name) => old($name, $prefill[$name] ?? ''))
 
+        {{-- ロボット対策のおとり欄。人間には見えない（CSSで画面外に配置）。
+             入力されていたら送信時にボット扱いする。 --}}
+        <div class="absolute left-[-9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+            <label for="website">ウェブサイト</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
         <div>
             <label for="customer_name" class="block text-sm font-medium text-gray-700">お名前 <span class="text-red-600">*</span></label>
             <input type="text" id="customer_name" name="customer_name" value="{{ $field('customer_name') }}" maxlength="100" required
@@ -64,6 +71,14 @@
             <label for="remark" class="block text-sm font-medium text-gray-700">お問い合わせ内容 <span class="text-red-600">*</span></label>
             <textarea id="remark" name="remark" rows="10" maxlength="10000" required
                       class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">{{ $field('remark') }}</textarea>
+        </div>
+
+        <div>
+            <label for="captcha_answer" class="block text-sm font-medium text-gray-700">
+                ロボットでないことの確認: {{ $captchaA }} ＋ {{ $captchaB }} = ？ <span class="text-red-600">*</span>
+            </label>
+            <input type="text" inputmode="numeric" autocomplete="off" id="captcha_answer" name="captcha_answer" maxlength="3" required
+                   class="mt-1 w-24 rounded-lg border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
         </div>
 
         <div class="pt-2">

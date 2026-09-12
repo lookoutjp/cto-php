@@ -59,7 +59,9 @@ Route::get('/attachments/{id}/preview', [AttachmentController::class, 'preview']
     ->whereNumber('id')->name('attachments.preview');
 
 Route::get('/contact', [InquiryController::class, 'create'])->name('contact.create');
-Route::post('/contact', [InquiryController::class, 'store'])->name('contact.store');
+Route::post('/contact', [InquiryController::class, 'store'])
+    ->middleware('throttle:5,1') // ボット対策: 同一IPから1分間に5回まで
+    ->name('contact.store');
 Route::get('/contact/thanks', [InquiryController::class, 'thanks'])->name('contact.thanks');
 
 // サービス共通の法務ページ（テナント非依存）

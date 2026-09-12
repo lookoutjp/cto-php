@@ -75,7 +75,19 @@ class MemberResource extends Resource
                     ->maxLength(50)
                     ->helperText('会員が最初に登録したサイトの site_id。')
                     ->default(null)
-                    ->disabled(),
+                    ->disabled()
+                    // スーパー管理員のみ表示。
+                    ->visible($isSuperAdmin),
+                Forms\Components\Placeholder::make('site_memberships')->label('所属 / 申請サイト')
+                    ->content(fn (?Member $record) => $record ? (MemberRoom::query()
+                        ->withoutGlobalScope('confirmed')
+                        ->where('member_id', $record->member_id)
+                        ->orderBy('site_id')
+                        ->get()
+                        ->map(fn (MemberRoom $mr) => $mr->site_id.($mr->isPending() ? '（承認待ち）' : ' ['.$mr->ninshouLabel().']'))
+                        ->implode(' / ') ?: '—') : '—')
+                    // スーパー管理員のみ表示。
+                    ->visible($isSuperAdmin),
                 Forms\Components\TextInput::make('appeal')->label(FieldLabels::ja('appeal'))
                     ->maxLength(255)
                     ->default(null),
@@ -85,10 +97,12 @@ class MemberResource extends Resource
                 Forms\Components\TextInput::make('nameread')->label(FieldLabels::ja('nameread'))
                     ->maxLength(50)
                     ->default(null),
-                Forms\Components\Radio::make('sex')->label(FieldLabels::ja('sex'))
-                    ->options(['1' => '男', '0' => '女', '' => '選択なし'])
-                    ->formatStateUsing(fn ($state) => $state === null ? '' : (string) $state)
-                    ->dehydrateStateUsing(fn ($state) => $state === '' ? null : $state),
+                Forms\Components\Select::make('sex')->label(FieldLabels::ja('sex'))
+                    ->options(['1' => '男', '0' => '女'])
+                    ->native(false)
+                    ->placeholder('選択なし')
+                    ->formatStateUsing(fn ($state) => filled($state) ? (string) $state : null)
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? $state : null),
                 Forms\Components\TextInput::make('email')->label(FieldLabels::ja('email'))
                     ->email()
                     ->maxLength(50)
@@ -172,6 +186,8 @@ class MemberResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $isSuperAdmin = auth()->user() instanceof Member && auth()->user()->isSuperAdmin();
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('email')->label(FieldLabels::ja('email'))
@@ -180,7 +196,9 @@ class MemberResource extends Resource
                     ->badge()
                     ->placeholder('—')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    // スーパー管理員のみ表示。
+                    ->visible($isSuperAdmin),
                 Tables\Columns\TextColumn::make('site_memberships')->label('所属 / 申請サイト')
                     ->state(fn (Member $record) => MemberRoom::query()
                         ->withoutGlobalScope('confirmed')
@@ -190,7 +208,9 @@ class MemberResource extends Resource
                         ->map(fn (MemberRoom $mr) => $mr->site_id.($mr->isPending() ? '（承認待ち）' : ' ['.$mr->ninshouLabel().']'))
                         ->implode(' / '))
                     ->wrap()
-                    ->toggleable(),
+                    ->toggleable()
+                    // スーパー管理員のみ表示。
+                    ->visible($isSuperAdmin),
                 Tables\Columns\TextColumn::make('appeal')->label(FieldLabels::ja('appeal'))
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -213,7 +233,9 @@ class MemberResource extends Resource
                 Tables\Columns\TextColumn::make('dayphone')->label(FieldLabels::ja('dayphone'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('magazine')->label(FieldLabels::ja('magazine'))
-                    ->searchable(),
+                    ->searchable()
+                    // スーパー管理員のみ表示。
+                    ->visible($isSuperAdmin),
                 Tables\Columns\TextColumn::make('online')->label(FieldLabels::ja('online'))
                     ->numeric()
                     ->sortable(),

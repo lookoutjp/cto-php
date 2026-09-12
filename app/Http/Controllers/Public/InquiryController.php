@@ -33,12 +33,34 @@ class InquiryController extends Controller
             'email' => $user->email,
         ] : [];
 
-        return view('public.inquiry-form', ['prefill' => $prefill]);
+        return view('public.inquiry-form', ['prefill' => $prefill, ...$this->newCaptcha($request)]);
     }
 
     public function store(StoreInquiryRequest $request): RedirectResponse
     {
         $this->ensureEnabled();
+
+        // ロボット対策。人間には見えないおとり欄（website）が埋まっている、または
+        // フォーム表示から極端に早い送信は、成功したように見せて静かに捨てる
+        // （エラーを返すとボットに学習・調整の手がかりを与えてしまうため）。
+        if (filled($request->input('website')) || $this->submittedTooFast($request)) {
+            $request->session()->forget(['inquiry_captcha_answer', 'inquiry_captcha_shown_at']);
+
+            return redirect()->route('contact.thanks')->with([
+                'inquiry_ticket' => '-',
+                'inquiry_email' => (string) $request->input('email'),
+            ]);
+        }
+
+        // 簡単な計算式で人間確認。
+        $expectedAnswer = $request->session()->get('inquiry_captcha_answer');
+        if ($expectedAnswer === null || (int) $request->input('captcha_answer') !== (int) $expectedAnswer) {
+            return back()->withInput()->withErrors([
+                'captcha_answer' => '計算の答えが正しくありません。もう一度お試しください。',
+            ]);
+        }
+        $request->session()->forget(['inquiry_captcha_answer', 'inquiry_captcha_shown_at']);
+
         $site = $this->site();
 
         $inquiry = new Inquiry($request->validated());
@@ -90,5 +112,32 @@ class InquiryController extends Controller
     private function site(): ?Room
     {
         return Room::find(app(CurrentSite::class)->id());
+    }
+
+    /**
+     * ボット対策の簡単な計算式チャレンジを生成し、セッションに正解と表示時刻を保存する。
+     *
+     * @return array{captchaA: int, captchaB: int}
+     */
+    private function newCaptcha(Request $request): array
+    {
+        $a = random_int(1, 9);
+        $b = random_int(1, 9);
+
+        $request->session()->put('inquiry_captcha_answer', $a + $b);
+        $request->session()->put('inquiry_captcha_shown_at', now()->timestamp);
+
+        return ['captchaA' => $a, 'captchaB' => $b];
+    }
+
+    /** フォーム表示から数秒未満での送信は人間には早すぎるためボットとみなす。 */
+    private function submittedTooFast(Request $request): bool
+    {
+        $shownAt = $request->session()->get('inquiry_captcha_shown_at');
+        if ($shownAt === null) {
+            return false;
+        }
+
+        return (now()->timestamp - (int) $shownAt) < 3;
     }
 }

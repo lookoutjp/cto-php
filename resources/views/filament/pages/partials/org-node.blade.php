@@ -4,6 +4,15 @@
             {{ $node->levelname ?: '（無名 #'.$node->level.'）' }}
         </span>
         <span class="text-xs text-gray-400">#{{ $node->level }}</span>
+
+        <a href="{{ \App\Filament\Resources\LevelResource::getUrl('edit', ['record' => $node]) }}"
+           class="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+            編集
+        </a>
+        <a href="{{ \App\Filament\Resources\LevelResource::getUrl('create', ['father' => $node->level]) }}"
+           class="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+            ＋ サブレベルを追加
+        </a>
     </div>
 
     @if ($node->kids->isNotEmpty())

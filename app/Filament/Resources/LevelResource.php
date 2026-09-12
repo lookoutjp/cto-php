@@ -7,9 +7,11 @@ use App\Models\Level;
 use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 
 class LevelResource extends Resource
 {
@@ -24,6 +26,12 @@ class LevelResource extends Resource
     protected static ?string $modelLabel = '組織階層';
 
     protected static ?string $pluralModelLabel = '組織階層';
+
+    /** 一覧画面は使わない（組織図ページ `/admin/org-chart` に置き換え）。 */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {
@@ -43,18 +51,18 @@ class LevelResource extends Resource
                         ->all())
                     ->native(false)
                     ->searchable()
-                    ->default('0')
+                    // 組織図の「サブレベルを追加」から ?father= で指定された値、
+                    // または直前の作成で使った親レベル（連続作成用）を初期値にする。
+                    ->default(fn () => (string) session('levels.create.father', '0'))
                     ->dehydrateStateUsing(fn ($state) => (int) $state),
-                // レベルは新規作成時のみ自動採番（既存の最大値+1）。編集時は変更可能。
+                // レベルは常に自動採番（既存の最大値+1）。手動変更はさせない。
                 Forms\Components\TextInput::make('level')->label(FieldLabels::ja('level'))
                     ->required()
                     ->numeric()
                     ->default(fn (): int => ((int) Level::query()->max('level')) + 1)
-                    ->disabled(fn (string $operation): bool => $operation === 'create')
+                    ->disabled()
                     ->dehydrated()
-                    ->helperText(fn (string $operation): ?string => $operation === 'create'
-                        ? '新規作成時は自動採番されます（既存の最大値 + 1）。'
-                        : null),
+                    ->helperText('自動採番されます（既存の最大値 + 1）。変更はできません。'),
                 Forms\Components\TextInput::make('levelname')->label(FieldLabels::ja('levelname'))
                     ->maxLength(50)
                     ->default(null),
@@ -84,7 +92,23 @@ class LevelResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        // サブレベルが残っている状態で削除すると、それらが孤児（親不明）になってしまうため禁止する。
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, Collection $records) {
+                            $blocked = $records->filter(
+                                fn (Level $l) => Level::query()->where('fatherlevel', $l->level)->exists()
+                            );
+
+                            if ($blocked->isNotEmpty()) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('削除できません')
+                                    ->body('サブレベルを持つレベルが含まれています: '.$blocked->pluck('levelname')->implode('、'))
+                                    ->send();
+
+                                $action->halt();
+                            }
+                        }),
                 ]),
             ]);
     }

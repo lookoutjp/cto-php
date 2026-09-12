@@ -5,12 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\MemberRoomResource\Pages;
 use App\Models\Member;
 use App\Models\MemberRoom;
+use App\Models\Room;
 use App\Support\CurrentSite;
 use App\Support\FieldLabels;
+use App\Support\MemberOptions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -70,12 +73,35 @@ class MemberRoomResource extends Resource
 
         return $form
             ->schema([
-                Forms\Components\TextInput::make('legacy_id')->label(FieldLabels::ja('legacy_id'))
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('member_id')->label(FieldLabels::ja('member_id'))
+                Forms\Components\Select::make('member_id')
+                    ->label('会員（メールアドレスで検索）')
                     ->required()
-                    ->maxLength(50),
+                    ->searchable()
+                    ->getSearchResultsUsing(fn (string $search): array => MemberOptions::searchByEmail($search))
+                    ->getOptionLabelUsing(fn ($value): ?string => MemberOptions::emailOptionLabel(Member::find($value)))
+                    // 会員・サイトは新規作成時にのみ指定する。既存の権限行では変更不可（表示のみ）。
+                    ->disabled(fn (string $operation) => $operation === 'edit')
+                    ->dehydrated(),
+                Forms\Components\Placeholder::make('member_email')
+                    ->label(FieldLabels::ja('email'))
+                    ->content(fn (?MemberRoom $record) => $record?->member?->email ?? '—')
+                    // 編集時のみ表示（新規作成は上の会員選択で email を扱うため不要）。
+                    ->visible(fn (string $operation) => $operation === 'edit'),
+                Forms\Components\Select::make('site_id')->label(FieldLabels::ja('site_id'))
+                    ->required()
+                    ->searchable()
+                    ->native(false)
+                    ->options(fn () => Room::query()->orderBy('site_id')->get(['site_id', 'sitename'])
+                        ->mapWithKeys(fn (Room $r) => [
+                            $r->site_id => trim((string) $r->sitename) !== ''
+                                ? $r->sitename.'（'.$r->site_id.'）'
+                                : $r->site_id,
+                        ])
+                        ->all())
+                    ->default(fn () => app(CurrentSite::class)->id())
+                    // 編集時は変更不可。新規作成時もスーパー管理者以外は現在のサイト固定。
+                    ->disabled(fn (string $operation) => $operation === 'edit' || ! $isSuperAdmin)
+                    ->dehydrated(),
                 Forms\Components\Radio::make('ninshou')->label(FieldLabels::ja('ninshou'))
                     ->required()
                     ->options([
@@ -85,13 +111,6 @@ class MemberRoomResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state === null ? null : (string) $state)
                     ->dehydrateStateUsing(fn ($state) => (int) $state),
-                Forms\Components\TextInput::make('site_id')->label(FieldLabels::ja('site_id'))
-                    ->required()
-                    ->maxLength(50)
-                    ->default(fn () => app(CurrentSite::class)->id())
-                    // スーパー管理者のみ他サイトへの割り当てが可能。それ以外は現在のサイト固定。
-                    ->disabled(fn () => ! $isSuperAdmin)
-                    ->dehydrated(),
             ]);
     }
 
@@ -99,10 +118,16 @@ class MemberRoomResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('site_id')->label(FieldLabels::ja('site_id'))
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('member.email')->label(FieldLabels::ja('email'))
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('member_id')->label('会員')
-                    ->formatStateUsing(fn ($state, MemberRoom $record) => trim((string) $record->member?->name) !== ''
-                        ? $record->member->name.'（'.$state.'）'
-                        : $state)
+                    ->formatStateUsing(fn (MemberRoom $record) => $record->member?->name)
+                    ->placeholder('—')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ninshou')->label(FieldLabels::ja('ninshou'))
@@ -113,7 +138,8 @@ class MemberRoomResource extends Resource
                         (int) $record->ninshou === -1 => 'danger',
                         (int) $record->ninshou === 1 => 'success',
                         default => 'gray',
-                    }),
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('applied_at')->label('加入申請日時')
                     ->dateTime()
                     ->sortable()
@@ -122,11 +148,14 @@ class MemberRoomResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('site_id')->label(FieldLabels::ja('site_id'))
-                    ->searchable()
-                    ->toggleable(),
             ])
-            ->defaultSort('applied_at', 'desc')
+            // 初期表示の並び順: サイトID → 会員 → 権限 → 加入申請日時 → 承認日時
+            ->defaultSort(fn (Builder $query): Builder => $query
+                ->orderBy('site_id')
+                ->orderBy('member_id')
+                ->orderBy('ninshou')
+                ->orderBy('applied_at')
+                ->orderBy('approved_at'))
             ->filters([
                 Tables\Filters\SelectFilter::make('state')
                     ->label('状態')
@@ -176,7 +205,7 @@ class MemberRoomResource extends Resource
                     ->successNotificationTitle('加入申請を却下しました。'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (MemberRoom $record) => ! $record->isPending()),
-            ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

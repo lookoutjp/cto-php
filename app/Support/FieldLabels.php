@@ -55,7 +55,7 @@ class FieldLabels
         'question' => '秘密の質問',
         'answer' => '回答',
         'magazine' => 'メルマガ購読',
-        'ninshou' => '権限（-1:管理員／1:参加者／0:閲覧のみ）',
+        'ninshou' => '権限',
         'ninshouspecial' => '個別公開設定',
 
         // サイト（rooms）

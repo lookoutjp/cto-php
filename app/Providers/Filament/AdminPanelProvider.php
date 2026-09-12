@@ -48,9 +48,30 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            // 左メニューをトップバーのボタンで非表示/表示に切り替えられるように（デスクトップで完全に隠せる）。開閉状態はブラウザに記憶される。
+            ->sidebarFullyCollapsibleOnDesktop()
             ->renderHook(
                 PanelsRenderHook::TOPBAR_START,
                 fn (): string => Blade::render('@livewire(\'site-switcher\')'),
+            )
+            // 一覧のタイトル行 + 左端N列を固定表示にするページ（route名 => 固定する列数）。
+            // 列数は「チェックボックス列 + 操作ボタン列 + 指定の列まで」の合計。
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                function (): string {
+                    $stickyTableFrozenColsByRoute = [
+                        'filament.admin.resources.members.index' => 3, // 会員: 編集 + メールアドレス
+                        'filament.admin.resources.member-rooms.index' => 5, // 会員権限: 承認/却下/編集 + サイトID + メールアドレス + 会員
+                    ];
+
+                    foreach ($stickyTableFrozenColsByRoute as $routeName => $frozenCols) {
+                        if (request()->routeIs($routeName)) {
+                            return view('filament.partials.sticky-frozen-table', ['frozenCols' => $frozenCols])->render();
+                        }
+                    }
+
+                    return '';
+                },
             )
             ->userMenuItems([
                 'mypage' => MenuItem::make()

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MailListResource\Pages;
 use App\Models\MailList;
+use App\Models\Member;
 use App\Support\FieldLabels;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,6 +12,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
+/**
+ * メール配信リスト（サイトごと、BelongsToSite で自動スコープ）。要望によりスーパー管理員のみ閲覧・操作できる。
+ */
 class MailListResource extends Resource
 {
     protected static ?string $model = MailList::class;
@@ -24,6 +28,16 @@ class MailListResource extends Resource
     protected static ?string $modelLabel = 'メール配信リスト';
 
     protected static ?string $pluralModelLabel = 'メール配信リスト';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user() instanceof Member && auth()->user()->isSuperAdmin();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
 
     public static function form(Form $form): Form
     {

@@ -32,4 +32,39 @@ class MemberOptions
             ])
             ->all();
     }
+
+    /**
+     * メールアドレスの部分一致でライブ検索する（Filament Select の
+     * getSearchResultsUsing 用）。全サイト横断で検索する。
+     *
+     * @return array<string, string>
+     */
+    public static function searchByEmail(string $search): array
+    {
+        if (trim($search) === '') {
+            return [];
+        }
+
+        return Member::query()
+            ->where('email', 'like', '%'.$search.'%')
+            ->orderBy('email')
+            ->limit(50)
+            ->get(['member_id', 'email', 'name'])
+            ->mapWithKeys(fn (Member $m) => [$m->member_id => self::emailOptionLabel($m)])
+            ->all();
+    }
+
+    /** 選択肢の表示形式「メールアドレス（名前）」。 */
+    public static function emailOptionLabel(?Member $member): ?string
+    {
+        if (! $member) {
+            return null;
+        }
+
+        $email = (string) $member->email;
+
+        return trim((string) $member->name) !== ''
+            ? $email.'（'.trim($member->name).'）'
+            : $email;
+    }
 }

@@ -29,12 +29,32 @@ class LevelResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('fatherlevel')->label(FieldLabels::ja('fatherlevel'))
-                    ->numeric()
-                    ->default(null),
+                Forms\Components\Select::make('fatherlevel')->label(FieldLabels::ja('fatherlevel'))
+                    ->options(fn (?Level $record) => collect(['0' => 'なし（最上位）'])
+                        ->union(
+                            Level::query()->orderBy('level')->get(['level', 'levelname'])
+                                ->reject(fn (Level $l) => $record && (int) $l->level === (int) $record->level)
+                                ->mapWithKeys(fn (Level $l) => [
+                                    (string) $l->level => trim((string) $l->levelname) !== ''
+                                        ? $l->levelname.'（'.$l->level.'）'
+                                        : (string) $l->level,
+                                ])
+                        )
+                        ->all())
+                    ->native(false)
+                    ->searchable()
+                    ->default('0')
+                    ->dehydrateStateUsing(fn ($state) => (int) $state),
+                // レベルは新規作成時のみ自動採番（既存の最大値+1）。編集時は変更可能。
                 Forms\Components\TextInput::make('level')->label(FieldLabels::ja('level'))
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->default(fn (): int => ((int) Level::query()->max('level')) + 1)
+                    ->disabled(fn (string $operation): bool => $operation === 'create')
+                    ->dehydrated()
+                    ->helperText(fn (string $operation): ?string => $operation === 'create'
+                        ? '新規作成時は自動採番されます（既存の最大値 + 1）。'
+                        : null),
                 Forms\Components\TextInput::make('levelname')->label(FieldLabels::ja('levelname'))
                     ->maxLength(50)
                     ->default(null),
